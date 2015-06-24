@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,13 +24,12 @@
 #include "privateTen.h"
 
 #define INFO "Fiber tractography, from one or more seeds"
-static const char *_tend_fiberInfoL =
+char *_tend_fiberInfoL =
   (INFO
    ".  A fairly complete command-line interface to the tenFiber API.");
 
 int
-tend_fiberMain(int argc, const char **argv, const char *me,
-               hestParm *hparm) {
+tend_fiberMain(int argc, char **argv, char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;
@@ -64,7 +62,7 @@ tend_fiberMain(int argc, const char **argv, const char *me,
   hestOptAdd(&hopt, "wsp", NULL, airTypeInt, 0, 0, &worldSpace, NULL,
              "define seedpoint and output path in worldspace.  Otherwise, "
              "(without using this option) everything is in index space");
-  hestOptAdd(&hopt, "t", "type", airTypeString, 1, 1, &ftypeS, "",
+  hestOptAdd(&hopt, "t", "type", airTypeString, 1, 1, &ftypeS, "", 
              "fiber type; defaults to something");
   hestOptAdd(&hopt, "n", "intg", airTypeEnum, 1, 1, &intg, "rk4",
              "integration method for fiber tracking",
@@ -147,6 +145,31 @@ tend_fiberMain(int argc, const char **argv, const char *me,
     fprintf(stderr, "%s: transforming output by:\n", me);
     ell_4m_print_d(stderr, matx);
   }
+//--------------------------------- ADDED -----------------------------------//
+  tfxNewHelper tfxNew;
+  tfxNew.useDwi = useDwi;
+  tfxNew.nin = nin;
+  tfxNew._stop = _stop;
+  tfxNew.stopLen = stopLen;
+  // tfxNew.ftype = ftype; => need to do this after create and fill tfx, 
+  // as ftype is found during the process
+  tfxNew.ksp = ksp;
+  tfxNew.intg = intg;
+  tfxNew.step = step;
+  tfxNew.worldSpace = worldSpace;
+  tfxNew.verbose = verbose;
+  tfxNew.allPaths = allPaths;
+  tfxNew.tfbs = tfbs;
+  // tfxNew.start = start; =>
+    tfxNew.start[0] = start[0];
+    tfxNew.start[1] = start[1];
+    tfxNew.start[2] = start[2];
+  tfxNew.whichPath = whichPath;
+  tfxNew.worldSpaceOut = worldSpaceOut;
+  tfxNew._nmat = _nmat;
+  tfxNew.outS = outS;
+  tfxNew.nseed = nseed;
+//---------------------------------------------------------------------------//
   if (useDwi) {
     tfx = tenFiberContextDwiNew(nin, 50, 1, 1,
                                 tenEstimate1MethodLLS,
@@ -261,6 +284,8 @@ tend_fiberMain(int argc, const char **argv, const char *me,
       fprintf(stderr, "%s: didn't get seed nrrd via \"-ns\"\n", me);
       airMopError(mop); return 1;
     }
+    tfxNew.ftype = ftype; // ADDED: need to do this after create and fill tfx, 
+                          // as ftype is found during the process
     tfml = tenFiberMultiNew();
     airMopAdd(mop, tfml, (airMopper)tenFiberMultiNix, airMopAlways);
     /*
@@ -273,7 +298,7 @@ tend_fiberMain(int argc, const char **argv, const char *me,
     */
     fiberPld = limnPolyDataNew();
     airMopAdd(mop, fiberPld, (airMopper)limnPolyDataNix, airMopAlways);
-    if (tenFiberMultiTrace(tfx, tfml, nseed)
+    if (tenFiberMultiTrace(tfx, tfml, nseed, tfxNew) // CHANGED
         || tenFiberMultiPolyData(tfx, fiberPld, tfml)) {
       airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble:\n%s\n", me, err);
@@ -282,11 +307,11 @@ tend_fiberMain(int argc, const char **argv, const char *me,
     if (worldSpaceOut && !worldSpace) {
       /* have to convert output to worldspace */
       unsigned int ii;
-      double indx[4], world[3];
+      double index[4], world[3];
       for (ii=0; ii<fiberPld->xyzwNum; ii++) {
-        ELL_4V_COPY(indx, fiberPld->xyzw + 4*ii);
-        ELL_4V_HOMOG(indx, indx);
-        gageShapeItoW(tfx->gtx->shape, world, indx);
+        ELL_4V_COPY(index, fiberPld->xyzw + 4*ii);
+        ELL_4V_HOMOG(index, index);
+        gageShapeItoW(tfx->gtx->shape, world, index);
         ELL_3V_COPY_TT(fiberPld->xyzw + 4*ii, float, world);
         (fiberPld->xyzw + 4*ii)[3] = 1.0;
       }
@@ -308,7 +333,6 @@ tend_fiberMain(int argc, const char **argv, const char *me,
       airMopError(mop); return 1;
     }
   }
-
   airMopOkay(mop);
   return 0;
 }

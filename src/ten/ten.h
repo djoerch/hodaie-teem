@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,6 +24,7 @@
 #define TEN_HAS_BEEN_INCLUDED
 
 #include <math.h>
+#include <omp.h> // ADDED
 
 #include <teem/air.h>
 #include <teem/biff.h>
@@ -137,10 +137,7 @@ enum {
   tenGlyphTypeSphere,     /* 2 */
   tenGlyphTypeCylinder,   /* 3 */
   tenGlyphTypeSuperquad,  /* 4 */
-  tenGlyphTypeBetterquad, /* 5: for T Schultz, GL Kindlmann.
-                             Superquadric Glyphs for Symmetric
-                             Second-Order Tensors. IEEE TVCG
-                             Nov/Dec 2010, 16(6):1595-1604 */
+  tenGlyphTypeBetterquad, /* 5 */
   tenGlyphTypePolarPlot,  /* 6 */
   tenGlyphTypeLast
 };
@@ -228,7 +225,7 @@ typedef struct {
 ** capability of tenGage is that because this is visualization, you
 ** can't easily control whether the measurement frame is applied, if
 ** known- in that sense the RGB info is uniquely different from the
-** other vector and tensor items that can be queried . . . so after a
+** other vector and tensor items that can be queried ... so after a
 ** brief appearance here the RGB evec coloring was removed.  The
 ** gagePerVolume->data field that it motivated has rightly remained.
 **
@@ -265,9 +262,9 @@ enum {
   tenGageEvec1,            /*  21: "evec1", medium eigenvect of tensor: [3] */
   tenGageEvec2,            /*  22: "evec2", minor eigenvect of tensor: [3] */
 
-  tenGageDelNormK2,        /*  23: "delnk2": normalized gradient tensor of
+  tenGageDelNormK2,        /*  23: "delnk2": normalized gradient tensor of 
                                    K2 = eval variance: [7] */
-  tenGageDelNormK3,        /*  24: "delnk3": normal gradient tensor of
+  tenGageDelNormK3,        /*  24: "delnk3": normal gradient tensor of 
                                    K3 = R3 = eval skewness: [7] */
   tenGageDelNormR1,        /*  25: "delnr1": normalized gradient tensor of
                                    R1 = tensor norm: [7] */
@@ -357,92 +354,81 @@ enum {
   tenGageHessian,          /*  81: "hess", all hessians of tensor
                                    components: [63] */
   tenGageTraceHessian,     /*  82: "trhess", hessian(trace): [9] */
-  tenGageTraceHessianEval,  /*  83 */
-  tenGageTraceHessianEval0, /*  84 */
-  tenGageTraceHessianEval1, /*  85 */
-  tenGageTraceHessianEval2, /*  86 */
-  tenGageTraceHessianEvec,  /*  87 */
-  tenGageTraceHessianEvec0, /*  88 */
-  tenGageTraceHessianEvec1, /*  89 */
-  tenGageTraceHessianEvec2, /*  90 */
-  tenGageTraceHessianFrob,  /*  91 */
-  tenGageBHessian,         /*  92: "bhess": [9] */
-  tenGageDetHessian,       /*  93: "dethess": [9] */
-  tenGageSHessian,         /*  94: "shess": [9] */
-  tenGageQHessian,         /*  95: "qhess": [9] */
+  tenGageBHessian,         /*  83: "bhess": [9] */
+  tenGageDetHessian,       /*  84: "dethess": [9] */
+  tenGageSHessian,         /*  85: "shess": [9] */
+  tenGageQHessian,         /*  86: "qhess": [9] */
 
-  tenGageFAHessian,        /*  96: "fahess": [9] */
-  tenGageFAHessianEval,    /*  97: "fahesseval": [3] */
-  tenGageFAHessianEval0,   /*  98: "fahesseval0": [1] */
-  tenGageFAHessianEval1,   /*  99: "fahesseval1": [1] */
-  tenGageFAHessianEval2,   /* 100: "fahesseval2": [1] */
-  tenGageFAHessianEvec,    /* 101: "fahessevec": [9] */
-  tenGageFAHessianEvec0,   /* 102: "fahessevec0": [3] */
-  tenGageFAHessianEvec1,   /* 103: "fahessevec1": [3] */
-  tenGageFAHessianEvec2,   /* 104: "fahessevec2": [3] */
-  tenGageFAHessianFrob,    /* 105 */
-  tenGageFARidgeSurfaceStrength,  /* 106: "farsurfstrn": [1] */
-  tenGageFAValleySurfaceStrength, /* 107: "favsurfstrn": [1] */
-  tenGageFALaplacian,      /* 108: "falapl": [1] */
-  tenGageFAHessianEvalMode,/* 109: "fahessevalmode": [1] */
-  tenGageFARidgeLineAlignment,    /* 110: "farlinealn": [1] */
-  tenGageFARidgeSurfaceAlignment, /* 111: "farsurfaln": [1] */
-  tenGageFA2ndDD,          /* 112: "fa2d": [1] */
+  tenGageFAHessian,        /*  87: "fahess": [9] */
+  tenGageFAHessianEval,    /*  88: "fahesseval": [3] */
+  tenGageFAHessianEval0,   /*  89: "fahesseval0": [1] */
+  tenGageFAHessianEval1,   /*  90: "fahesseval1": [1] */
+  tenGageFAHessianEval2,   /*  91: "fahesseval2": [1] */
+  tenGageFAHessianEvec,    /*  92: "fahessevec": [9] */
+  tenGageFAHessianEvec0,   /*  93: "fahessevec0": [3] */
+  tenGageFAHessianEvec1,   /*  94: "fahessevec1": [3] */
+  tenGageFAHessianEvec2,   /*  95: "fahessevec2": [3] */
+  tenGageFARidgeSurfaceStrength,  /*  96: "farsurfstrn": [1] */
+  tenGageFAValleySurfaceStrength, /*  97: "favsurfstrn": [1] */
+  tenGageFALaplacian,      /*  98: "falapl": [1] */
+  tenGageFAHessianEvalMode,/*  99: "fahessevalmode": [1] */
+  tenGageFARidgeLineAlignment,    /* 100: "farlinealn": [1] */
+  tenGageFARidgeSurfaceAlignment, /* 101: "farsurfaln": [1] */
+  tenGageFA2ndDD,          /* 102: "fa2d": [1] */
 
-  tenGageFAGeomTens,       /* 113: "fagten", sym. matx w/ evals {0, K1, K2}
+  tenGageFAGeomTens,       /* 103: "fagten", sym. matx w/ evals {0, K1, K2} 
                                    and evecs {grad, cdir0, cdir1}: [9] */
-  tenGageFAKappa1,         /* 114: "fak1", 1st princ curv: [1] */
-  tenGageFAKappa2,         /* 115: "fak2", 2nd princ curv (k2 <= k1): [1] */
-  tenGageFATotalCurv,      /* 116: "fatc", L2 norm(K1,K2): [1] */
-  tenGageFAShapeIndex,     /* 117: "fasi", Koen.'s shape index, ("S"): [1] */
-  tenGageFAMeanCurv,       /* 118: "famc", mean curvature (K1 + K2)/2: [1] */
-  tenGageFAGaussCurv,      /* 119: "fagc", gaussian curvature K1*K2: [1] */
-  tenGageFACurvDir1,       /* 120: "facdir1", 1st princ curv direction: [3] */
-  tenGageFACurvDir2,       /* 121: "facdir2", 2nd princ curv direction: [3] */
-  tenGageFAFlowlineCurv,   /* 122: "fafc", curv of normal streamline: [1] */
+  tenGageFAKappa1,         /* 104: "fak1", 1st princ curv: [1] */
+  tenGageFAKappa2,         /* 105: "fak2", 2nd princ curv (k2 <= k1): [1] */
+  tenGageFATotalCurv,      /* 106: "fatc", L2 norm(K1,K2): [1] */
+  tenGageFAShapeIndex,     /* 107: "fasi", Koen.'s shape index, ("S"): [1] */
+  tenGageFAMeanCurv,       /* 108: "famc", mean curvature (K1 + K2)/2: [1] */
+  tenGageFAGaussCurv,      /* 109: "fagc", gaussian curvature K1*K2: [1] */
+  tenGageFACurvDir1,       /* 110: "facdir1", 1st princ curv direction: [3] */
+  tenGageFACurvDir2,       /* 111: "facdir2", 2nd princ curv direction: [3] */
+  tenGageFAFlowlineCurv,   /* 112: "fafc", curv of normal streamline: [1] */
 
-  tenGageRHessian,         /* 123: "rhess": [9] */
+  tenGageRHessian,         /* 113: "rhess": [9] */
 
-  tenGageModeHessian,      /* 124: "mhess": [9] */
-  tenGageModeHessianEval,  /* 125: "mhesseval": [3] */
-  tenGageModeHessianEval0, /* 126: "mhesseval0": [1] */
-  tenGageModeHessianEval1, /* 127: "mhesseval1": [1] */
-  tenGageModeHessianEval2, /* 128: "mhesseval2": [1] */
-  tenGageModeHessianEvec,  /* 129: "mhessevec": [9] */
-  tenGageModeHessianEvec0, /* 130: "mhessevec0": [3] */
-  tenGageModeHessianEvec1, /* 131: "mhessevec1": [3] */
-  tenGageModeHessianEvec2, /* 132: "mhessevec2": [3] */
-  tenGageModeHessianFrob,  /* 133 */
+  tenGageModeHessian,      /* 114: "mhess": [9] */
+  tenGageModeHessianEval,  /* 115: "mhesseval": [3] */
+  tenGageModeHessianEval0, /* 116: "mhesseval0": [1] */
+  tenGageModeHessianEval1, /* 117: "mhesseval1": [1] */
+  tenGageModeHessianEval2, /* 118: "mhesseval2": [1] */
+  tenGageModeHessianEvec,  /* 119: "mhessevec": [9] */
+  tenGageModeHessianEvec0, /* 120: "mhessevec0": [3] */
+  tenGageModeHessianEvec1, /* 121: "mhessevec1": [3] */
+  tenGageModeHessianEvec2, /* 122: "mhessevec2": [3] */
 
-  tenGageOmegaHessian,     /* 134: "omhess": [9] */
-  tenGageOmegaHessianEval, /* 135: "omhesseval": [3] */
-  tenGageOmegaHessianEval0,/* 136: "omhesseval0": [1] */
-  tenGageOmegaHessianEval1,/* 137: "omhesseval1": [1] */
-  tenGageOmegaHessianEval2,/* 138: "omhesseval2": [1] */
-  tenGageOmegaHessianEvec, /* 139: "omhessevec": [9] */
-  tenGageOmegaHessianEvec0,/* 140: "omhessevec0": [3] */
-  tenGageOmegaHessianEvec1,/* 141: "omhessevec1": [3] */
-  tenGageOmegaHessianEvec2,/* 142: "omhessevec2": [3] */
-  tenGageOmegaLaplacian,   /* 143: "omlapl": [1] */
-  tenGageOmega2ndDD,       /* 144: "om2d": [1] */
-  tenGageOmegaHessianContrTenEvec0, /* 145: "omhesscte0": [1] */
-  tenGageOmegaHessianContrTenEvec1, /* 146: "omhesscte1": [1] */
-  tenGageOmegaHessianContrTenEvec2, /* 147: "omhesscte2": [1] */
+  tenGageOmegaHessian,     /* 123: "omhess": [9] */
+  tenGageOmegaHessianEval, /* 124: "omhesseval": [3] */
+  tenGageOmegaHessianEval0,/* 125: "omhesseval0": [1] */
+  tenGageOmegaHessianEval1,/* 126: "omhesseval1": [1] */
+  tenGageOmegaHessianEval2,/* 127: "omhesseval2": [1] */
+  tenGageOmegaHessianEvec, /* 128: "omhessevec": [9] */
+  tenGageOmegaHessianEvec0,/* 129: "omhessevec0": [3] */
+  tenGageOmegaHessianEvec1,/* 130: "omhessevec1": [3] */
+  tenGageOmegaHessianEvec2,/* 131: "omhessevec2": [3] */
+  tenGageOmegaLaplacian,   /* 132: "omlapl": [1] */
+  tenGageOmega2ndDD,       /* 133: "om2d": [1] */
+  tenGageOmegaHessianContrTenEvec0, /* 134: "omhesscte0": [1] */
+  tenGageOmegaHessianContrTenEvec1, /* 135: "omhesscte1": [1] */
+  tenGageOmegaHessianContrTenEvec2, /* 136: "omhesscte2": [1] */
 
-  tenGageTraceGradVecDotEvec0,   /* 148: "trgvdotevec0": [1] */
-  tenGageTraceDiffusionAlign,    /* 149: "datr": [1] */
-  tenGageTraceDiffusionFraction, /* 150: "dftr": [1] */
-  tenGageFAGradVecDotEvec0,      /* 151: "fagvdotevec0": [1] */
-  tenGageFADiffusionAlign,       /* 152: "dafa": [1] */
-  tenGageFADiffusionFraction,    /* 153: "dffa": [1] */
-  tenGageOmegaGradVecDotEvec0,   /* 154: "omgvdotevec0": [1] */
-  tenGageOmegaDiffusionAlign,    /* 155: "daom": [1] */
-  tenGageOmegaDiffusionFraction, /* 156: "dfom": [1] */
-  tenGageConfGradVecDotEvec0,    /* 157: "confgvdotevec0": [1] */
-  tenGageConfDiffusionAlign,     /* 158: "daconf": [1] */
-  tenGageConfDiffusionFraction,  /* 159: "dfconf": [1] */
+  tenGageTraceGradVecDotEvec0,   /* 137: "trgvdotevec0": [1] */
+  tenGageTraceDiffusionAlign,    /* 138: "datr": [1] */
+  tenGageTraceDiffusionFraction, /* 139: "dftr": [1] */
+  tenGageFAGradVecDotEvec0,      /* 140: "fagvdotevec0": [1] */
+  tenGageFADiffusionAlign,       /* 141: "dafa": [1] */
+  tenGageFADiffusionFraction,    /* 142: "dffa": [1] */
+  tenGageOmegaGradVecDotEvec0,   /* 143: "omgvdotevec0": [1] */
+  tenGageOmegaDiffusionAlign,    /* 144: "daom": [1] */
+  tenGageOmegaDiffusionFraction, /* 145: "dfom": [1] */
+  tenGageConfGradVecDotEvec0,    /* 146: "confgvdotevec0": [1] */
+  tenGageConfDiffusionAlign,     /* 147: "daconf": [1] */
+  tenGageConfDiffusionFraction,  /* 148: "dfconf": [1] */
 
-  tenGageCovariance, /* 160: "cov" 4rth order covariance tensor: [21]
+  tenGageCovariance, /* 149: "cov" 4rth order covariance tensor: [21]
                         in order of appearance:
                         0:xxxx  1:xxxy  2:xxxz  3:xxyy  4:xxyz  5:xxzz
                                 6:xyxy  7:xyxz  8:xyyy  9:xyyz 10:xyzz
@@ -450,62 +436,62 @@ enum {
                                                15:yyyy 16:yyyz 17:yyzz
                                                        18:yzyz 19:yzzz
                                                                20:zzzz */
-  tenGageCovarianceRGRT, /* 161: "covr" covariance tensor expressed in frame
+  tenGageCovarianceRGRT, /* 150: "covr" covariance tensor expressed in frame
                             of R invariant gradients and rotation tangents */
-  tenGageCovarianceKGRT, /* 162: "covk" covariance tensor expressed in frame
+  tenGageCovarianceKGRT, /* 151: "covk" covariance tensor expressed in frame
                             of K invariant gradients and rotation tangents */
-  tenGageTensorLogEuclidean,     /* 163: "logeuc" log-euclidean interp */
-  tenGageTensorQuatGeoLoxK,      /* 164: "qglk" QGL-K interpolation */
-  tenGageTensorQuatGeoLoxR,      /* 165: "qglr" QGL-R interpolation */
-  tenGageTensorRThetaPhiLinear,  /* 166: "rtpl" RThetaPhiLinear interp */
+  tenGageTensorLogEuclidean,     /* 152: "logeuc" log-euclidean interp */
+  tenGageTensorQuatGeoLoxK,      /* 153: "qglk" QGL-K interpolation */
+  tenGageTensorQuatGeoLoxR,      /* 154: "qglr" QGL-R interpolation */
+  tenGageTensorRThetaPhiLinear,  /* 155: "rtpl" RThetaPhiLinear interp */
 
-  tenGageCl1GradVec,       /* 167: "cl1gv" gradient vector of cl1: [3] */
-  tenGageCl1GradMag,       /* 168: "cl1gm" gradient magnitude of cl1: [1] */
-  tenGageCl1Normal,        /* 169: "cl1gn" normal of cl1: [3] */
-  tenGageCp1GradVec,       /* 170: "cp1gv" gradient vector of cp1: [3] */
-  tenGageCp1GradMag,       /* 171: "cp1gm" gradient magnitude of cp1: [1] */
-  tenGageCp1Normal,        /* 172: "cl1gn" normal of cp1: [3] */
-  tenGageCa1GradVec,       /* 173: "ca1gv" gradient vector of ca1: [3] */
-  tenGageCa1GradMag,       /* 174: "ca1gm" gradient magnitude of ca1: [1] */
-  tenGageCa1Normal,        /* 175: "cl1gn" normal of ca1: [3] */
-  tenGageTensorGradRotE,   /* 176: "tgrote" all tensor component gradients,
+  tenGageCl1GradVec,       /* 156: "cl1gv" gradient vector of cl1: [3] */
+  tenGageCl1GradMag,       /* 157: "cl1gm" gradient magnitude of cl1: [1] */
+  tenGageCl1Normal,	   /* 158: "cl1gn" normal of cl1: [3] */
+  tenGageCp1GradVec,       /* 159: "cp1gv" gradient vector of cp1: [3] */
+  tenGageCp1GradMag,       /* 160: "cp1gm" gradient magnitude of cp1: [1] */
+  tenGageCp1Normal,	   /* 161: "cl1gn" normal of cp1: [3] */
+  tenGageCa1GradVec,       /* 162: "ca1gv" gradient vector of ca1: [3] */
+  tenGageCa1GradMag,       /* 163: "ca1gm" gradient magnitude of ca1: [1] */
+  tenGageCa1Normal,	   /* 164: "cl1gn" normal of ca1: [3] */
+  tenGageTensorGradRotE,   /* 165: "tgrote" all tensor component gradients,
                               starting with confidence gradient.
                               Rotated such that eigenvalue
                               derivatives are on the diagonal: [21] */
-  tenGageEvalHessian,    /* 177: "evalhess" Hessian of the eigenvalues: [27] */
-  tenGageCl1Hessian,     /* 178: "cl1hess" Hessian of cl1: [9] */
-  tenGageCl1HessianEval, /* 179: "cl1hesseval" Hessian evals of cl1: [3] */
-  tenGageCl1HessianEval0,/* 180: "cl1hesseval0" First Hess eval of cl1: [1] */
-  tenGageCl1HessianEval1,/* 181: "cl1hesseval1" Second Hess eval of cl1: [1] */
-  tenGageCl1HessianEval2,/* 182: "cl1hesseval2" Third Hess eval of cl1: [1] */
-  tenGageCl1HessianEvec, /* 183: "cl1hessevec" Hessian evecs of cl1: [9] */
-  tenGageCl1HessianEvec0,/* 184: "cl1hessevec0" First Hess evec of cl1: [3] */
-  tenGageCl1HessianEvec1,/* 185: "cl1hessevec1" Second Hess evec of cl1: [3] */
-  tenGageCl1HessianEvec2,/* 186: "cl1hessevec2" Third Hess evec of cl1: [3] */
-  tenGageCp1Hessian,     /* 187: "cp1hess" Hessian of cp1: [9] */
-  tenGageCp1HessianEval, /* 188: "cp1hesseval" Hessian evals of cp1: [3] */
-  tenGageCp1HessianEval0,/* 189: "cp1hesseval0" First Hess eval of cp1: [1] */
-  tenGageCp1HessianEval1,/* 190: "cp1hesseval1" Second Hess eval of cp1: [1] */
-  tenGageCp1HessianEval2,/* 191: "cp1hesseval2" Third Hess eval of cp1: [1] */
-  tenGageCp1HessianEvec, /* 192: "cp1hessevec" Hessian evecs of cp1: [9] */
-  tenGageCp1HessianEvec0,/* 193: "cp1hessevec0" First Hess evec of cp1: [3] */
-  tenGageCp1HessianEvec1,/* 194: "cp1hessevec1" Second Hess evec of cp1: [3] */
-  tenGageCp1HessianEvec2,/* 195: "cp1hessevec2" Third Hess evec of cp1: [3] */
-  tenGageCa1Hessian,     /* 196: "ca1hess" Hessian of ca1: [9] */
-  tenGageCa1HessianEval, /* 197: "ca1hesseval" Hessian evals of ca1: [3] */
-  tenGageCa1HessianEval0,/* 198: "ca1hesseval0" First Hess eval of ca1: [1] */
-  tenGageCa1HessianEval1,/* 199: "ca1hesseval1" Second Hess eval of ca1: [1] */
-  tenGageCa1HessianEval2,/* 200: "ca1hesseval2" Third Hess eval of ca1: [1] */
-  tenGageCa1HessianEvec, /* 201: "ca1hessevec" Hessian evecs of ca1: [9] */
-  tenGageCa1HessianEvec0,/* 202: "ca1hessevec0" First Hess evec of ca1: [3] */
-  tenGageCa1HessianEvec1,/* 203: "ca1hessevec1" Second Hess evec of ca1: [3] */
-  tenGageCa1HessianEvec2,/* 204: "ca1hessevec2" Third Hess evec of ca1: [3] */
-  tenGageFiberCurving,   /* 205: "fibcurv" Savadjiev et al. fiber curving */
-  tenGageFiberDispersion,/* 206: "fibdisp" Savadjiev et al. fiber dispersion */
-  tenGageAniso,          /* 207: "an", all anisos: [TEN_ANISO_MAX+1] */
+  tenGageEvalHessian,	 /* 166: "evalhess" Hessian of the eigenvalues: [27] */
+  tenGageCl1Hessian,	 /* 167: "cl1hess" Hessian of cl1: [9] */
+  tenGageCl1HessianEval, /* 168: "cl1hesseval" Hessian evals of cl1: [3] */
+  tenGageCl1HessianEval0,/* 169: "cl1hesseval0" First Hess eval of cl1: [1] */
+  tenGageCl1HessianEval1,/* 170: "cl1hesseval1" Second Hess eval of cl1: [1] */
+  tenGageCl1HessianEval2,/* 171: "cl1hesseval2" Third Hess eval of cl1: [1] */
+  tenGageCl1HessianEvec, /* 172: "cl1hessevec" Hessian evecs of cl1: [9] */
+  tenGageCl1HessianEvec0,/* 173: "cl1hessevec0" First Hess evec of cl1: [3] */
+  tenGageCl1HessianEvec1,/* 174: "cl1hessevec1" Second Hess evec of cl1: [3] */
+  tenGageCl1HessianEvec2,/* 175: "cl1hessevec2" Third Hess evec of cl1: [3] */
+  tenGageCp1Hessian,	 /* 176: "cp1hess" Hessian of cp1: [9] */
+  tenGageCp1HessianEval, /* 177: "cp1hesseval" Hessian evals of cp1: [3] */
+  tenGageCp1HessianEval0,/* 178: "cp1hesseval0" First Hess eval of cp1: [1] */
+  tenGageCp1HessianEval1,/* 179: "cp1hesseval1" Second Hess eval of cp1: [1] */
+  tenGageCp1HessianEval2,/* 180: "cp1hesseval2" Third Hess eval of cp1: [1] */
+  tenGageCp1HessianEvec, /* 181: "cp1hessevec" Hessian evecs of cp1: [9] */
+  tenGageCp1HessianEvec0,/* 182: "cp1hessevec0" First Hess evec of cp1: [3] */
+  tenGageCp1HessianEvec1,/* 183: "cp1hessevec1" Second Hess evec of cp1: [3] */
+  tenGageCp1HessianEvec2,/* 184: "cp1hessevec2" Third Hess evec of cp1: [3] */
+  tenGageCa1Hessian,	 /* 185: "ca1hess" Hessian of ca1: [9] */
+  tenGageCa1HessianEval, /* 186: "ca1hesseval" Hessian evals of ca1: [3] */
+  tenGageCa1HessianEval0,/* 187: "ca1hesseval0" First Hess eval of ca1: [1] */
+  tenGageCa1HessianEval1,/* 188: "ca1hesseval1" Second Hess eval of ca1: [1] */
+  tenGageCa1HessianEval2,/* 189: "ca1hesseval2" Third Hess eval of ca1: [1] */
+  tenGageCa1HessianEvec, /* 190: "ca1hessevec" Hessian evecs of ca1: [9] */
+  tenGageCa1HessianEvec0,/* 191: "ca1hessevec0" First Hess evec of ca1: [3] */
+  tenGageCa1HessianEvec1,/* 192: "ca1hessevec1" Second Hess evec of ca1: [3] */
+  tenGageCa1HessianEvec2,/* 193: "ca1hessevec2" Third Hess evec of ca1: [3] */
+  tenGageFiberCurving,   /* 194: "fibcurv" Savadjiev et al. fiber curving */
+  tenGageFiberDispersion,/* 195: "fibdisp" Savadjiev et al. fiber dispersion */
+  tenGageAniso,          /* 196: "an", all anisos: [TEN_ANISO_MAX+1] */
   tenGageLast
 };
-#define TEN_GAGE_ITEM_MAX     207
+#define TEN_GAGE_ITEM_MAX     196
 
 /*
 ******** tenDwiGage* enum
@@ -694,7 +680,7 @@ enum {
 
 /*
 ******** tenDwiFiberType* enum
-**
+** 
 ** how tractography is done in DWI volumes.  This is orthogonal to
 ** how single- or two-tensor estimation is done; it describes what we
 ** do with the model(s) once estimated
@@ -732,7 +718,7 @@ enum {
 ** tenFiberSingle->whyStop[]), or never got started
 ** (tenFiberSingle->whyNowhere), or never went far enough (also
 ** tenFiberSingle->whyNowhere).
-**
+** 
 ** The addition of tenFiberStopMinLength and tenFiberStopMinNumSteps
 ** really stretch the meaningfulness of "tenFiberStop", but its the
 ** only logical place for such constraints to go.
@@ -809,7 +795,7 @@ typedef struct {
   /* ---- input -------- */
   const Nrrd *nin;      /* the tensor OR DWI volume being analyzed */
   NrrdKernelSpec *ksp;  /* reconstruction kernel for tensors or DWIs */
-  int useDwi,           /* we're working in a DWI, not a tensor, volume */
+  int useDwi,           /* we're working in a DWI, not a tensor, volume */    
     fiberType,          /* from tenFiberType* OR tenDwiFiberType* enum */
     fiberProbeItem,     /* item to probe along fiber and possibly save in
                            tenFiberSingle->nval */
@@ -888,6 +874,37 @@ typedef struct {
   double measr[NRRD_MEASURE_MAX+1];  /* a controlled mess */
 } tenFiberSingle;
 
+/////////////////////////////// ADDED /////////////////////////////////
+/*
+******** tfxNewHelper
+**
+** values assigned in tendFiber.c
+** used in tenFiberMultiTrace() to pass to tenFiberTfxNew() which uses it
+** to create new tfxIndividual structs (tenFiberContext's)
+*/
+typedef struct
+{
+  int useDwi;
+  Nrrd* nin;
+  double* _stop; 
+  unsigned int stopLen;
+  int ftype;
+  NrrdKernelSpec* ksp;
+  int intg;
+  double step;
+  int worldSpace;
+  int verbose;
+  int allPaths;
+  tenFiberSingle* tfbs;
+  double start[3];
+  unsigned int whichPath;
+  int worldSpaceOut;
+  Nrrd* _nmat;
+  char* outS;
+  Nrrd* nseed;
+} tfxNewHelper;
+///////////////////////////////////////////////////////////////////////
+
 /*
 ******** tenFiberMulti
 **
@@ -962,19 +979,13 @@ typedef struct {
                              end of first distribution phase */
     minPotentialChange,   /* minimum change in potential that signifies
                              end of first distribution phase */
-    minMean,              /* mean gradient length that signifies end of
+    minMean,              /* mean gradient length that signifies end of 
                              secondary balancing phase */
     minMeanImprovement;   /* magnitude of improvement (reduction) of mean
-                             gradient length that signifies end of
+                             gradient length that signifies end of 
                              secondary balancing phase */
-  int single,             /* distribute single points, instead of
+  int single;             /* distribute single points, instead of 
                              anti-podal pairs of points */
-    insertZeroVec,        /* when computing output in
-                             tenGradientDistribute (and only there, though
-                             this is called by tenGradientGenerate), insert
-                             the zero vector at the beginning of the list,
-                             corresponding to a non-DWI B0 image */
-    verbose;              /* verbosity level; 0 turns off everything */
   unsigned int snap,      /* interval of interations at which to save
                              snapshats of distribution */
     report,               /* interval of interations at which to report
@@ -982,11 +993,11 @@ typedef struct {
     expo,                 /* the exponent N that defines the potential
                              energy profile 1/r^N (coulomb: N=1) */
     seed,                 /* seed value for random number generator */
-    maxEdgeShrink,        /* max number of times we try to compute
+    maxEdgeShrink,        /* max number of times we try to compute 
                              an update with smaller edge normalization */
-    minIteration,         /* run for at least this many iterations,
+    minIteration,         /* run for at least this many iterations, 
                              which can be useful for high exponents,
-                             for which potential measurements can
+                             for which potential measurements can 
                              easily go to infinity */
     maxIteration;         /* bail if we haven't converged by this number
                              of iterations */
@@ -1098,7 +1109,7 @@ typedef struct {
 ** being part of the pvl, such modifications are thread-safe
 **
 ** the reason for having two tenEstimateContexts is that within
-** one volume you will sometimes want to measure both one and
+** one volume you will sometimes want to measure both one and 
 ** two tensors, and it would be crazy to incur the overhead of
 ** switching between the two *per-query*.
 */
@@ -1139,69 +1150,49 @@ typedef struct {
 } tenInterpParm;
 
 /* the idea is that there should be a uniform way of describing
-   DWI experiments, and as a result of calling one of the Set()
+   DWI experiments, and as a result of calling one of the Set() 
    functions below, the information is set in tenExperSpec so that
    combined with a diffusion model spec, DWIs can be simulated */
 typedef struct {
   int set;               /* has been set */
   unsigned imgNum;       /* total number of images, dwi or not */
-  double *bval,          /* all b values: imgNum doubles.
-                            NOTE: if dwi[i] is to be considered a "b0" value
-                            (for the various functions that have a knownB0 or
-                            similarly named flag), bval[i] must be 0.0;
-                            regardless of the gradient length */
+  double *bval,          /* all b values: imgNum doubles */
   /* *wght,                 all weights, but not yet used */
     *grad;               /* all gradients: 3 x imgNum doubles */
 } tenExperSpec;
 
-/* description of *one* parameter in the parameter vector that
-   defines one instance of a given model */
 typedef struct {
   char name[AIR_STRLEN_SMALL]; /* name */
   double min, max;             /* bounds */
-  int cyclic;                  /* non-zero if effectively min == max */
   int vec3;                    /* non-zero if this is a coefficient
                                   of a UNIT-LENGTH 3-vector */
-  unsigned int vecIdx;         /* *if* this param is part of vector,
-                                  the index into it, i.e. 0, 1, or 2 */
+  unsigned int vecIdx;         /* if part of vector, index into it */
 } tenModelParmDesc;
 
-#define TEN_MODEL_B0_MAX 65500    /* HEY: fairly arbitrary, but is set to be
-                                     a little below the max storable value
-                                     of the unsigned short in which DWI
-                                     values might be saved */
-#define TEN_MODEL_DIFF_MAX 0.006  /* in units of mm^2/sec; diffusivity of
-                                     water is about 0.003 mm^2/sec */
-#define TEN_MODEL_PARM_GRAD_EPS 0.000005 /* for gradient calculations */
+#define TEN_MODEL_B0_MAX 10000    /* HEY: completely arbitrary! */
+#define TEN_MODEL_DIFF_MAX 0.004  /* in units of mm^2/sec */
+#define TEN_MODEL_PARM_GRAD_EPS 0.00002 /* for gradient calculations */
 
 /*
 ******** struct tenModel
 **
-** Container for *information* about how DWI values arise (i.e. model
-** parameters), with functions that help in fitting and evaluating
-** models.  A tenModel does not contain any vector of model parameter
-** values, it is only a description of those values (especially its
-** tenModelParmDesc vector), and utilities for computing with those
-** parameter values.
+** container for information about how DWI values arise,
+** with functions that help in fitting and evaluating models
 **
-** NOTE: the current convention is to *always* have the non-DW T2
-** image value ("B0") be the first value in the parameter vector that
-** a tenModel is used to do describe.  The B0 value will be found either
-** by trivial means (i.e copied from the image data), or by a different
-** method than the rest of the model parameters, but it is stored along with
-** the parameters because
-** (1) its very handy to have in one place all the information that, when
-** combined with the tenExperSpec, gives you a DWI value, and
-** (2) sometimes B0 does have to be estimated at the same time as the rest
-** of the model, so we thereby avoid doubling the number of models
-** to be able to support this.
-** On the other hand, the B0 value may not be stored along with the rest of
-** the parm vec in the case of saving out whole nrrd of parm vecs.
-** The "parmNum" field below therefore always includes the B0 value
+** NOTE: the current convention is to *always* have the non-DW
+** T2 image value ("B0") be the first parameter in the model.
+** The B0 value will probably be found by trivial means (i.e copied
+** from the image data), or by a different method than the rest
+** of the model parameters, but (1) its very handy to have in one
+** place all the information that, when combined with the 
+** tenExperSpec, gives you a DWI value, and (2) sometimes B0 does
+** have to be estimated at the same time as the rest of the model,
+** and it would be dumb to double the number of models to be able
+** to capture this.
 */
 typedef struct tenModel_t {
   char name[AIR_STRLEN_SMALL];
-  unsigned int parmNum;
+  unsigned int dofNum, parmNum;
   const tenModelParmDesc *parmDesc;
   /* noise free simulation */
   void (*simulate)(double *dwiSim, const double *parm,
@@ -1209,7 +1200,7 @@ typedef struct tenModel_t {
   /* parameter vector operations */
   char *(*sprint)(char str[AIR_STRLEN_MED], const double *parm);
   double *(*alloc)(void);
-  void (*rand)(double *parm, airRandMTState *rng, int knownB0);
+  void (*rand)(double *parm, airRandMTState *rng, int knownB0); 
   void (*step)(double *parm1, const double scl,
                const double *grad, const double *parm0);
   double (*dist)(const double *parmA, const double *parmB);
@@ -1224,12 +1215,11 @@ typedef struct tenModel_t {
                   const tenExperSpec *espec,
                   double *dwiBuff, const double *dwiMeas,
                   int knownB0);
-  double (*sqeFit)(double *parm, double *convFrac, unsigned int *itersTaken,
-                   const tenExperSpec *espec,
+  double (*sqeFit)(double *parm, double *convFrac, const tenExperSpec *espec, 
                    double *dwiBuff, const double *dwiMeas,
                    const double *parmInit, int knownB0,
                    unsigned int minIter, unsigned int maxIter,
-                   double convEps, int verbose);
+                   double convEps);
   /* "nll" == negative log likelihood */
   double (*nll)(const double *parm, const tenExperSpec *espec,
                 double *dwiBuff, const double *dwiMeas,
@@ -1238,13 +1228,12 @@ typedef struct tenModel_t {
                   const tenExperSpec *espec,
                   double *dwiBuff, const double *dwiMeas,
                   int rician, double sigma);
-  double (*nllFit)(double *parm, const tenExperSpec *espec,
+  double (*nllFit)(double *parm, const tenExperSpec *espec, 
                    const double *dwiMeas, const double *parmInit,
                    int rician, double sigma, int knownB0);
 } tenModel;
 
 /* defaultsTen.c */
-TEN_EXPORT const int tenPresent;
 TEN_EXPORT const char *tenBiffKey;
 TEN_EXPORT const char tenDefFiberKernel[];
 TEN_EXPORT double tenDefFiberStepSize;
@@ -1308,7 +1297,7 @@ TEN_EXPORT const airEnum *const tenEstimate2Method;
 TEN_EXPORT const airEnum *const tenTripleType;
 
 /* path.c */
-TEN_EXPORT tenInterpParm *tenInterpParmNew(void);
+TEN_EXPORT tenInterpParm *tenInterpParmNew();
 TEN_EXPORT tenInterpParm *tenInterpParmCopy(tenInterpParm *tip);
 TEN_EXPORT int tenInterpParmBufferAlloc(tenInterpParm *tip,
                                         unsigned int num);
@@ -1320,11 +1309,11 @@ TEN_EXPORT void tenInterpTwo_d(double oten[7],
                                tenInterpParm *tip);
 TEN_EXPORT int tenInterpN_d(double tenOut[7],
                             const double *tenIn,
-                            const double *wght,
+                            const double *wght, 
                             unsigned int num, int ptype, tenInterpParm *tip);
 TEN_EXPORT double tenInterpPathLength(Nrrd *npath, int doubleVerts,
                                       int fancy, int shape);
-TEN_EXPORT int tenInterpTwoDiscrete_d(Nrrd *nout,
+TEN_EXPORT int tenInterpTwoDiscrete_d(Nrrd *nout, 
                                       const double tenA[7],
                                       const double tenB[7],
                                       int ptype, unsigned int num,
@@ -1338,7 +1327,7 @@ TEN_EXPORT int tenInterpMulti3D(Nrrd *nout, const Nrrd *const *nin,
                                 int ptype, tenInterpParm *tip);
 
 /* glyph.c */
-TEN_EXPORT tenGlyphParm *tenGlyphParmNew(void);
+TEN_EXPORT tenGlyphParm *tenGlyphParmNew();
 TEN_EXPORT tenGlyphParm *tenGlyphParmNix(tenGlyphParm *parm);
 TEN_EXPORT int tenGlyphParmCheck(tenGlyphParm *parm,
                                  const Nrrd *nten, const Nrrd *npos,
@@ -1356,13 +1345,11 @@ TEN_EXPORT void tenGlyphBqdAbcUv(double abc[3], const double uv[2],
 
 /* tensor.c */
 TEN_EXPORT int tenVerbose;
-TEN_EXPORT void tenRotateSingle_f(float tenOut[7],
+TEN_EXPORT void tenRotateSingle_f(float tenOut[7], 
                                   const float rot[9], const float tenIn[7]);
 TEN_EXPORT int tenTensorCheck(const Nrrd *nin,
                               int wantType, int want4D, int useBiff);
 TEN_EXPORT int tenMeasurementFrameReduce(Nrrd *nout, const Nrrd *nin);
-TEN_EXPORT int tenExpand2D(Nrrd *nout, const Nrrd *nin,
-                           double scale, double thresh);
 TEN_EXPORT int tenExpand(Nrrd *tnine, const Nrrd *tseven,
                          double scale, double thresh);
 TEN_EXPORT int tenShrink(Nrrd *tseven, const Nrrd *nconf, const Nrrd *tnine);
@@ -1451,7 +1438,7 @@ TEN_EXPORT int tenSimulate(Nrrd *ndwi, const Nrrd *nT2, const Nrrd *nten,
                            const Nrrd *nbmat, double b);
 
 /* estimate.c */
-TEN_EXPORT tenEstimateContext *tenEstimateContextNew(void);
+TEN_EXPORT tenEstimateContext *tenEstimateContextNew();
 TEN_EXPORT void tenEstimateVerboseSet(tenEstimateContext *tec,
                                       int verbose);
 TEN_EXPORT void tenEstimateNegEvalShiftSet(tenEstimateContext *tec,
@@ -1544,7 +1531,7 @@ TEN_EXPORT int _tenFindValley(double *valP, const Nrrd *nhist,
 /* fiberMethods.c */
 TEN_EXPORT void tenFiberSingleInit(tenFiberSingle *tfbs);
 TEN_EXPORT void tenFiberSingleDone(tenFiberSingle *tfbs);
-TEN_EXPORT tenFiberSingle *tenFiberSingleNew(void);
+TEN_EXPORT tenFiberSingle *tenFiberSingleNew();
 TEN_EXPORT tenFiberSingle *tenFiberSingleNix(tenFiberSingle *tfbs);
 TEN_EXPORT tenFiberContext *tenFiberContextNew(const Nrrd *dtvol);
 TEN_EXPORT tenFiberContext *tenFiberContextDwiNew(const Nrrd *dwivol,
@@ -1591,11 +1578,13 @@ TEN_EXPORT int tenFiberSingleTrace(tenFiberContext *tfx, tenFiberSingle *tfbs,
                                    double seed[3], unsigned int which);
 TEN_EXPORT tenFiberMulti *tenFiberMultiNew(void);
 TEN_EXPORT tenFiberMulti *tenFiberMultiNix(tenFiberMulti *tfm);
+TEN_EXPORT int tenFiberTfxNew(tenFiberContext* tfx, tfxNewHelper tfxNew, 
+                                  airArray* mop); // ADDED
 TEN_EXPORT int tenFiberMultiTrace(tenFiberContext *tfx, tenFiberMulti *tfml,
-                                  const Nrrd *nseed);
-TEN_EXPORT int tenFiberMultiPolyData(tenFiberContext *tfx,
+                                  const Nrrd *nseed, tfxNewHelper tfxNew); // CHANGED
+TEN_EXPORT int tenFiberMultiPolyData(tenFiberContext *tfx, 
                                      limnPolyData *lpld, tenFiberMulti *tfml);
-TEN_EXPORT int tenFiberMultiProbeVals(tenFiberContext *tfx,
+TEN_EXPORT int tenFiberMultiProbeVals(tenFiberContext *tfx, 
                                       Nrrd *nval, tenFiberMulti *tfml);
 
 /* epireg.c */
@@ -1617,25 +1606,22 @@ TEN_EXPORT int tenEpiRegister4D(Nrrd *nout, Nrrd *nin, Nrrd *ngrad,
                                 const NrrdKernel *kern, double *kparm,
                                 int progress, int verbose);
 
-/* experSpec.c */
+/* experspec.c */
 TEN_EXPORT tenExperSpec* tenExperSpecNew(void);
 TEN_EXPORT int tenExperSpecGradSingleBValSet(tenExperSpec *espec,
-                                             int insertB0,
+                                             unsigned int imgNum,
                                              double bval,
-                                             const double *grad,
-                                             unsigned int gradNum);
+                                             const double *grad);
 TEN_EXPORT int tenExperSpecGradBValSet(tenExperSpec *espec,
-                                       int insertB0,
+                                       unsigned int imgNum,
                                        const double *bval,
-                                       const double *grad,
-                                       unsigned int bgNum);
+                                       const double *grad);
 /*
 TEN_EXPORT int tenExperSpecGradBValWghtSet(tenExperSpec *espec,
-                                           int insertB0,
+                                           unsigned int imgNum,
                                            const double *bval,
                                            const double *grad,
-                                           const double *wght,
-                                           unsigned int bgwNum);
+                                           const double *wght);
 */
 TEN_EXPORT int tenExperSpecFromKeyValueSet(tenExperSpec *espec,
                                            const Nrrd *ndwi);
@@ -1649,8 +1635,7 @@ TEN_EXPORT int tenDWMRIKeyValueFromExperSpecSet(Nrrd *ndwi,
 /* tenModel.c */
 TEN_EXPORT const char *tenModelPrefixStr;
 TEN_EXPORT int tenModelParse(const tenModel **model, int *plusB0,
-                             int requirePrefix, const char *str);
-TEN_EXPORT int tenModelFromAxisLearnPossible(const NrrdAxisInfo *axinfo);
+                             int requirePrefix, const char *_str);
 TEN_EXPORT int tenModelFromAxisLearn(const tenModel **model, int *plusB0,
                                      const NrrdAxisInfo *axinfo);
 TEN_EXPORT int tenModelSimulate(Nrrd *ndwi, int typeOut,
@@ -1659,25 +1644,23 @@ TEN_EXPORT int tenModelSimulate(Nrrd *ndwi, int typeOut,
                                 const Nrrd *nB0, /* maybe NULL */
                                 const Nrrd *nparm,
                                 int keyValueSet);
-TEN_EXPORT int tenModelSqeFit(Nrrd *nparm,
-                              Nrrd **nsqeP, Nrrd **nconvP, Nrrd **niterP,
+TEN_EXPORT int tenModelSqeFit(Nrrd *nparm, Nrrd **nsqeP, 
                               const tenModel *model,
                               const tenExperSpec *espec, const Nrrd *ndwi,
                               int knownB0, int saveB0, int typeOut,
                               unsigned int minIter, unsigned int maxIter,
-                              unsigned int starts, double convEps,
-                              airRandMTState *rng,
-                              int verbose);
-TEN_EXPORT int tenModelNllFit(Nrrd *nparm, Nrrd **nnllP,
+                              unsigned int starts, double convEps, 
+                              airRandMTState *rng);
+TEN_EXPORT int tenModelNllFit(Nrrd *nparm, Nrrd **nnllP, 
                               const tenModel *model,
                               const tenExperSpec *espec, const Nrrd *ndwi,
                               int rician, double sigma, int knownB0);
 TEN_EXPORT int tenModelConvert(Nrrd *nparmDst, int *convRet,
                                const tenModel *modelDst,
-                               const Nrrd *nparmSrc,
+                               const Nrrd *nparmSrc, 
                                const tenModel *modelSrc);
 
-/*
+/* 
 ** Have to keep this list of model declarations in sync with:
 ** * tenModel.c/str2model()
 ** * all model*.c/parmConvert()  (fallen behind here)
@@ -1690,21 +1673,9 @@ TEN_EXPORT int tenModelConvert(Nrrd *nparmDst, int *convRet,
 /* modelZero.c */
 #define TEN_MODEL_STR_ZERO "zero"
 TEN_EXPORT const tenModel *const tenModelZero;
-/* modelB0.c */
-#define TEN_MODEL_STR_B0 "b0"
-TEN_EXPORT const tenModel *const tenModelB0;
 /* modelBall.c */
 #define TEN_MODEL_STR_BALL "ball"
 TEN_EXPORT const tenModel *const tenModelBall;
-/* model1Vector2D.c */
-#define TEN_MODEL_STR_1VECTOR2D "1vector2d"
-TEN_EXPORT const tenModel *const tenModel1Vector2D;
-/* model1Unit2D.c */
-#define TEN_MODEL_STR_1UNIT2D "1unit2d"
-TEN_EXPORT const tenModel *const tenModel1Unit2D;
-/* model2Unit2D.c */
-#define TEN_MODEL_STR_2UNIT2D "2unit2d"
-TEN_EXPORT const tenModel *const tenModel2Unit2D;
 /* model1Stick.c */
 #define TEN_MODEL_STR_1STICK "1stick"
 TEN_EXPORT const tenModel *const tenModel1Stick;
@@ -1718,10 +1689,10 @@ TEN_EXPORT const tenModel *const tenModelBall1Stick;
 #define TEN_MODEL_STR_BALL1CYLINDER "ball1cylinder"
 TEN_EXPORT const tenModel *const tenModelBall1Cylinder;
 /* model1Cylinder.c */
-#define TEN_MODEL_STR_1CYLINDER "1cylinder"
+#define TEN_MODEL_STR_CYLINDER "1cylinder"
 TEN_EXPORT const tenModel *const tenModel1Cylinder;
 /* model1Tensor2.c: 2nd-order tensor (one of them), not two-tensor */
-#define TEN_MODEL_STR_1TENSOR2 "1tensor2"
+#define TEN_MODEL_STR_TENSOR2 "1tensor2" 
 TEN_EXPORT const tenModel *const tenModel1Tensor2;
 
 /* mod.c */
@@ -1747,14 +1718,14 @@ TEN_EXPORT int tenBVecNonLinearFit(Nrrd *nout, const Nrrd *nin,
 TEN_EXPORT gageKind *tenGageKind;
 
 /* tenDwiGage.c */
-/* we can't declare or define a tenDwiGageKind->name (analogous to
+/* we can't declare or define a tenDwiGageKind->name (analogous to 
    tenGageKind->name or gageSclKind->name) because the DWI kind is
    dynamically allocated, but at least we can declare a cannonical
    name (HEY: ugly) */
 #define TEN_DWI_GAGE_KIND_NAME "dwi"
 TEN_EXPORT const airEnum _tenDwiGage;
 TEN_EXPORT const airEnum *const tenDwiGage;
-TEN_EXPORT gageKind *tenDwiGageKindNew(void);
+TEN_EXPORT gageKind *tenDwiGageKindNew();
 TEN_EXPORT gageKind *tenDwiGageKindNix(gageKind *dwiKind);
 /* warning: this function will likely change its arguments in the future */
 TEN_EXPORT int tenDwiGageKindSet(gageKind *dwiKind,
@@ -1771,7 +1742,7 @@ TEN_EXPORT tenEMBimodalParm* tenEMBimodalParmNew(void);
 TEN_EXPORT tenEMBimodalParm* tenEMBimodalParmNix(tenEMBimodalParm *biparm);
 TEN_EXPORT int tenEMBimodal(tenEMBimodalParm *biparm, const Nrrd *nhisto);
 
-/* tend{Flotsam,Anplot,Anvol,Evec,Eval,. . .}.c */
+/* tend{Flotsam,Anplot,Anvol,Evec,Eval,...}.c */
 #define TEND_DECLARE(C) TEN_EXPORT unrrduCmd tend_##C##Cmd;
 #define TEND_LIST(C) &tend_##C##Cmd,
 /* removed from below (superseded by estim): F(calc) \ */
@@ -1818,8 +1789,8 @@ F(bfit) \
 F(satin)
 TEND_MAP(TEND_DECLARE)
 TEN_EXPORT unrrduCmd *tendCmdList[];
+TEN_EXPORT void tendUsage(char *me, hestParm *hparm);
 TEN_EXPORT hestCB *tendFiberStopCB;
-TEN_EXPORT const char *tendTitle;
 
 #ifdef __cplusplus
 }

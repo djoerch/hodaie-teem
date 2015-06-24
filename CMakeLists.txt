@@ -1,6 +1,5 @@
 #
 # Teem: Tools to process and visualize scientific data and images
-# Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
 # Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
 # Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 #
@@ -24,9 +23,6 @@
 # This is the root Teem CMakeLists file
 CMAKE_MINIMUM_REQUIRED(VERSION 2.4)
 
-# Cmake shouldn't define WIN32 when compiling
-set(CMAKE_LEGACY_CYGWIN_WIN32 0) 
-
 # As of CMake 2.6 Policies were introduced in order to provide a mechanism for
 # adding backwards compatibility one feature at a time.
 
@@ -37,6 +33,14 @@ IF(COMMAND cmake_policy)
 ENDIF(COMMAND cmake_policy)
 
 PROJECT(Teem)
+
+################################# ADDED ######################################
+find_package(OpenMP)
+if (OPENMP_FOUND)
+    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+endif()
+##############################################################################
 
 #-----------------------------------------------------------------------------
 # Teem version number.  Must reflect the values in teem/src/air/air.h
@@ -194,25 +198,6 @@ IF(Teem_LEVMAR)
   ENDIF(LEVMAR_FOUND)
 ENDIF(Teem_LEVMAR)
 
-# Look for fftw <http://www.fftw.org/>
-OPTION(Teem_FFTW3 "Build Teem with fftw library support." OFF)
-SET(Teem_FFTW3_LIB "")
-
-IF(Teem_FFTW3)
-  FIND_PACKAGE(FFTW3)
-
-  IF(FFTW3_FOUND)
-    ADD_DEFINITIONS(-DTEEM_FFTW3)
-    SET(Teem_FFTW3_LIB ${FFTW3_LIBRARIES})
-    SET(Teem_FFTW3_IPATH ${FFTW3_INCLUDE_DIR})
-  ELSE(FFTW3_FOUND)
-    # We need to set this as a cache variable, so that it will show up as
-    # being turned off in the cache.
-    MESSAGE("warning: Turning off Teem_FFTW3, because it wasn't found.")
-    SET(Teem_FFTW3 OFF CACHE BOOL "Build Teem with fftw library support." FORCE)
-  ENDIF(FFTW3_FOUND)
-ENDIF(Teem_FFTW3)
-
 #-----------------------------------------------------------------------------
 
 IF(${CMAKE_GENERATOR} MATCHES "Visual Studio")
@@ -221,7 +206,22 @@ IF(${CMAKE_GENERATOR} MATCHES "Visual Studio")
   ADD_DEFINITIONS(-D_CRT_SECURE_NO_DEPRECATE -D_CRT_NONSTDC_NO_DEPRECATE)
 ENDIF(${CMAKE_GENERATOR} MATCHES "Visual Studio")
 
-#Teem Defines
+#Include Teem Defines
+# Set compiler flags for endian-ness.
+IF(CMAKE_WORDS_BIGENDIAN)
+  ADD_DEFINITIONS(-DTEEM_ENDIAN=4321)
+ELSE(CMAKE_WORDS_BIGENDIAN)
+  ADD_DEFINITIONS(-DTEEM_ENDIAN=1234)
+ENDIF(CMAKE_WORDS_BIGENDIAN)
+
+# Set compiler flags for 32 or 64 bit architecture (based on the size
+# of a void pointer).
+IF(CMAKE_SIZEOF_VOID_P MATCHES  8)
+  ADD_DEFINITIONS(-DTEEM_32BIT=0)
+ELSE(CMAKE_SIZEOF_VOID_P MATCHES 8)
+  ADD_DEFINITIONS(-DTEEM_32BIT=1)
+ENDIF(CMAKE_SIZEOF_VOID_P MATCHES 8)
+
 #The QNANHIBIT variable is configured by the root level CMakeLists.txt
 IF(QNANHIBIT)
   ADD_DEFINITIONS(-DTEEM_QNANHIBIT=1)
@@ -239,33 +239,18 @@ ENDIF(QNANHIBIT)
 ADD_DEFINITIONS(-DTEEM_DIO=0)
 #ENDIF(USE_DIRECTIO)
 
-SET(BUILD_EXPERIMENTAL_LIBS OFF CACHE BOOL "Build Teem's experimental libraries")
+SET(BUILD_EXPERIMENTAL_LIBS OFF CACHE BOOL "Build Teem's experimental/unstable libraries")
 SET(BUILD_EXPERIMENTAL_APPS OFF CACHE BOOL "Build Teem's non-essential command-line tools")
 
-# If its a Dashboard build; turn ON both 
-# BUILD_EXPERIMENTAL_APPS and BUILD_EXPERIMENTAL_LIBS
-# (h/t David Cole)
-IF(NOT "$ENV{DASHBOARD_TEST_FROM_CTEST}" STREQUAL "")
-  # it is a dashboard build
-  SET(BUILD_EXPERIMENTAL_APPS ON)
-  SET(BUILD_EXPERIMENTAL_LIBS ON)
-ENDIF()
-
-# (TEEM_LIB_LIST)
 SET(Teem_LIBRARIES air hest biff nrrd ell unrrdu moss gage dye limn echo hoover seek ten pull mite meet)
 IF(BUILD_EXPERIMENTAL_LIBS)
   # This list of the "experimental" libraries must be kept in sync with:
   # * definition of Teem_HEADER_FILES (below)
   # * teem/src/meet/meet.h
   # * teem/src/meet/enumsall.c 
-  # re-setting list so libraries appear in expected order
-  SET(Teem_LIBRARIES air hest biff nrrd ell unrrdu alan moss tijk gage dye bane limn echo hoover seek ten elf pull coil push mite meet)
+  SET(Teem_LIBRARIES ${Teem_LIBRARIES} alan tijk bane elf coil push)
   ADD_DEFINITIONS(-DTEEM_BUILD_EXPERIMENTAL_LIBS)
 ENDIF(BUILD_EXPERIMENTAL_LIBS)
-
-IF(BUILD_EXPERIMENTAL_APPS)
-  ADD_DEFINITIONS(-DTEEM_BUILD_EXPERIMENTAL_APPS)
-ENDIF(BUILD_EXPERIMENTAL_APPS)
 
 SET(Teem_HEADER_FILES
   air/air.h
@@ -334,10 +319,6 @@ IF(Teem_LEVMAR)
   INCLUDE_DIRECTORIES(${Teem_LEVMAR_IPATH})
 ENDIF(Teem_LEVMAR)
 
-IF(Teem_FFTW3)
-  INCLUDE_DIRECTORIES(${Teem_FFTW3_IPATH})
-ENDIF(Teem_FFTW3)
-
 # All the source files
 SET(Teem_SOURCES)
 
@@ -393,10 +374,6 @@ ENDIF(Teem_ZLIB_LIB)
 IF(Teem_LEVMAR_LIB)
   TARGET_LINK_LIBRARIES(teem ${Teem_LEVMAR_LIB})
 ENDIF(Teem_LEVMAR_LIB)
-
-IF(Teem_FFTW3_LIB)
-  TARGET_LINK_LIBRARIES(teem ${Teem_FFTW3_LIB})
-ENDIF(Teem_FFTW3_LIB)
 
 IF(Teem_PTHREAD)
   TARGET_LINK_LIBRARIES(teem ${CMAKE_THREAD_LIBS_INIT})
