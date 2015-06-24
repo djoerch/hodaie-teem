@@ -1,7 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2010 Thomas Schultz
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -32,12 +30,9 @@
 #include <ctype.h>
 #include <stdarg.h>
 #include <float.h>
-/* ---- BEGIN non-NrrdIO */
-#include <stddef.h>      /* for ptrdiff_t */
-/* ---- END non-NrrdIO */
 
 /*
-******** TEEM_VERSION
+******** TEEM_VERSION 
 **
 ** TEEM_VERSION is a single (decimal) number that will always increase
 ** monotically, and the _MAJOR, _MINOR, _PATCH are also numbers that
@@ -55,8 +50,7 @@
 #define TEEM_VERSION_MAJOR       1   /* must be 1 digit */
 #define TEEM_VERSION_MINOR      11   /* 1 or 2 digits */
 #define TEEM_VERSION_PATCH      00   /* 1 or 2 digits */
-#define TEEM_VERSION         11100   /* must be 5 digits, to facilitate
-                                        easy numerical comparison */
+#define TEEM_VERSION         11100   /* can be easily compared numerically */
 #define TEEM_VERSION_STRING "1.11.0" /* cannot be so easily compared */
 
 /* NrrdIO-hack-000 */
@@ -79,116 +73,68 @@ extern "C" {
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(__MINGW32__)
 typedef signed __int64 airLLong;
 typedef unsigned __int64 airULLong;
-#  define AIR_LLONG_FMT "%I64d"
-#  define AIR_ULLONG_FMT "%I64u"
-#  define AIR_LLONG(x) x##i64
-#  define AIR_ULLONG(x) x##ui64
+#define AIR_LLONG_FMT "%I64d"
+#define AIR_ULLONG_FMT "%I64u"
+#define AIR_LLONG(x) x##i64
+#define AIR_ULLONG(x) x##ui64
 #else
 typedef signed long long airLLong;
 typedef unsigned long long airULLong;
-#  define AIR_LLONG_FMT "%lld"
-#  define AIR_ULLONG_FMT "%llu"
-#  define AIR_LLONG(x) x##ll
-#  define AIR_ULLONG(x) x##ull
+#define AIR_LLONG_FMT "%lld"
+#define AIR_ULLONG_FMT "%llu"
+#define AIR_LLONG(x) x##ll
+#define AIR_ULLONG(x) x##ull
 #endif
 
-/* ---- BEGIN non-NrrdIO */
 /* This is annoying, thanks to windows */
 #define AIR_PI 3.14159265358979323846
 #define AIR_E  2.71828182845904523536
-/* ---- END non-NrrdIO */
 
-/*
-** These serve as conservative estimates on how large various strings
-** might end up being.  It would be theoretically better to completely
-** avoid the use of fixed-size buffers, but in many contexts the
-** implementation complexity of handling them reliably is distracts
-** from more urgent implementation goals.  In the mean time, these can
-** be used safely as long as the lengths are used consistently.
-**
-** The possibly unfortunate convention that has become established in
-** Teem is code using these tends to NOT add the "+1", to explicitly
-** indicate the space for 0-termination, and instead assumes it is
-** part of the numbers below, even though this is at the cost of
-** confusion about how the maximal strlen() will be less than each of
-** these numbers. This will be addressed in Teem 2.0.
-*/
-#define AIR_STRLEN_SMALL (128+1) /* has to be big enough to hold:
-                                  - printed value of size_t and ptrdiff_t,
-                                  - line of text that should contain file
-                                    format "magic"
-                                  */
+#define AIR_STRLEN_SMALL (128+1)
 #define AIR_STRLEN_MED   (256+1)
 #define AIR_STRLEN_LARGE (512+1)
-#define AIR_STRLEN_HUGE (1024+1) /* has to be big enough to hold
-                                    a biff error message (one line of it) */
+#define AIR_STRLEN_HUGE  (1024+1)
 
-/*
-******** airPtrPtrUnion
-**
-** union of addresses of pointers to various types, to deal with strict
-** aliasing warnings, especially with the first argument to airArrayNew().
-** Unfortunately this can't meet the needs of all such cases because some
-** libraries need to manage addresses of arrays of other kinds of
-** library-specific objects (about which air is ignorant).
-*/
-typedef union {
-  unsigned char **uc;
-  signed char **sc;
-  char **c;
-  char ***cp;
-  unsigned short **us;
-  short **s;
-  unsigned int **ui;
-  int **i;
-  float **f;
-  double **d;
-  void **v;
-} airPtrPtrUnion;
-
-/*
-******** airEnum struct
-**
-** The airEnum provides the basic mechanism of mapping from a
-** string to an int enum value, and back.
-*/
+/* enum.c: enum value <--> string conversion utility */  
 typedef struct {
   const char *name;
                /* what are these things? */
   unsigned int M;
-               /* str[0]: string for the unknown/invalid value;
-                * str[1] .. str[M]: canonical strings for the enum values;
-                * "val" NULL: unknown/invalid = 0;
-                *             valid values are 1 .. M
-                * "val" non-NULL: unknown/invalid = val[0];
-                *                 valid are val[1].. val[M]
-                */
-  const char **str;
-               /* see above */
+               /* If "val" is NULL, the the valid enum values are from 1 
+                  to M (represented by strings str[1] through str[M]), and
+                  the unknown/invalid value is 0.  If "val" is non-NULL, the
+                  valid enum values are from val[1] to val[M] (but again, 
+                  represented by strings str[1] through str[M]), and the
+                  unknown/invalid value is val[0].  In both cases, str[0]
+                  is the string to represent an unknown/invalid value */
+  const char **str; 
+               /* "canonical" textual representation of the enum values */
   const int *val;
-               /* see above */
+               /* non-NULL iff valid values in the enum are not [1..M], and/or
+                  if value for unknown/invalid is not zero */
   const char **desc;
                /* desc[i] is a short description of the enum values represented
                   by str[i] (thereby starting with the unknown value), to be
                   used to by things like hest */
-  const char **strEqv;
-               /* If non-NULL, all the variations in strings recognized in
-                  mapping from string to value (the values in valEqv).
-                  This **MUST** be terminated by a zero-length string ("") so
-                  as to signify the end of the list.  This should *not*
-                  contain the string for unknown/invalid.
-                  If "strEqv" is NULL, then mapping from string to value is
-                  done only by traversing "str", and "valEqv" is ignored. */
+  const char **strEqv;  
+               /* All the variations in strings recognized in mapping from
+                  string to value (the values in valEqv).  This **MUST** be
+                  terminated by a zero-length string ("") so as to signify
+                  the end of the list.  This should not contain the string
+                  for unknown/invalid.  If "strEqv" is NULL, then mapping
+                  from string to value is done by traversing "str", and 
+                  "valEqv" is ignored. */
   const int *valEqv;
-               /* If strEqv non-NULL, valEqv holds the values corresponding
-                  to the strings in strEqv, with one integer for each
-                  non-zero-length string in strEqv: strEqv[i] is a valid
-                  string representation for value valEqv[i]. This should *not*
-                  contain the value for unknown/invalid.
-                  This "valEqv" is ignored if "strEqv" is NULL. */
+               /* The values corresponding to the strings in strEqv; there
+                  should be one integer for each non-zero-length string in
+                  strEqv: strEqv[i] is a valid string representation for
+                  value valEqv[i]. This should not contain the value for
+                  unknown/invalid.  This "valEqv" is ignored if "strEqv" is
+                  NULL. */
   int sense;   /* require case matching on strings */
 } airEnum;
 AIR_EXPORT int airEnumUnknown(const airEnum *enm);
+AIR_EXPORT int airEnumLast(const airEnum *enm);
 AIR_EXPORT int airEnumValCheck(const airEnum *enm, int val);
 AIR_EXPORT const char *airEnumStr(const airEnum *enm, int val);
 AIR_EXPORT const char *airEnumDesc(const airEnum *enm, int val);
@@ -196,9 +142,7 @@ AIR_EXPORT int airEnumVal(const airEnum *enm, const char *str);
 AIR_EXPORT char *airEnumFmtDesc(const airEnum *enm, int val, int canon,
                                 const char *fmt);
 AIR_EXPORT void airEnumPrint(FILE *file, const airEnum *enm);
-/* ---- BEGIN non-NrrdIO */
-AIR_EXPORT int airEnumCheck(char err[AIR_STRLEN_LARGE], const airEnum *enm);
-/* ---- END non-NrrdIO */
+
 
 /*
 ******** airEndian enum
@@ -215,7 +159,7 @@ enum {
 };
 /* endianAir.c */
 AIR_EXPORT const airEnum *const airEndian;
-AIR_EXPORT int airMyEndian(void);
+AIR_EXPORT const int airMyEndian;
 
 /* array.c: poor-man's dynamically resizable arrays */
 typedef struct {
@@ -232,7 +176,7 @@ typedef struct {
                          allocated: when the length reaches a multiple of
                          "incr", then the array is resized */
     size;             /* array is allocated to have "size" increments, or,
-                         size*incr elements, or,
+                         size*incr elements, or, 
                          size*incr*unit bytes */
   size_t unit;        /* the size in bytes of one element in the array */
   int noReallocWhenSmaller;  /* as it says */
@@ -263,14 +207,10 @@ AIR_EXPORT void airArrayStructCB(airArray *a, void (*initCB)(void *),
 AIR_EXPORT void airArrayPointerCB(airArray *a, void *(*allocCB)(void),
                                   void *(*freeCB)(void *));
 AIR_EXPORT void airArrayLenSet(airArray *a, unsigned int newlen);
-/* ---- BEGIN non-NrrdIO */
 AIR_EXPORT void airArrayLenPreSet(airArray *a, unsigned int newlen);
-/* ---- END non-NrrdIO */
 AIR_EXPORT unsigned int airArrayLenIncr(airArray *a, int delta);
 AIR_EXPORT airArray *airArrayNix(airArray *a);
 AIR_EXPORT airArray *airArrayNuke(airArray *a);
-
-/* ---- BEGIN non-NrrdIO */
 
 /* heap.c: a (mostly) standard binary min-heap, built on top of airArray.
  * Additional non-standard functionality includes storing additional
@@ -289,7 +229,7 @@ typedef struct {
 
 AIR_EXPORT airHeap *airHeapNew(size_t dataUnit, unsigned int incr);
 AIR_EXPORT airHeap *airHeapFromArray(const airArray *key, const airArray *data);
-AIR_EXPORT airHeap *airHeapNix(airHeap *h);
+AIR_EXPORT airHeap *airHeapNuke(airHeap *h);
 
 AIR_EXPORT unsigned int airHeapLength(const airHeap *h);
 AIR_EXPORT unsigned int airHeapInsert(airHeap *h, double key, const void *data);
@@ -297,13 +237,15 @@ AIR_EXPORT unsigned int airHeapMerge(airHeap *first, const airHeap *second);
 AIR_EXPORT double airHeapFrontPeek(const airHeap *h, void *data);
 AIR_EXPORT double airHeapFrontPop(airHeap *h, void *data);
 AIR_EXPORT int airHeapFrontUpdate(airHeap *h, double newKey,
-                                  const void *newData);
+				  const void *newData);
 
 AIR_EXPORT int airHeapFind(const airHeap *h, unsigned int *ai,
-                           const void *data);
+			   const void *data);
 AIR_EXPORT int airHeapRemove(airHeap *h, unsigned int ai);
 AIR_EXPORT int airHeapUpdate(airHeap *h, unsigned int ai,
-                             double newKey, const void *newData);
+			     double newKey, const void *newData);
+
+/* ---- BEGIN non-NrrdIO */
 
 /* threadAir.c: simplistic wrapper functions for multi-threading  */
 /*
@@ -322,7 +264,7 @@ AIR_EXPORT const int airThreadCapable;
 ** no-ops. When this variable is non-zero, we fprintf(stderr) a
 ** warning to this effect when those constructs are used
 */
-AIR_EXPORT int airThreadNoopWarning;
+AIR_EXPORT int airThreadNoopWarning; 
 
 /* opaque typedefs for OS-specific stuff */
 typedef struct _airThread airThread;
@@ -335,17 +277,17 @@ typedef struct {
 } airThreadBarrier;
 
 AIR_EXPORT airThread *airThreadNew(void);
-AIR_EXPORT int airThreadStart(airThread *thread,
+AIR_EXPORT int airThreadStart(airThread *thread, 
                               void *(*threadBody)(void *), void *arg);
 AIR_EXPORT int airThreadJoin(airThread *thread, void **retP);
 AIR_EXPORT airThread *airThreadNix(airThread *thread);
 
-AIR_EXPORT airThreadMutex *airThreadMutexNew(void);
+AIR_EXPORT airThreadMutex *airThreadMutexNew();
 AIR_EXPORT int airThreadMutexLock(airThreadMutex *mutex);
 AIR_EXPORT int airThreadMutexUnlock(airThreadMutex *mutex);
 AIR_EXPORT airThreadMutex *airThreadMutexNix(airThreadMutex *mutex);
 
-AIR_EXPORT airThreadCond *airThreadCondNew(void);
+AIR_EXPORT airThreadCond *airThreadCondNew();
 AIR_EXPORT int airThreadCondWait(airThreadCond *cond, airThreadMutex *mutex);
 AIR_EXPORT int airThreadCondSignal(airThreadCond *cond);
 AIR_EXPORT int airThreadCondBroadcast(airThreadCond *cond);
@@ -366,7 +308,7 @@ AIR_EXPORT airThreadBarrier *airThreadBarrierNix(airThreadBarrier *barrier);
 ** The values probably won't agree with those in #include's like
 ** ieee.h, ieeefp.h, fp_class.h.  This is because IEEE 754 hasn't
 ** defined standard values for these, so everyone does it differently.
-**
+** 
 ** This enum uses underscores (against Teem convention) to help
 ** legibility while also conforming to the spirit of the somewhat
 ** standard naming conventions
@@ -395,17 +337,17 @@ typedef union {
   double d;
 } airDouble;
 AIR_EXPORT const int airMyQNaNHiBit;
-AIR_EXPORT float airFPPartsToVal_f(unsigned int sign,
-                                   unsigned int expo,
+AIR_EXPORT float airFPPartsToVal_f(unsigned int sign, 
+                                   unsigned int expo, 
                                    unsigned int mant);
-AIR_EXPORT void airFPValToParts_f(unsigned int *signP,
-                                  unsigned int *expoP,
+AIR_EXPORT void airFPValToParts_f(unsigned int *signP, 
+                                  unsigned int *expoP, 
                                   unsigned int *mantP, float v);
-AIR_EXPORT double airFPPartsToVal_d(unsigned int sign,
+AIR_EXPORT double airFPPartsToVal_d(unsigned int sign, 
                                     unsigned int expo,
                                     unsigned int mant0,
                                     unsigned int mant1);
-AIR_EXPORT void airFPValToParts_d(unsigned int *signP,
+AIR_EXPORT void airFPValToParts_d(unsigned int *signP, 
                                   unsigned int *expoP,
                                   unsigned int *mant0P,
                                   unsigned int *mant1P,
@@ -448,8 +390,7 @@ AIR_EXPORT double airDrandMT53_r(airRandMTState *state);     /* [0,1) */
 AIR_EXPORT unsigned int airRandInt(unsigned int N);
 AIR_EXPORT unsigned int airRandInt_r(airRandMTState *state, unsigned int N);
 AIR_EXPORT void airSrandMT(unsigned int seed);
-AIR_EXPORT double airDrandMT(void);
-AIR_EXPORT int airRandMTSanity(void);
+AIR_EXPORT double airDrandMT();
 
 /* ---- END non-NrrdIO */
 
@@ -466,23 +407,22 @@ enum {
   airTypeInt,       /*  2 */
   airTypeUInt,      /*  3 */
   airTypeLongInt,   /*  4 */
-  airTypeULongInt,  /*  5 */
-  airTypeSize_t,    /*  6 */
-  airTypeFloat,     /*  7 */
-  airTypeDouble,    /*  8 */
-  airTypeChar,      /*  9 */
-  airTypeString,    /* 10 */
-  airTypeEnum,      /* 11 */
-  airTypeOther,     /* 12 */
+  airTypeSize_t,    /*  5 */
+  airTypeFloat,     /*  6 */
+  airTypeDouble,    /*  7 */
+  airTypeChar,      /*  8 */
+  airTypeString,    /*  9 */
+  airTypeEnum,      /* 10 */
+  airTypeOther,     /* 11 */
   airTypeLast
 };
-#define AIR_TYPE_MAX   12
+#define AIR_TYPE_MAX   11
 /* parseAir.c */
 AIR_EXPORT double airAtod(const char *str);
 AIR_EXPORT int airSingleSscanf(const char *str, const char *fmt, void *ptr);
 AIR_EXPORT const airEnum *const airBool;
 AIR_EXPORT unsigned int airParseStrB(int *out, const char *s,
-                                     const char *ct, unsigned int n,
+                                     const char *ct, unsigned int n, 
                                      ... /* (nothing used) */);
 AIR_EXPORT unsigned int airParseStrI(int *out, const char *s,
                                      const char *ct, unsigned int n,
@@ -506,7 +446,7 @@ AIR_EXPORT unsigned int airParseStrS(char **out, const char *s,
                                      const char *ct, unsigned int n,
                                      ... /* REQ'D even if n>1: int greedy */);
 AIR_EXPORT unsigned int airParseStrE(int *out, const char *s,
-                                     const char *ct, unsigned int n,
+                                     const char *ct, unsigned int n, 
                                      ... /* REQUIRED: airEnum *e */);
 AIR_EXPORT unsigned int (*airParseStr[AIR_TYPE_MAX+1])(void *, const char *,
                                                        const char *,
@@ -515,25 +455,21 @@ AIR_EXPORT unsigned int (*airParseStr[AIR_TYPE_MAX+1])(void *, const char *,
 /* string.c */
 AIR_EXPORT char *airStrdup(const char *s);
 AIR_EXPORT size_t airStrlen(const char *s);
-/* ---- BEGIN non-NrrdIO */
-AIR_EXPORT int airStrcmp(const char *s1, const char *s2);
-/* ---- END non-NrrdIO */
 AIR_EXPORT int airStrtokQuoting;
 AIR_EXPORT char *airStrtok(char *s, const char *ct, char **last);
 AIR_EXPORT unsigned int airStrntok(const char *s, const char *ct);
 AIR_EXPORT char *airStrtrans(char *s, char from, char to);
-AIR_EXPORT char *airStrcpy(char *dst, size_t dstSize, const char *src);
 AIR_EXPORT int airEndsWith(const char *s, const char *suff);
 AIR_EXPORT char *airUnescape(char *s);
 AIR_EXPORT char *airOneLinify(char *s);
 AIR_EXPORT char *airToLower(char *str);
 AIR_EXPORT char *airToUpper(char *str);
-AIR_EXPORT unsigned int airOneLine(FILE *file, char *line, unsigned int size);
+AIR_EXPORT unsigned int airOneLine(FILE *file, char *line, int size);
 
 /* sane.c */
 /*
 ******** airInsane enum
-**
+** 
 ** reasons for why airSanity() failed (specifically, the possible
 ** return values for airSanity()
 */
@@ -546,14 +482,14 @@ enum {
   airInsane_FltDblFPClass, /*  5: double -> float assignment messed up the
                                airFPClass_f() of the value */
   airInsane_QNaNHiBit,     /*  6: airMyQNaNHiBit is wrong */
-  airInsane_AIR_NAN,       /*  7: airFPClass_f(AIR_QNAN) wrong
-                                  (no longer checking on problematic SNAN) */
+  airInsane_AIR_NAN,       /*  7: airFPClass_f(AIR_QNAN,AIR_SNAN) wrong */
   airInsane_dio,           /*  8: airMyDio set to something invalid */
-  airInsane_UCSize,        /*  9: unsigned char isn't 8 bits */
-  airInsane_FISize,        /* 10: sizeof(float), sizeof(int) not 4 */
-  airInsane_DLSize         /* 11: sizeof(double), sizeof(airLLong) not 8 */
+  airInsane_32Bit,         /*  9: airMy32Bit is wrong */
+  airInsane_UCSize,        /* 10: unsigned char isn't 8 bits */
+  airInsane_FISize,        /* 11: sizeof(float), sizeof(int) not 4 */
+  airInsane_DLSize         /* 12: sizeof(double), sizeof(airLLong) not 8 */
 };
-#define AIR_INSANE_MAX        11
+#define AIR_INSANE_MAX        12
 AIR_EXPORT const char *airInsaneErr(int insane);
 AIR_EXPORT int airSanity(void);
 
@@ -566,13 +502,8 @@ AIR_EXPORT void *airFree(void *ptr);
 AIR_EXPORT FILE *airFopen(const char *name, FILE *std, const char *mode);
 AIR_EXPORT FILE *airFclose(FILE *file);
 AIR_EXPORT int airSinglePrintf(FILE *file, char *str, const char *fmt, ...);
-AIR_EXPORT char *airSprintSize_t(char str[AIR_STRLEN_SMALL], size_t val);
+AIR_EXPORT const int airMy32Bit;
 /* ---- BEGIN non-NrrdIO */
-AIR_EXPORT char *airSprintVecSize_t(char *str, const size_t *vec,
-                                    unsigned int len);
-AIR_EXPORT char *airPrettySprintSize_t(char str[AIR_STRLEN_SMALL], size_t v);
-AIR_EXPORT char *airSprintPtrdiff_t(char str[AIR_STRLEN_SMALL], ptrdiff_t v);
-AIR_EXPORT const int airPresent;
 AIR_EXPORT FILE *airStderr(void);
 AIR_EXPORT FILE *airStdout(void);
 AIR_EXPORT FILE *airStdin(void);
@@ -584,10 +515,18 @@ AIR_EXPORT airULLong airIndexULL(double min, double val, double max,
                                  airULLong N);
 AIR_EXPORT airULLong airIndexClampULL(double min, double val, double max,
                                       airULLong N);
+AIR_EXPORT const char airMyFmt_size_t[];
 AIR_EXPORT char *airDoneStr(double start, double here, double end, char *str);
-AIR_EXPORT double airTime(void);
+AIR_EXPORT double airTime();
+AIR_EXPORT void airBinaryPrintUInt(FILE *file, int digits, unsigned int N);
 AIR_EXPORT const char airTypeStr[AIR_TYPE_MAX+1][AIR_STRLEN_SMALL];
 AIR_EXPORT const size_t airTypeSize[AIR_TYPE_MAX+1];
+AIR_EXPORT int airILoad(void *v, int t);
+AIR_EXPORT float airFLoad(void *v, int t);
+AIR_EXPORT double airDLoad(void *v, int t);
+AIR_EXPORT int airIStore(void *v, int t, int i);
+AIR_EXPORT float airFStore(void *v, int t, float f);
+AIR_EXPORT double airDStore(void *v, int t, double d);
 AIR_EXPORT void airEqvAdd(airArray *eqvArr, unsigned int j, unsigned int k);
 AIR_EXPORT unsigned int airEqvMap(airArray *eqvArr,
                                   unsigned int *map, unsigned int len);
@@ -608,10 +547,9 @@ AIR_EXPORT double airCbrt(double);
 AIR_EXPORT double airMode3(double a, double b, double c);
 AIR_EXPORT double airMode3_d(const double v[3]);
 AIR_EXPORT double airSgnPow(double, double);
-AIR_EXPORT double airFlippedSgnPow(double, double);
 AIR_EXPORT double airIntPow(double v, int p);
 AIR_EXPORT int airSgn(double);
-AIR_EXPORT int airLog2(size_t n);
+AIR_EXPORT int airLog2(double n);
 AIR_EXPORT double airErfc(double x);
 AIR_EXPORT double airErf(double x);
 AIR_EXPORT double airGaussian(double x, double mean, double stdv);
@@ -625,20 +563,13 @@ AIR_EXPORT double airRician(double mes, double tru, double sig);
 AIR_EXPORT double airBesselI1By0(double x);
 AIR_EXPORT double airBesselIn(int n, double x);
 AIR_EXPORT double airBesselInExpScaled(int n, double x);
-AIR_EXPORT double airVanDerCorput(unsigned int indx, unsigned int base);
-AIR_EXPORT void airHalton(double *out, unsigned int indx,
-                          const unsigned int *base, unsigned int num);
-#define AIR_PRIME_NUM 1000
-AIR_EXPORT const unsigned int airPrimeList[AIR_PRIME_NUM];
-AIR_EXPORT unsigned int airCRC32(const unsigned char *data, size_t len,
-                                 size_t unit, int swap);
 /* ---- END non-NrrdIO */
 
 /* dio.c */
 /*
 ******** airNoDio enum
 **
-** reasons for why direct I/O won't be used with a particular
+** reasons for why direct I/O won't be used with a particular 
 ** file/pointer combination
 */
 enum {
@@ -689,12 +620,6 @@ AIR_EXPORT void airMopDone(airArray *arr, int error);
 AIR_EXPORT void airMopError(airArray *arr);
 AIR_EXPORT void airMopOkay(airArray *arr);
 AIR_EXPORT void airMopDebug(airArray *arr);
-/* ---- BEGIN non-NrrdIO */
-AIR_EXPORT void airMopSingleDone(airArray *arr, void *ptr, int error);
-AIR_EXPORT void airMopSingleError(airArray *arr, void *ptr);
-AIR_EXPORT void airMopSingleOkay(airArray *arr, void *ptr);
-/* ---- END non-NrrdIO */
-
 
 /*******     the interminable sea of defines and macros     *******/
 
@@ -711,53 +636,44 @@ AIR_EXPORT void airMopSingleOkay(airArray *arr, void *ptr);
 #define AIR_UNUSED(x) (void)(x)
 
 /*
-******** AIR_CAST, AIR_UINT, AIR_INT
+******** AIR_CAST
 **
-** just casts, but with the added ability to grep for them more easily,
+** just a cast, but with the added ability to grep for it more easily,
 ** since casts should probably always be revisited and reconsidered.
 */
 #define AIR_CAST(t, v) ((t)(v))
-#define AIR_UINT(x) AIR_CAST(unsigned int, x)
-#define AIR_INT(x) AIR_CAST(int, x)
 
 /*
-******** AIR_VOIDP, AIR_CVOIDP
+******** AIR_CALLOC
 **
-** explicit casting to "void *" (and "const void *") from non-void* pointers
-** is strictly speaking needed for the %p format specifier in printf-like
-** functions; this is a slightly more convenient form
-*/
-#define AIR_VOIDP(x) AIR_CAST(void *, x)
-#define AIR_CVOIDP(x) AIR_CAST(const void *, x)
-
-/*
-******** AIR_MALLOC, AIR_CALLOC
-**
-** slightly simpler wrapper around cast and malloc/calloc
+** slightly simpler wrapper around cast and calloc
 **
 ** HEY note that "T" is not guarded by parentheses in its first usage,
 ** as arguments in Teem macros normally are
 */
-#define AIR_MALLOC(N, T) (T*)(malloc((N)*sizeof(T)))
 #define AIR_CALLOC(N, T) (T*)(calloc((N), sizeof(T)))
 
 /*
 ******** AIR_ENDIAN, AIR_QNANHIBIT, AIR_DIO
 **
-** These reflect particulars of hardware which we're running on. The
-** difference from the things starting with TEEM_ is that the TEEM_
-** values are for passing architecture-specific to compilation of source
-** files, and thes AIR_ variables are for advertising that information
-** to anyone linking against air (or Teem) and including air.h.
+** These reflect particulars of hardware which we're running on.
+** The reason to have these in addition to TEEM_ENDIAN, TEEM_DIO, etc.,
+** is that those are not by default defined for every source-file
+** compilation: the Teem library has to define NEED_ENDIAN, NEED_DIO, etc,
+** and these in turn generate appropriate compile command-line flags
+** by Common.mk. By having these defined here, they become available
+** to anyone who simply links against the air library (and includes air.h),
+** with no command-line flags required, and no usage of Common.mk required.
 */
-#define AIR_ENDIAN (airMyEndian())
+#define AIR_ENDIAN (airMyEndian)
 #define AIR_QNANHIBIT (airMyQNaNHiBit)
 #define AIR_DIO (airMyDio)
+#define AIR_32BIT (airMy32Bit)
 
 /*
 ******** AIR_NAN, AIR_QNAN, AIR_SNAN, AIR_POS_INF, AIR_NEG_INF
 **
-** its nice to have these values available without the cost of a
+** its nice to have these values available without the cost of a 
 ** function call.
 **
 ** NOTE: AIR_POS_INF and AIR_NEG_INF correspond to the _unique_
@@ -771,11 +687,11 @@ AIR_EXPORT void airMopSingleOkay(airArray *arr, void *ptr);
 #define AIR_POS_INF (airFloatPosInf.f)
 #define AIR_NEG_INF (airFloatNegInf.f)
 
-/*
+/* 
 ******** AIR_EXISTS
 **
 ** is non-zero (true) only for values which are not NaN or +/-infinity
-**
+** 
 ** You'd think that (x == x) might work, but no no no, some optimizing
 ** compilers (e.g. SGI's cc) say "well of course they're equal, for all
 ** possible values".  Bastards!
@@ -792,25 +708,24 @@ AIR_EXPORT void airMopSingleOkay(airArray *arr, void *ptr);
 ** saved to memory and loaded back, may end up being different.  I
 ** have yet to produce this behavior, or convince myself it can't happen.
 **
-** The reason to #define AIR_EXISTS as airExists is that on some
+** The reason to #define AIR_EXISTS as airExists_d is that on some
 ** optimizing compilers, the !((x) - (x)) doesn't work.  This has been
 ** the case on Windows and 64-bit irix6 (64 bit) with -Ofast.  If
 ** airSanity fails because a special value "exists", then use the
 ** first version of AIR_EXISTS.
 **
-** There is a performance consequence of using airExists(x), in that it
-** is a function call, although (HEY) we should facilitate inline'ing it
-** for compilers that know how to.
+** There are two performance consequences of using airExists_d(x):
+** 1) Its a function call (but WIN32 can __inline it)
+** 2) (via AIR_EXISTS_D) It requires bit-wise operations on 64-bit
+** ints, which might be terribly slow.
 **
-** gcc 4.5.3 -std=c89, at least on cygwin, has problems with
-** the type of "!((x) - (x))" when used with bit-wise xor ^, saying
-** "invalid operands to binary ^ (have ‘int’ and ‘int’)" but these
-** problems oddly went away with the explicit cast to int.
+** The reason for using airExists_d and not airExists_f is for
+** doubles > FLT_MAX: airExists_f would say these are infinity.
 */
 #if defined(_WIN32) || defined(__ECC) /* NrrdIO-hack-002 */
 #define AIR_EXISTS(x) (airExists(x))
 #else
-#define AIR_EXISTS(x) (AIR_CAST(int, !((x) - (x))))
+#define AIR_EXISTS(x) (!((x) - (x)))
 #endif
 
 /* ---- BEGIN non-NrrdIO */
@@ -830,9 +745,9 @@ AIR_EXPORT void airMopSingleOkay(airArray *arr, void *ptr);
 ** of the macro arg to an int* only works when the arg has the same
 ** size as an int.
 **
-** No cross-platform comparative timings have been done to compare the
+** No cross-platform comparitive timings have been done to compare the
 ** speed of !((x) - (x)) versus airExists() versus AIR_EXISTS_F()
-**
+** 
 ** This macro is endian-safe.
 */
 #define AIR_EXISTS_F(x) ((*(unsigned int*)&(x) & 0x7f800000) != 0x7f800000)
@@ -883,7 +798,7 @@ AIR_EXPORT void airMopSingleOkay(airArray *arr, void *ptr);
 **
 ** is true if the middle argument is in the open/closed interval
 ** defined by the first and third arguments
-**
+** 
 ** AIR_IN_OP is new name for old AIR_BETWEEN
 ** AIR_IN_CL is new name for old AIR_INSIDE
 */
@@ -929,11 +844,11 @@ AIR_EXPORT void airMopSingleOkay(airArray *arr, void *ptr);
 ** inside [i,I], return the value y such that y stands in the same
 ** relationship to [o,O] that x does with [i,I].  Or:
 **
-**    y - o         x - i
+**    y - o         x - i     
 **   -------   =   -------
 **    O - o         I - i
 **
-** It is the callers responsibility to make sure I-i and O-o are
+** It is the callers responsibility to make sure I-i and O-o are 
 ** both non-zero.  Strictly speaking, real problems arise only when
 ** when I-i is zero: division by zero generates either NaN or infinity
 **
@@ -951,11 +866,11 @@ AIR_EXPORT void airMopSingleOkay(airArray *arr, void *ptr);
 ** a change of x within [i,I] is proportional to a change of y within
 ** [o,O].  Or:
 **
-**      y             x
+**      y             x     
 **   -------   =   -------
 **    O - o         I - i
 **
-** It is the callers responsibility to make sure I-i and O-o are
+** It is the callers responsibility to make sure I-i and O-o are 
 ** both non-zero
 **
 ** NOTE that all arguments are evaluated only once
@@ -972,6 +887,49 @@ AIR_EXPORT void airMopSingleOkay(airArray *arr, void *ptr);
 #define AIR_ROUNDDOWN(x) ((int)(ceil((x)-0.5)))
 #define AIR_ROUNDUP_UI(x)   ((unsigned int)(floor((x)+0.5)))
 #define AIR_ROUNDDOWN_UI(x) ((unsigned int)(ceil((x)-0.5)))
+
+/*
+******** _AIR_SIZE_T_CNV, _AIR_PTRDIFF_T_CNV, 
+**
+** Format specifiers to use when printf/fprintf/sprintf-ing a value of
+** type size_t or ptrdiff_t.  In C99, this is done with "%z" and "%t",
+** respectively.
+**
+** This is not a useful macro for the world at large- only for Teem
+** source files.  Why: we need to leave this as a bare string, so that
+** we can exploit C's implicit string concatenation in forming a
+** format string.  Therefore, unlike the definition of AIR_ENDIAN,
+** AIR_DIO, etc, _AIR_SIZE_T_CNV can NOT just refer to a const variable
+** (like airMyEndian).  Therefore, TEEM_32BIT has to be defined for
+** ALL source files which want to use _AIR_SIZE_T_CNV, and to be safe,
+** that's all Teem files.  The converse is, since there is no
+** expectation that other projects which use Teem will be defining
+** TEEM_32BIT, this is not useful outside Teem, thus the leading _.
+**
+** http://www.viva64.com/art-1-2-710804781.html for size conventions.
+**
+** It appears that 32 bit APPLE uses ld for size_t and int for ptrdiff.
+*/
+#if TEEM_32BIT == 0
+#  ifdef _WIN64
+#    define _AIR_SIZE_T_CNV "%I64u"
+#    define _AIR_PTRDIFF_T_CNV "%I64d"
+#  else
+#    define _AIR_SIZE_T_CNV "%lu"
+#    define _AIR_PTRDIFF_T_CNV "%ld"
+#  endif
+#elif TEEM_32BIT == 1
+#  ifdef __APPLE__
+#    define _AIR_SIZE_T_CNV "%lu"
+#    define _AIR_PTRDIFF_T_CNV "%d"
+#  else
+#    define _AIR_SIZE_T_CNV "%u"
+#    define _AIR_PTRDIFF_T_CNV "%d"
+#  endif
+#else
+#  define _AIR_SIZE_T_CNV "(no _AIR_SIZE_T_CNV w/out TEEM_32BIT %*d)"
+#  define _AIR_PTRDIFF_T_CNV "(no _AIR_PTRDIFF_T_CNV w/out TEEM_32BIT %*d)"
+#endif
 
 #ifdef __cplusplus
 }

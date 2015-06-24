@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,14 +24,13 @@
 #include "privateBane.h"
 
 #define OPAC_INFO "Generate opacity functions"
-static const char *_baneGkms_opacInfoL =
+char *_baneGkms_opacInfoL =
   (OPAC_INFO
    ". Takes information from an \"info\" file and from a \"boundary "
    "emphasis function\" to generate 1D or 2D (depending on info file) "
    "opacity functions. ");
 int
-baneGkms_opacMain(int argc, const char **argv, const char *me,
-                  hestParm *hparm) {
+baneGkms_opacMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *outS, *perr, *befS;
   Nrrd *ninfo, *nbef, *nout, *nmax, *npos, *nopac;
@@ -44,7 +42,7 @@ baneGkms_opacMain(int argc, const char **argv, const char *me,
              "boundary emphasis function mapping from \"position\" to "
              "opacity. Can be either:\n "
              "\b\bo filename of nrrd suitable for \"unu imap\", or:\n "
-             "\b\bo comma-separated list of four floats, with no spaces: "
+             "\b\bo comma-seperated list of four floats, with no spaces: "
              "\"s,w,c,a\", where\n "
              "s = shape of function, between 0.0 for box and "
              "1.0 for tent\n "
@@ -142,7 +140,7 @@ baneGkms_opacMain(int argc, const char **argv, const char *me,
     biffMovef(BANE, NRRD, "%s: trouble saving opacity function", me);
     airMopError(mop); return 1;
   }
-
+  
   airMopOkay(mop);
   return 0;
 }

@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -130,47 +129,19 @@ static double _nrrdUnaryOpExp(double a)        {return exp(a);}
 static double _nrrdUnaryOpLog(double a)        {return log(a);}
 static double _nrrdUnaryOpLog2(double a)       {return log(a)/0.69314718;}
 static double _nrrdUnaryOpLog10(double a)      {return log10(a);}
-/* This code for log1p and expm1 comes from
-   http://www.plunk.org/~hatch/rightway.php which in turn references
-   http://www.cs.berkeley.edu/~wkahan/Math128/Sumnfp.pdf from the
-   great Kahan of IEEE 754 fame, but sadly that URL no longer works
-   (though the Math128 directory is still there, as are other documents) */
-static double _nrrdUnaryOpLog1p(double a) {
+static double _nrrdUnaryOpLog1p(double a)      {
   double b;
 
-  b = 1.0 + a;
-  if (b == 1.0) {
-    /* "a" was so close to zero that we had underflow when adding to 1,
-       resulting in something that is exactly equal to 1.  So, use the
-       first term of Taylor expansion of log(x+1) around 0 == x */
+  b = 1 + a;
+  if (b == 1) {
     return a;
+  } else {
+    return log(b)*a/(b-1);
   }
-  /* else "a" was not so near zero; but GLK doesn't fully grasp
-     the design of this expression */
-  return log(b)*a/(b-1);
-}
-static double _nrrdUnaryOpExpm1(double x) {
-  double u;
-
-  u = exp(x);
-  if (u == 1.0) {
-    /* "x" was so close to 0.0 that exp return exactly 1; subtracting
-       1 from this will give a constant for a range of x's.  Instead,
-       use the Taylor expansion of exp(x)-1 around 0 == x */
-    return x;
-  } else if (u-1.0 == -1.0) {
-    /* "x" was close enough to -inf that exp returned something so close
-       to 0 that subtracting 1 resulted in exactly -1; return that */
-    return -1.0;
-  }
-  /* else "x" was neither near 0.0 or -inf, but GLK doesn't fully grasp
-     the design of this expression */
-  return (u-1.0)*x/log(u);
 }
 static double _nrrdUnaryOpSqrt(double a)       {return sqrt(a);}
 static double _nrrdUnaryOpCbrt(double a)       {return airCbrt(a);}
 static double _nrrdUnaryOpErf(double a)        {return airErf(a);}
-static double _nrrdUnaryOpNerf(double a)       {return (1+airErf(a))/2;}
 static double _nrrdUnaryOpCeil(double a)       {return ceil(a);}
 static double _nrrdUnaryOpFloor(double a)      {return floor(a);}
 static double _nrrdUnaryOpRoundUp(double a)    {return AIR_ROUNDUP(a);}
@@ -191,11 +162,11 @@ static double _nrrdUnaryOpNormalRand(double a) {
 }
 static double _nrrdUnaryOpIf(double a) { return (a ? 1 : 0); }
 static double _nrrdUnaryOpZero(double a) {
-  AIR_UNUSED(a);
+  AIR_UNUSED(a);  
   return 0.0;
 }
 static double _nrrdUnaryOpOne(double a) {
-  AIR_UNUSED(a);
+  AIR_UNUSED(a);  
   return 1.0;
 }
 
@@ -214,11 +185,9 @@ double (*_nrrdUnaryOp[NRRD_UNARY_OP_MAX+1])(double) = {
   _nrrdUnaryOpLog2,
   _nrrdUnaryOpLog10,
   _nrrdUnaryOpLog1p,
-  _nrrdUnaryOpExpm1,
   _nrrdUnaryOpSqrt,
   _nrrdUnaryOpCbrt,
   _nrrdUnaryOpErf,
-  _nrrdUnaryOpNerf,
   _nrrdUnaryOpCeil,
   _nrrdUnaryOpFloor,
   _nrrdUnaryOpRoundUp,
@@ -238,7 +207,7 @@ nrrdArithUnaryOp(Nrrd *nout, int op, const Nrrd *nin) {
   static const char me[]="nrrdArithUnaryOp";
   size_t N, I;
   int size[NRRD_DIM_MAX];
-  double (*insert)(void *v, size_t I, double d),
+  double (*insert)(void *v, size_t I, double d), 
     (*lookup)(const void *v, size_t I), (*uop)(double), val;
 
   if (!(nout && nin)) {
@@ -288,7 +257,6 @@ static double _nrrdBinaryOpMultiply(double a, double b)  {return a * b;}
 static double _nrrdBinaryOpDivide(double a, double b)    {return a / b;}
 static double _nrrdBinaryOpPow(double a, double b)       {return pow(a,b);}
 static double _nrrdBinaryOpSgnPow(double a, double b)  {return airSgnPow(a,b);}
-static double _nrrdBinaryOpFlippedSgnPow(double a, double b)  {return airFlippedSgnPow(a,b);}
 static double _nrrdBinaryOpMod(double a, double b) {
   return AIR_MOD((int)a,(int)b);}
 static double _nrrdBinaryOpFmod(double a, double b)      {return fmod(a,b);}
@@ -303,7 +271,7 @@ static double _nrrdBinaryOpCompare(double a, double b) {
   return (a < b ? -1 : (a > b ? 1 : 0));}
 static double _nrrdBinaryOpEqual(double a, double b)     {return (a == b);}
 static double _nrrdBinaryOpNotEqual(double a, double b)  {return (a != b);}
-static double _nrrdBinaryOpExists(double a, double b)  {return (AIR_EXISTS(a)
+static double _nrrdBinaryOpExists(double a, double b)  {return (AIR_EXISTS(a) 
                                                                 ? a : b);}
 static double _nrrdBinaryOpIf(double a, double b)        {return (a ? a : b);}
 static double _nrrdBinaryOpNormalRandScaleAdd(double a, double b) {
@@ -328,7 +296,6 @@ double (*_nrrdBinaryOp[NRRD_BINARY_OP_MAX+1])(double, double) = {
   _nrrdBinaryOpDivide,
   _nrrdBinaryOpPow,
   _nrrdBinaryOpSgnPow,
-  _nrrdBinaryOpFlippedSgnPow,
   _nrrdBinaryOpMod,
   _nrrdBinaryOpFmod,
   _nrrdBinaryOpAtan2,
@@ -380,11 +347,10 @@ nrrdArithBinaryOp(Nrrd *nout, int op, const Nrrd *ninA, const Nrrd *ninB) {
     biffAddf(NRRD, "%s: binary op %d invalid", me, op);
     return 1;
   }
-
+  
   nrrdAxisInfoGet_nva(ninA, nrrdAxisInfoSize, size);
   if (!( nout == ninA || nout == ninB)) {
-    if (_nrrdMaybeAllocMaybeZero_nva(nout, ninA->type, ninA->dim, size,
-                                     AIR_FALSE /* zero when no realloc */)) {
+    if (nrrdMaybeAlloc_nva(nout, ninA->type, ninA->dim, size)) {
       biffAddf(NRRD, "%s: couldn't allocate output nrrd", me);
       return 1;
     }
@@ -411,7 +377,6 @@ nrrdArithBinaryOp(Nrrd *nout, int op, const Nrrd *ninA, const Nrrd *ninB) {
   lupB = nrrdDLookup[ninB->type];
   ins = nrrdDInsert[nout->type];
   for (I=0; I<N; I++) {
-    /* HEY: there is a loss of precision issue here with 64-bit ints */
     valA = lupA(ninA->data, I);
     valB = lupB(ninB->data, I);
     ins(nout->data, I, bop(valA, valB));
@@ -425,19 +390,17 @@ nrrdArithBinaryOp(Nrrd *nout, int op, const Nrrd *ninA, const Nrrd *ninB) {
     free(contA); free(contB); return 1;
   }
   free(contA);
-  free(contB);
+  free(contB); 
   return 0;
 }
 
 int
-nrrdArithIterBinaryOpSelect(Nrrd *nout, int op,
-                            NrrdIter *inA, NrrdIter *inB,
-                            unsigned int which) {
-  static const char me[]="nrrdArithIterBinaryOpSelect";
+nrrdArithIterBinaryOp(Nrrd *nout, int op, NrrdIter *inA, NrrdIter *inB) {
+  static const char me[]="nrrdArithIterBinaryOp";
   char *contA, *contB;
   size_t N, I, size[NRRD_DIM_MAX];
   int type;
-  double (*insert)(void *v, size_t I, double d),
+  double (*insert)(void *v, size_t I, double d), 
     (*bop)(double a, double b), valA, valB;
   const Nrrd *nin;
 
@@ -449,22 +412,17 @@ nrrdArithIterBinaryOpSelect(Nrrd *nout, int op,
     biffAddf(NRRD, "%s: binary op %d invalid", me, op);
     return 1;
   }
-  if (!( 0 == which || 1 == which )) {
-    biffAddf(NRRD, "%s: which %u not 0 or 1", me, which);
-    return 1;
-  }
-  nin = (0 == which
-         ? _NRRD_ITER_NRRD(inA)
+  nin = (_NRRD_ITER_NRRD(inA) 
+         ? _NRRD_ITER_NRRD(inA) 
          : _NRRD_ITER_NRRD(inB));
   if (!nin) {
-    biffAddf(NRRD, "%s: selected input %u is a fixed value", me, which);
+    biffAddf(NRRD, "%s: can't operate on two fixed values", me);
     return 1;
   }
   type = nin->type;
   nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, size);
-
-  if (_nrrdMaybeAllocMaybeZero_nva(nout, type, nin->dim, size,
-                                   AIR_FALSE /* zero when no realloc */)) {
+  
+  if (nrrdMaybeAlloc_nva(nout, type, nin->dim, size)) {
     biffAddf(NRRD, "%s: couldn't allocate output nrrd", me);
     return 1;
   }
@@ -482,13 +440,12 @@ nrrdArithIterBinaryOpSelect(Nrrd *nout, int op,
   bop = _nrrdBinaryOp[op];
 
   /*
-  fprintf(stderr, "%s: inA->left = %d, inB->left = %d\n", me,
+  fprintf(stderr, "%s: inA->left = %d, inB->left = %d\n", me, 
           (int)(inA->left), (int)(inB->left));
   */
   N = nrrdElementNumber(nin);
   insert = nrrdDInsert[type];
   for (I=0; I<N; I++) {
-    /* HEY: there is a loss of precision issue here with 64-bit ints */
     valA = nrrdIterValue(inA);
     valB = nrrdIterValue(inB);
     insert(nout->data, I, bop(valA, valB));
@@ -504,32 +461,7 @@ nrrdArithIterBinaryOpSelect(Nrrd *nout, int op,
     nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_NONE);
   }
   free(contA);
-  free(contB);
-  return 0;
-}
-
-int
-nrrdArithIterBinaryOp(Nrrd *nout, int op, NrrdIter *inA, NrrdIter *inB) {
-  static const char me[]="nrrdArithIterBinaryOp";
-  unsigned int which;
-
-  if (!(nout && inA && inB)) {
-    biffAddf(NRRD, "%s: got NULL pointer", me);
-    return 1;
-  }
-  which = (_NRRD_ITER_NRRD(inA)
-           ? 0
-           : (_NRRD_ITER_NRRD(inB)
-              ? 1
-              : 2));
-  if (2 == which) {
-    biffAddf(NRRD, "%s: can't operate on two fixed values", me);
-    return 1;
-  }
-  if (nrrdArithIterBinaryOpSelect(nout, op, inA, inB, which)) {
-    biffAddf(NRRD, "%s: trouble", me);
-    return 1;
-  }
+  free(contB); 
   return 0;
 }
 
@@ -541,45 +473,13 @@ static double _nrrdTernaryOpAdd(double a, double b, double c) {
 static double _nrrdTernaryOpMultiply(double a, double b, double c)  {
   return a * b * c;
 }
-static double _nrrdTernaryOpMin(double a, double b, double c) {
+static double _nrrdTernaryOpMin(double a, double b, double c) { 
   b = AIR_MIN(b, c);
   return AIR_MIN(a, b);
 }
-/*
-** minsmooth(x, w, M) is like min(x,M), but starting at value M-w, values
-** are lowered (via erf), so that the output is asymptotic to M
-*/
-static double _nrrdTernaryOpMinSmooth(double x, double width, double max) {
-  double tran;
-  tran = max - width;
-  return (tran < max          /* using the function as intended */
-          ? (x < tran
-             ? x
-             : airErf((x-tran)*0.886226925452758/(max - tran))*(max - tran) + tran)
-          : AIR_MIN(x, max)); /* transition in wrong place; revert to simple max() */
-}
-static double _nrrdTernaryOpMax(double a, double b, double c) {
+static double _nrrdTernaryOpMax(double a, double b, double c) { 
   b = AIR_MAX(b, c);
   return AIR_MAX(a, b);
-}
-/*
-** maxsmooth(m, w, x) is like max(m,x), but starting at value m+w, values
-** are raised (via erf), so that the output is asymptotic to m
-*/
-static double _nrrdTernaryOpMaxSmooth(double min, double width, double x) {
-  double tran;
-  tran = min + width;
-  return (min < tran          /* using the function as intended */
-          ? (tran < x
-             ? x
-             : airErf((x-tran)*0.886226925452758/(min - tran))*(min - tran) + tran)
-          : AIR_MAX(x, min)); /* transition in wrong place; revert to simple max() */
-}
-static double _nrrdTernaryOpLTSmooth(double a, double w, double b) {
-  return AIR_AFFINE(-1.0, airErf((b-a)/w), 1.0, 0.0, 1.0);
-}
-static double _nrrdTernaryOpGTSmooth(double a, double w, double b) {
-  return AIR_AFFINE(-1.0, airErf((a-b)/w), 1.0, 0.0, 1.0);
 }
 static double _nrrdTernaryOpClamp(double a, double b, double c) {
   return AIR_CLAMP(a, b, c);
@@ -590,7 +490,7 @@ static double _nrrdTernaryOpIfElse(double a, double b, double c) {
 static double _nrrdTernaryOpLerp(double a, double b, double c) {
   /* we do something more than the simple lerp here because
      we want to facilitate usage as something which can get around
-     non-existent values (b and c as NaN or Inf) without
+     non-existant values (b and c as NaN or Inf) without
      getting polluted by them. */
 
   if (0.0 == a) {
@@ -610,30 +510,18 @@ static double _nrrdTernaryOpInOpen(double a, double b, double c) {
 static double _nrrdTernaryOpInClosed(double a, double b, double c) {
   return (AIR_IN_CL(a, b, c));
 }
-static double _nrrdTernaryOpGaussian(double x, double mu, double sig) {
-  return airGaussian(x, mu, sig);
-}
-static double _nrrdTernaryOpRician(double x, double mu, double sig) {
-  return airRician(x, mu, sig);
-}
 double (*_nrrdTernaryOp[NRRD_TERNARY_OP_MAX+1])(double, double, double) = {
   NULL,
   _nrrdTernaryOpAdd,
   _nrrdTernaryOpMultiply,
   _nrrdTernaryOpMin,
-  _nrrdTernaryOpMinSmooth,
   _nrrdTernaryOpMax,
-  _nrrdTernaryOpMaxSmooth,
-  _nrrdTernaryOpLTSmooth,
-  _nrrdTernaryOpGTSmooth,
   _nrrdTernaryOpClamp,
   _nrrdTernaryOpIfElse,
   _nrrdTernaryOpLerp,
   _nrrdTernaryOpExists,
   _nrrdTernaryOpInOpen,
-  _nrrdTernaryOpInClosed,
-  _nrrdTernaryOpGaussian,
-  _nrrdTernaryOpRician
+  _nrrdTernaryOpInClosed
 };
 
 /*
@@ -646,7 +534,7 @@ double (*_nrrdTernaryOp[NRRD_TERNARY_OP_MAX+1])(double, double, double) = {
 ** the NrrdIter nonsense
 */
 int
-nrrdArithTernaryOp(Nrrd *nout, int op, const Nrrd *ninA,
+nrrdArithTernaryOp(Nrrd *nout, int op, const Nrrd *ninA, 
                    const Nrrd *ninB, const Nrrd *ninC) {
   static const char me[]="nrrdArithTernaryOp";
   char *contA, *contB, *contC;
@@ -669,11 +557,10 @@ nrrdArithTernaryOp(Nrrd *nout, int op, const Nrrd *ninA,
     biffAddf(NRRD, "%s: ternary op %d invalid", me, op);
     return 1;
   }
-
+  
   nrrdAxisInfoGet_nva(ninA, nrrdAxisInfoSize, size);
   if (!( nout == ninA || nout == ninB || nout == ninC)) {
-    if (_nrrdMaybeAllocMaybeZero_nva(nout, ninA->type, ninA->dim, size,
-                                     AIR_FALSE /* zero when no realloc */)) {
+    if (nrrdMaybeAlloc_nva(nout, ninA->type, ninA->dim, size)) {
       biffAddf(NRRD, "%s: couldn't allocate output nrrd", me);
       return 1;
     }
@@ -701,7 +588,6 @@ nrrdArithTernaryOp(Nrrd *nout, int op, const Nrrd *ninA,
   lupC = nrrdDLookup[ninC->type];
   ins = nrrdDInsert[nout->type];
   for (I=0; I<N; I++) {
-    /* HEY: there is a loss of precision issue here with 64-bit ints */
     valA = lupA(ninA->data, I);
     valB = lupB(ninB->data, I);
     valC = lupC(ninC->data, I);
@@ -717,21 +603,20 @@ nrrdArithTernaryOp(Nrrd *nout, int op, const Nrrd *ninA,
     free(contA); free(contB); free(contC); return 1;
   }
   free(contA);
-  free(contB);
-  free(contC);
+  free(contB); 
+  free(contC); 
 
   return 0;
 }
 
 int
-nrrdArithIterTernaryOpSelect(Nrrd *nout, int op,
-                             NrrdIter *inA, NrrdIter *inB, NrrdIter *inC,
-                             unsigned int which) {
-  static const char me[]="nrrdArithIterTernaryOpSelect";
+nrrdArithIterTernaryOp(Nrrd *nout, int op,
+                       NrrdIter *inA, NrrdIter *inB, NrrdIter *inC) {
+  static const char me[]="nrrdArithIterTernaryOp";
   char *contA, *contB, *contC;
   size_t N, I, size[NRRD_DIM_MAX];
   int type;
-  double (*insert)(void *v, size_t I, double d),
+  double (*insert)(void *v, size_t I, double d), 
     (*top)(double a, double b, double c), valA, valB, valC;
   const Nrrd *nin;
 
@@ -743,23 +628,18 @@ nrrdArithIterTernaryOpSelect(Nrrd *nout, int op,
     biffAddf(NRRD, "%s: ternary op %d invalid", me, op);
     return 1;
   }
-  if (!( 0 == which || 1 == which || 2 == which )) {
-    biffAddf(NRRD, "%s: which %u not valid, want 0, 1, or 2", me, which);
-    return 1;
-  }
-  nin = (0 == which
-         ? _NRRD_ITER_NRRD(inA)
-         : (1 == which
-            ? _NRRD_ITER_NRRD(inB)
+  nin = (_NRRD_ITER_NRRD(inA) 
+         ? _NRRD_ITER_NRRD(inA) 
+         : (_NRRD_ITER_NRRD(inB) 
+            ? _NRRD_ITER_NRRD(inB) 
             : _NRRD_ITER_NRRD(inC)));
   if (!nin) {
-    biffAddf(NRRD, "%s: selected input %u is a fixed value", me, which);
+    biffAddf(NRRD, "%s: can't operate on three fixed values", me);
     return 1;
   }
   type = nin->type;
   nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, size);
-  if (_nrrdMaybeAllocMaybeZero_nva(nout, type, nin->dim, size,
-                                   AIR_FALSE /* zero when no realloc */)) {
+  if (nrrdMaybeAlloc_nva(nout, type, nin->dim, size)) {
     biffAddf(NRRD, "%s: couldn't allocate output nrrd", me);
     return 1;
   }
@@ -777,13 +657,12 @@ nrrdArithIterTernaryOpSelect(Nrrd *nout, int op,
   top = _nrrdTernaryOp[op];
 
   /*
-  fprintf(stderr, "%!s: inA->left = %d, inB->left = %d\n", me,
+  fprintf(stderr, "%!s: inA->left = %d, inB->left = %d\n", me, 
           (int)(inA->left), (int)(inB->left));
   */
   N = nrrdElementNumber(nin);
   insert = nrrdDInsert[type];
   for (I=0; I<N; I++) {
-    /* HEY: there is a loss of precision issue here with 64-bit ints */
     valA = nrrdIterValue(inA);
     valB = nrrdIterValue(inB);
     valC = nrrdIterValue(inC);
@@ -808,36 +687,8 @@ nrrdArithIterTernaryOpSelect(Nrrd *nout, int op,
     nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_NONE);
   }
   free(contA);
-  free(contB);
-  free(contC);
-  return 0;
-}
-
-int
-nrrdArithIterTernaryOp(Nrrd *nout, int op,
-                       NrrdIter *inA, NrrdIter *inB, NrrdIter *inC) {
-  static const char me[]="nrrdArithIterTernaryOp";
-  unsigned int which;
-
-  if (!(nout && inA && inB && inC)) {
-    biffAddf(NRRD, "%s: got NULL pointer", me);
-    return 1;
-  }
-  which = (_NRRD_ITER_NRRD(inA)
-           ? 0
-           : (_NRRD_ITER_NRRD(inB)
-              ? 1
-              : (_NRRD_ITER_NRRD(inC)
-                 ? 2
-                 : 3 )));
-  if (3 == which) {
-    biffAddf(NRRD, "%s: can't operate on 3 fixed values", me);
-    return 1;
-  }
-  if (nrrdArithIterTernaryOpSelect(nout, op, inA, inB, inC, which)) {
-    biffAddf(NRRD, "%s: trouble", me);
-    return 1;
-  }
+  free(contB); 
+  free(contC); 
   return 0;
 }
 
@@ -854,11 +705,9 @@ nrrdArithAffine(Nrrd *nout, double minIn,
     biffAddf(NRRD, "%s: got NULL pointer or invalid input", me);
     return 1;
   }
-  if (nout != nin) {
-    if (nrrdCopy(nout, nin)) {
-      biffAddf(NRRD, "%s: couldn't initialize output", me);
-      return 1;
-    }
+  if (nrrdCopy(nout, nin)) {
+    biffAddf(NRRD, "%s: couldn't initialize output", me);
+    return 1;
   }
   N = nrrdElementNumber(nin);
   ins = nrrdDInsert[nout->type];
@@ -875,7 +724,7 @@ nrrdArithAffine(Nrrd *nout, double minIn,
   /* HEY: it would be much better if the ordering here was the same as in
      AIR_AFFINE, but that's not easy with the way the content functions are
      now set up */
-  if (nrrdContentSet_va(nout, "affine", nin,
+  if (nrrdContentSet_va(nout, "affine", nin, 
                         "%g,%g,%g,%g", minIn, maxIn,
                         minOut, maxOut)) {
     biffAddf(NRRD, "%s:", me);
@@ -898,14 +747,14 @@ nrrdArithIterAffine(Nrrd *nout, NrrdIter *minIn,
     biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
-  nin = (_NRRD_ITER_NRRD(in)
-         ? _NRRD_ITER_NRRD(in)
-         : (_NRRD_ITER_NRRD(minIn)
-            ? _NRRD_ITER_NRRD(minIn)
-            : (_NRRD_ITER_NRRD(maxIn)
-               ? _NRRD_ITER_NRRD(maxIn)
-               : (_NRRD_ITER_NRRD(minOut)
-                  ? _NRRD_ITER_NRRD(minOut)
+  nin = (_NRRD_ITER_NRRD(in) 
+         ? _NRRD_ITER_NRRD(in) 
+         : (_NRRD_ITER_NRRD(minIn) 
+            ? _NRRD_ITER_NRRD(minIn) 
+            : (_NRRD_ITER_NRRD(maxIn) 
+               ? _NRRD_ITER_NRRD(maxIn) 
+               : (_NRRD_ITER_NRRD(minOut) 
+                  ? _NRRD_ITER_NRRD(minOut) 
                   : _NRRD_ITER_NRRD(maxOut)))));
   if (!nin) {
     biffAddf(NRRD, "%s: can't operate solely on fixed values", me);
@@ -940,25 +789,7 @@ nrrdArithIterAffine(Nrrd *nout, NrrdIter *minIn,
     biffAddf(NRRD, "%s:", me);
     free(contA); free(contB); free(contC); free(contD); free(contE); return 1;
   }
-  free(contA); free(contB); free(contC); free(contD); free(contE);
+  free(contA); free(contB); free(contC); free(contD); free(contE); 
 
   return 0;
 }
-
-unsigned int
-nrrdCRC32(const Nrrd *nin, int endian) {
-  size_t nn;
-
-  /* NULL nrrd or data */
-  if (!nin
-      || !(nin->data)
-      || !(nn = nrrdElementSize(nin)*nrrdElementNumber(nin))
-      || airEnumValCheck(airEndian, endian)) {
-    return 0;
-  }
-
-  return airCRC32(AIR_CAST(const unsigned char *, nin->data),
-                  nn, nrrdElementSize(nin),
-                  endian == airMyEndian() ? AIR_FALSE : AIR_TRUE);
-}
-

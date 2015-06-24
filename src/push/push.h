@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -28,8 +27,8 @@
 
 #include <teem/air.h>
 #include <teem/biff.h>
-#include <teem/nrrd.h>
 #include <teem/ell.h>
+#include <teem/nrrd.h>
 #include <teem/gage.h>
 #include <teem/ten.h>
 
@@ -95,7 +94,7 @@ typedef struct pushBin_t {
 /*
 ******** pushTask
 **
-** The information specific for a thread.
+** The information specific for a thread.  
 */
 typedef struct pushTask_t {
   struct pushContext_t *pctx;  /* parent's context */
@@ -164,7 +163,7 @@ typedef struct pushContext_t {
                                       it may only be a single slice */
     *npos;                         /* positions to start with
                                       (overrides pointNum) */
-  double stepInitial,              /* initial time step in integration
+  double stepInitial,              /* initial time step in integration 
                                       (which will be reduced as the system
                                       converges) */
     scale,                         /* scaling from tensor to glyph size */
@@ -174,7 +173,7 @@ typedef struct pushContext_t {
                                       fraction of glyph radius along
                                       direction of motion */
     deltaFracMin,                  /* lowest value of deltaFrac (see below)
-                                      that is allowed without decreasing
+                                      that is allowed without decreasing 
                                       step size */
     energyStepFrac,                /* when energy goes up instead of down, the
                                       fraction by which to scale step size */
@@ -203,9 +202,9 @@ typedef struct pushContext_t {
   double gravScl,                  /* sign and magnitude of gravity's effect:
                                       when this is positive, higher values of
                                       gravItem have higher potential energy */
-    gravZero;                      /* the height that corresponds to zero
+    gravZero;                      /* the height that corresponds to zero 
                                       potential energy from gravity */
-
+  
   int seedThreshItem,              /* item for constraining random seeding */
     seedThreshSign;                /* +1: need val > thresh; -1: opposite */
   double seedThresh;               /* threshold for seed constraint */
@@ -250,8 +249,8 @@ typedef struct pushContext_t {
   pushTask **task;                 /* dynamically allocated array of tasks */
   airThreadBarrier *iterBarrierA;  /* barriers between iterations */
   airThreadBarrier *iterBarrierB;  /* barriers between iterations */
-  double deltaFrac;                /* mean (over all particles in last
-                                      iteration) of fraction of distance
+  double deltaFrac;                /* mean (over all particles in last 
+                                      iteration) of fraction of distance 
                                       actually travelled to distance that it
                                       wanted to travel (due to speed limit) */
 
@@ -264,13 +263,7 @@ typedef struct pushContext_t {
     *noutTen;                      /* list of 2D or 3D masked tensors */
 } pushContext;
 
-typedef union {
-  pushPoint ***point;
-  void **v;
-} pushPtrPtrUnion;
-
 /* defaultsPush.c */
-PUSH_EXPORT const int pushPresent;
 PUSH_EXPORT const char *pushBiffKey;
 
 /* methodsPush.c */
@@ -288,7 +281,7 @@ PUSH_EXPORT const pushEnergy *const pushEnergyCoulomb;
 PUSH_EXPORT const pushEnergy *const pushEnergyCotan;
 PUSH_EXPORT const pushEnergy *const pushEnergyZero;
 PUSH_EXPORT const pushEnergy *const pushEnergyAll[PUSH_ENERGY_TYPE_MAX+1];
-PUSH_EXPORT pushEnergySpec *pushEnergySpecNew(void);
+PUSH_EXPORT pushEnergySpec *pushEnergySpecNew();
 PUSH_EXPORT void pushEnergySpecSet(pushEnergySpec *ensp,
                                    const pushEnergy *energy,
                                    const double parm[PUSH_ENERGY_PARM_NUM]);

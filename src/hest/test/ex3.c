@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -24,13 +24,13 @@
 #include "../hest.h"
 
 int
-main(int argc, const char **argv) {
+main(int argc, char **argv) {
   int res[2], v, numIn;
   char **in, *out, *blah[3], *option = NULL;
   int n, *ints, numN;
   hestOpt *opt = NULL;
   hestParm *parm;
-  char *err = NULL, info[] =
+  char *err = NULL, info[] = 
     "This program does nothing in particular, though it does attempt "
     "to pose as some sort of command-line image processing program. "
     "As usual, any implied functionality is purely coincidental, "
@@ -55,7 +55,7 @@ main(int argc, const char **argv) {
              "a list of integers", &numN);
   hestOptAdd(&opt, "res",   "sx sy", airTypeInt,    2,  2,  res,  NULL,
              "image resolution");
-
+  
   printf("what 0\n");
   if (1 == argc) {
     /* didn't get anything at all on command line */

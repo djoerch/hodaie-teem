@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -27,7 +26,7 @@
 char *me;
 
 void
-usage(void) {
+usage() {
   /*                      0   1   2   3   (4) */
   fprintf(stderr, "usage: %s <A> <B> <C>\n", me);
   fprintf(stderr, "for cubic x^3 + Ax^2 + Bx + C == 0\n");
@@ -64,7 +63,7 @@ main(int argc, char **argv) {
     break;
   case ell_cubic_root_single_double:
     ans1 = C + r[1]*(B + r[1]*(A + r[1]));
-    printf("1 single root %f -> %f, 1 double root %f -> %f\n",
+    printf("1 single root %f -> %f, 1 double root %f -> %f\n", 
            r[0], ans0, r[1], ans1);
     break;
   case ell_cubic_root_three:

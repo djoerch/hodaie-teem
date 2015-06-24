@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -24,30 +23,30 @@
 #include "nrrd.h"
 #include "privateNrrd.h"
 
-static int
+int
 _nrrdFormatText_available(void) {
-
+  
   return AIR_TRUE;
 }
 
-static int
+int
 _nrrdFormatText_nameLooksLike(const char *fname) {
-
+  
   return (airEndsWith(fname, NRRD_EXT_TEXT)
           || airEndsWith(fname, ".text")
           || airEndsWith(fname, ".ascii"));
 }
 
-static int
+int
 _nrrdFormatText_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
                          int useBiff) {
   static const char me[]="_nrrdFormatText_fitsInto";
-
+  
   AIR_UNUSED(encoding);
   /* encoding ignored- always ascii */
   if (!(1  == nrrd->dim || 2 == nrrd->dim)) {
     biffMaybeAddf(useBiff, NRRD, "%s: dimension is %d, not 1 or 2",
-                  me, nrrd->dim);
+                  me, nrrd->dim); 
     return AIR_FALSE;
   }
   if (nrrdTypeBlock == nrrd->type) {
@@ -58,15 +57,20 @@ _nrrdFormatText_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
   return AIR_TRUE;
 }
 
-static int
+int
 _nrrdFormatText_contentStartsLike(NrrdIoState *nio) {
   float oneFloat;
 
-  return (NRRD_COMMENT_CHAR == nio->line[0]
+  return (NRRD_COMMENT_CHAR == nio->line[0] 
           || airParseStrF(&oneFloat, nio->line, _nrrdTextSep, 1));
 }
 
-static int
+typedef union {
+  float **f;
+  void **v;
+} _fppu;
+
+int
 _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   static const char me[]="_nrrdFormatText_read";
   const char *fs;
@@ -77,10 +81,10 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   /* fl: first line, al: all lines */
   airArray *flArr, *alArr;
   float *fl, *al, oneFloat;
-  airPtrPtrUnion appu;
-
+  _fppu u;
+  
   if (!_nrrdFormatText_contentStartsLike(nio)) {
-    biffAddf(NRRD, "%s: this doesn't look like a %s file", me,
+    biffAddf(NRRD, "%s: this doesn't look like a %s file", me, 
              nrrdFormatText->name);
     return 1;
   }
@@ -92,7 +96,7 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   /* we only get here with the first line already in nio->line */
   line = 1;
   llen = AIR_CAST(unsigned int, strlen(nio->line));
-
+  
   if (0 == nrrd->dim) {
     settwo = nrrd->dim;
     nrrd->dim = 2;
@@ -104,7 +108,7 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     fidx = _nrrdReadNrrdParseField(nio, AIR_FALSE);
     /* could we parse anything? */
     if (!fidx) {
-      /* being unable to parse a comment as a nrrd field is not
+      /* being unable to parse a comment as a nrrd field is not 
          any kind of error */
       goto plain;
     }
@@ -122,7 +126,7 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
       goto plain;
     }
     /* when reading plain text, we simply ignore repetitions of a field */
-    if ((nrrdField_keyvalue == fidx || !nio->seen[fidx])
+    if (!nio->seen[fidx]
         && nrrdFieldInfoParse[fidx](file, nrrd, nio, AIR_TRUE)) {
       errS = biffGetDone(NRRD);
       if (1 <= nrrdStateVerboseIO) {
@@ -176,25 +180,23 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
 
   /* we supposedly have a line of numbers, see how many there are */
   if (!airParseStrF(&oneFloat, nio->line, _nrrdTextSep, 1)) {
-    char stmp[AIR_STRLEN_SMALL];
-    biffAddf(NRRD, "%s: couldn't parse a single number on line %s", me,
-             airSprintSize_t(stmp, line));
+    biffAddf(NRRD, "%s: couldn't parse a single number on line "
+             _AIR_SIZE_T_CNV, me, line);
     UNSETTWO; return 1;
   }
-  appu.f = &fl;
-  flArr = airArrayNew(appu.v, NULL, sizeof(float), _NRRD_TEXT_INCR);
+  u.f = &fl;
+  flArr = airArrayNew(u.v, NULL, sizeof(float), _NRRD_TEXT_INCR);
   if (!flArr) {
     biffAddf(NRRD, "%s: couldn't create array for first line values", me);
     UNSETTWO; return 1;
   }
   for (sx=1; 1; sx++) {
-    /* there is obviously a limit to the number of numbers that can
+    /* there is obviously a limit to the number of numbers that can 
        be parsed from a single finite line of input text */
     airArrayLenSet(flArr, AIR_CAST(unsigned int, sx));
     if (!flArr->data) {
-      char stmp[AIR_STRLEN_SMALL];
-      biffAddf(NRRD, "%s: couldn't alloc space for %s values", me,
-               airSprintSize_t(stmp, sx));
+      biffAddf(NRRD, "%s: couldn't alloc space for " _AIR_SIZE_T_CNV 
+               " values", me, sx);
       UNSETTWO; return 1;
     }
     if (sx > airParseStrF(fl, nio->line, _nrrdTextSep, AIR_CAST(unsigned int, sx))) {
@@ -206,16 +208,15 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   }
   flArr = airArrayNuke(flArr);
   if (1 == nrrd->dim && 1 != sx) {
-    char stmp[AIR_STRLEN_SMALL];
-    biffAddf(NRRD, "%s: wanted 1-D nrrd, but got %s values on 1st line", me,
-             airSprintSize_t(stmp, sx));
+    biffAddf(NRRD, "%s: wanted 1-D nrrd, but got " _AIR_SIZE_T_CNV 
+             " values on 1st line", me, sx);
     UNSETTWO; return 1;
   }
   /* else sx == 1 when nrrd->dim == 1 */
-
+  
   /* now see how many more lines there are */
-  appu.f = &al;
-  alArr = airArrayNew(appu.v, NULL, sx*sizeof(float), _NRRD_TEXT_INCR);
+  u.f = &al;
+  alArr = airArrayNew(u.v, NULL, sx*sizeof(float), _NRRD_TEXT_INCR);
   if (!alArr) {
     biffAddf(NRRD, "%s: couldn't create data buffer", me);
     UNSETTWO; return 1;
@@ -224,17 +225,15 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   while (llen) {
     airArrayLenIncr(alArr, 1);
     if (!alArr->data) {
-      char stmp[AIR_STRLEN_SMALL];
-      biffAddf(NRRD, "%s: couldn't create scanline of %s values", me,
-               airSprintSize_t(stmp, sx));
+      biffAddf(NRRD, "%s: couldn't create scanline of " _AIR_SIZE_T_CNV
+               " values", me, sx);
       UNSETTWO; return 1;
     }
     plen = airParseStrF(al + sy*sx, nio->line, _nrrdTextSep, AIR_CAST(unsigned int, sx));
     if (sx > plen) {
-      char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
-      biffAddf(NRRD, "%s: could only parse %d values (not %s) on line %s",
-               me, plen, airSprintSize_t(stmp1, sx),
-               airSprintSize_t(stmp2, line));
+      biffAddf(NRRD, "%s: could only parse %d values (not " 
+               _AIR_SIZE_T_CNV ") on line " _AIR_SIZE_T_CNV,
+               me, plen, sx, line);
       UNSETTWO; return 1;
     }
     sy++;
@@ -259,7 +258,7 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     size[0] = sx;
     size[1] = sy;
   }
-
+  
   if (nio->oldData
       && nio->oldDataSize == (size_t)(nrrdTypeSize[nrrdTypeFloat]*sx*sy)) {
     nret = nrrdWrap_nva(nrrd, nio->oldData, nrrdTypeFloat, nrrd->dim, size);
@@ -271,12 +270,12 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     UNSETTWO; return 1;
   }
   memcpy(nrrd->data, al, sx*sy*sizeof(float));
-
+  
   alArr = airArrayNuke(alArr);
   return 0;
 }
 
-static int
+int
 _nrrdFormatText_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
   char cmt[AIR_STRLEN_SMALL], buff[AIR_STRLEN_SMALL];
   size_t I;
@@ -287,21 +286,13 @@ _nrrdFormatText_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
   sprintf(cmt, "%c ", NRRD_COMMENT_CHAR);
   if (!nio->bareText) {
     if (1 == nrrd->dim) {
-      _nrrdFprintFieldInfo(file, cmt, nrrd, nio, nrrdField_dimension);
+      _nrrdFprintFieldInfo (file, cmt, nrrd, nio, nrrdField_dimension);
     }
     for (i=1; i<=NRRD_FIELD_MAX; i++) {
       if (_nrrdFieldValidInText[i]
           && nrrdField_dimension != i  /* dimension is handled above */
           && _nrrdFieldInteresting(nrrd, nio, i)) {
-        _nrrdFprintFieldInfo(file, cmt, nrrd, nio, i);
-      }
-    }
-    if (nrrdKeyValueSize(nrrd)) {
-      unsigned int kvi;
-      for (kvi=0; kvi<nrrd->kvpArr->len; kvi++) {
-        _nrrdKeyValueWrite(file, NULL, NULL,
-                           nrrd->kvp[0 + 2*kvi],
-                           nrrd->kvp[1 + 2*kvi]);
+        _nrrdFprintFieldInfo (file, cmt, nrrd, nio, i);
       }
     }
   }
@@ -326,7 +317,7 @@ _nrrdFormatText_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
     }
     fprintf(file, "\n");
   }
-
+  
   return 0;
 }
 

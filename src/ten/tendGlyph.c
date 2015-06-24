@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,7 +24,7 @@
 #include "privateTen.h"
 
 #define INFO "Generate postscript or ray-traced renderings of 3D glyphs"
-static const char *_tend_glyphInfoL =
+char *_tend_glyphInfoL =
   (INFO
    ".  Whether the output is postscript or a ray-traced image is controlled "
    "by the initial \"rt\" flag (by default, the output is postscript). "
@@ -48,7 +47,7 @@ _tendGlyphReadCams(int imgSize[2], limnCamera **camP,
   int ki;
   double di, dn, df, fr[3], at[3], up[3], va, dwell;
   airArray *mop, *camA;
-
+  
   if (!( 0 < airOneLine(fin, line, AIR_STRLEN_HUGE)
          && !strcmp(_LIMNMAGIC, line) )) {
     biffAddf(TEN, "%s: couldn't read first line or it wasn't \"%s\"",
@@ -62,7 +61,7 @@ _tendGlyphReadCams(int imgSize[2], limnCamera **camP,
              "\"imgSize <sizeX> <sizeY>\"", me);
     return 1;
   }
-
+  
   mop = airMopNew();
   camA = airArrayNew((void **)camP, numCamsP, sizeof(limnCamera), 1);
   airMopAdd(mop, camA, (airMopper)airArrayNix, airMopAlways);
@@ -97,8 +96,7 @@ _tendGlyphReadCams(int imgSize[2], limnCamera **camP,
 }
 
 int
-tend_glyphMain(int argc, const char **argv, const char *me,
-               hestParm *hparm) {
+tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
   int pret, doRT = AIR_FALSE;
   hestOpt *hopt = NULL;
   char *perr, *err;
@@ -150,7 +148,7 @@ tend_glyphMain(int argc, const char **argv, const char *me,
 
   hestOptAdd(&hopt, "v", "level", airTypeInt, 1, 1, &(gparm->verbose), "0",
              "verbosity level");
-
+  
   /* which points will rendered */
   hestOptAdd(&hopt, "ctr", "conf thresh", airTypeFloat, 1, 1,
              &(gparm->confThresh), "0.5",
@@ -236,14 +234,14 @@ tend_glyphMain(int argc, const char **argv, const char *me,
              "Instead of showing a slice of the anisotropy used to cull "
              "glyphs, show something else. ", NULL, NULL,
              nrrdHestNrrd);
-  hestOptAdd(&hopt, "off", "slice offset", airTypeFloat, 1, 1,
+  hestOptAdd(&hopt, "off", "slice offset", airTypeFloat, 1, 1, 
              &(gparm->sliceOffset), "0.0",
              "Offset from slice position to render slice at (so that it "
              "doesn't occlude glyphs).");
-  hestOptAdd(&hopt, "sg", "slice gamma", airTypeFloat, 1, 1,
+  hestOptAdd(&hopt, "sg", "slice gamma", airTypeFloat, 1, 1, 
              &(gparm->sliceGamma), "1.7",
              "Gamma to apply to values on slice.");
-  hestOptAdd(&hopt, "sb", "slice bias", airTypeFloat, 1, 1,
+  hestOptAdd(&hopt, "sb", "slice bias", airTypeFloat, 1, 1, 
              &(gparm->sliceBias), "0.05",
              "amount by which to bump up slice gray values prior to gamma.");
 
@@ -301,12 +299,12 @@ tend_glyphMain(int argc, const char **argv, const char *me,
              "number of samples per pixel (must be a square number)");
   if (airThreadCapable) {
     hestOptAdd(&hopt, "nt", "# threads", airTypeInt, 1, 1,
-               &(eparm->numThreads), "1",
+               &(eparm->numThreads), "1", 
                "(* ray-traced only *) "
                "number of threads to be used for rendering");
   }
   hestOptAdd(&hopt, "al", "B U V N E", airTypeFloat, 5, 5, buvne,
-             "0 -1 -1 -4 0.7",
+             "0 -1 -1 -4 0.7", 
              "(* ray-traced only *) "
              "brightness (B), view-space location (U V N), "
              "and length of edge (E) "
@@ -346,11 +344,11 @@ tend_glyphMain(int argc, const char **argv, const char *me,
     fprintf(stderr, "!%s: have npos --> turning off onlyPositive \n", me);
     gparm->onlyPositive = AIR_FALSE;
   }
-
+  
   if (gparm->verbose) {
     fprintf(stderr, "%s: verbose = %d\n", me, gparm->verbose);
   }
-  if (tenGlyphGen(doRT ? NULL : glyph,
+  if (tenGlyphGen(doRT ? NULL : glyph, 
                   doRT ? scene : NULL,
                   gparm,
                   nin, npos, nslc)) {
@@ -446,7 +444,7 @@ tend_glyphMain(int argc, const char **argv, const char *me,
       echoColorSet(rect, 1, 1, 1, 1);
       echoMatterLightSet(scene, rect, 1, AIR_CAST(echoCol_t, llen));
       echoObjectAdd(scene, rect);
-
+      
     }
     eparm->imgResU = ires[0];
     eparm->imgResV = ires[1];
@@ -476,7 +474,7 @@ tend_glyphMain(int argc, const char **argv, const char *me,
     } else {
       /* hack: multiple renderings per invocation */
       if (!(hackF = airFopen(hackFN, stdin, "rb"))) {
-        fprintf(stderr, "%s: couldn't fopen(\"%s\",\"rb\"): %s\n",
+        fprintf(stderr, "%s: couldn't fopen(\"%s\",\"rb\"): %s\n", 
                 me, hackFN, strerror(errno));
         airMopError(mop); return 1;
       }
@@ -540,7 +538,7 @@ tend_glyphMain(int argc, const char **argv, const char *me,
     }
   } else {
     if (!(win->file = airFopen(outS, stdout, "wb"))) {
-      fprintf(stderr, "%s: couldn't fopen(\"%s\",\"wb\"): %s\n",
+      fprintf(stderr, "%s: couldn't fopen(\"%s\",\"wb\"): %s\n", 
               me, outS, strerror(errno));
       airMopError(mop); return 1;
     }

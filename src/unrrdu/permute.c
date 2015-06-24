@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -24,17 +23,15 @@
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-#define INFO "Permute ordering of axes"
-static const char *_unrrdu_permuteInfoL =
+#define INFO "Permute scan-line ordering of axes"
+char *_unrrdu_permuteInfoL =
 (INFO
  ". The permutation gives the new ordering of the old "
  "axes (in 0-based numbering). For example, the "
- "permutation 0->1,\t1->2,\t2->0 would be \"2 0 1\".\n "
- "* Uses nrrdAxesPermute");
+ "permutation 0->1,\t1->2,\t2->0 would be \"2 0 1\".");
 
 int
-unrrdu_permuteMain(int argc, const char **argv, const char *me,
-                   hestParm *hparm) {
+unrrdu_permuteMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -56,7 +53,7 @@ unrrdu_permuteMain(int argc, const char **argv, const char *me,
 
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-
+  
   if (!( permLen == nin->dim )) {
     fprintf(stderr,"%s: # axes in permutation (%u) != nrrd dim (%d)\n",
             me, permLen, nin->dim);

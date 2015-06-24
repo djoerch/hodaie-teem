@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -28,14 +27,13 @@ pullTask *
 _pullTaskNew(pullContext *pctx, int threadIdx) {
   static const char me[]="_pullTaskNew";
   pullTask *task;
-  unsigned int ii;
-  pullPtrPtrUnion pppu;
+  unsigned int ii, offset;
 
   task = AIR_CALLOC(1, pullTask);
   if (!task) {
     biffAddf(PULL, "%s: couldn't allocate task", me);
     return NULL;
-  }
+  }    
 
   task->pctx = pctx;
   for (ii=0; ii<pctx->volNum; ii++) {
@@ -67,6 +65,7 @@ _pullTaskNew(pullContext *pctx, int threadIdx) {
     }
   }
   /* now set up all pointers for per-task pullInfos */
+  offset = 0;
   for (ii=0; ii<=PULL_INFO_MAX; ii++) {
     const pullVolume *vol;
     if (pctx->ispec[ii]) {
@@ -76,7 +75,7 @@ _pullTaskNew(pullContext *pctx, int threadIdx) {
                                           pctx->ispec[ii]->item);
         if (pctx->verbose) {
           printf("%s: task->ans[%u] = (%s) %p\n", me, ii,
-                 vol->kind->name, AIR_CVOIDP(task->ans[ii]));
+                 vol->kind->name, task->ans[ii]);
         }
       } else {
         task->ans[ii] = NULL;
@@ -89,7 +88,6 @@ _pullTaskNew(pullContext *pctx, int threadIdx) {
   /* initialize to descent because that's what's needed for the end of point
      initialization, when initial energy must be learned */
   task->processMode = pullProcessModeDescent;
-  task->probeSeedPreThreshOnly = AIR_FALSE;
   if (pctx->threadNum > 1) {
     task->thread = airThreadNew();
   }
@@ -101,17 +99,15 @@ _pullTaskNew(pullContext *pctx, int threadIdx) {
                                                    sizeof(pullPoint*)));
   task->addPoint = NULL;
   task->addPointNum = 0;
-  pppu.points = &(task->addPoint);
-  task->addPointArr = airArrayNew(pppu.v, &(task->addPointNum),
-                                  sizeof(pullPoint*),
-                                  /* not exactly the right semantics . . . */
+  task->addPointArr = airArrayNew(AIR_CAST(void **, &(task->addPoint)),
+                                  &(task->addPointNum), sizeof(pullPoint*),
+				  /* not exactly the right semantics ... */
                                   PULL_POINT_NEIGH_INCR);
   task->nixPoint = NULL;
   task->nixPointNum = 0;
-  pppu.points = &(task->nixPoint);
-  task->nixPointArr = airArrayNew(pppu.v, &(task->nixPointNum),
-                                  sizeof(pullPoint*),
-                                  /* not exactly the right semantics . . . */
+  task->nixPointArr = airArrayNew(AIR_CAST(void **, &(task->nixPoint)),
+                                  &(task->nixPointNum), sizeof(pullPoint*),
+				  /* not exactly the right semantics ... */
                                   PULL_POINT_NEIGH_INCR);
   task->returnPtr = NULL;
   task->stuckNum = 0;
@@ -131,7 +127,7 @@ _pullTaskNix(pullTask *task) {
     }
     task->rng = airRandMTStateNix(task->rng);
     task->pointBuffer = pullPointNix(task->pointBuffer);
-    airFree(task->neighPoint);
+    task->neighPoint = airFree(task->neighPoint);
     task->addPointArr = airArrayNuke(task->addPointArr);
     task->nixPointArr = airArrayNuke(task->nixPointArr);
     airFree(task);
@@ -170,11 +166,10 @@ _pullTaskSetup(pullContext *pctx) {
 void
 _pullTaskFinish(pullContext *pctx) {
   unsigned int tidx;
-
+  
   for (tidx=0; tidx<pctx->threadNum; tidx++) {
     pctx->task[tidx] = _pullTaskNix(pctx->task[tidx]);
   }
-  airFree(pctx->task);
-  pctx->task = NULL;
+  pctx->task = airFree(pctx->task);
   return;
 }

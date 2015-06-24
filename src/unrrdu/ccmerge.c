@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -24,19 +23,17 @@
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-#define INFO "Merge CCs with their neighbors, under various constraints"
-static const char *_unrrdu_ccmergeInfoL =
+#define INFO "Merge CCs with their neighbors, under various contraints"
+char *_unrrdu_ccmergeInfoL =
 (INFO
  ".  This operates on the output of \"ccfind\". "
  "Merging of a CC is always done into its largest neighbor. "
  "Whether or not to merge can be constrained by one or more of: "
  "CC size (\"-s\"), original CC value being brighter or darker (\"-d\"), "
- "and number of neighbors (\"-n\").\n "
- "* Uses nrrdCCMerge");
+ "and number of neighbors (\"-n\"). ");
 
 int
-unrrdu_ccmergeMain(int argc, const char **argv, const char *me,
-                   hestParm *hparm) {
+unrrdu_ccmergeMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout, *nout2, *nval;

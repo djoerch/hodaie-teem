@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,13 +24,12 @@
 #include "privateTen.h"
 
 #define INFO "convert from one model to another"
-static const char *_tend_mconvInfoL =
+char *_tend_mconvInfoL =
   (INFO
    ". More docs here.");
 
 int
-tend_mconvMain(int argc, const char **argv, const char *me,
-               hestParm *hparm) {
+tend_mconvMain(int argc, char **argv, char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;
@@ -85,7 +83,7 @@ tend_mconvMain(int argc, const char **argv, const char *me,
     airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble converting:\n%s\n", me, err);
     airMopError(mop); return 1;
-  }
+  }  
   if (nrrdSave(outS, nout, NULL)) {
     airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble writing:\n%s\n", me, err);

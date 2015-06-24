@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,16 +24,14 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Add a \"stub\" (length 1) axis to a nrrd"
-static const char *_unrrdu_axinsertInfoL =
+char *_unrrdu_axinsertInfoL =
 (INFO
  ". The underlying linear ordering of the samples is "
  "unchanged, and the information about the other axes is "
- "shifted upwards as needed.\n "
- "* Uses nrrdAxesInsert");
+ "shifted upwards as needed.");
 
 int
-unrrdu_axinsertMain(int argc, const char **argv, const char *me,
-                    hestParm *hparm) {
+unrrdu_axinsertMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err, *label;
   Nrrd *nin, *nout;

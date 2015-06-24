@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,7 +24,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Cheap histogram-based median/mode filtering"
-static const char *_unrrdu_cmedianInfoL =
+char *_unrrdu_cmedianInfoL =
 (INFO
  ". Only works on 1, 2, or 3 dimensions.  The window "
  "over which filtering is done is always square, and "
@@ -35,13 +34,10 @@ static const char *_unrrdu_cmedianInfoL =
  "of bins in the histogram, which probably means a loss of precision for "
  "anything except 8-bit data.  Also, integral values can be recovered "
  "exactly only when the number of bins is exactly min-max+1 (as reported "
- "by \"unu minmax\").\n "
- "* Uses nrrdCheapMedian, plus nrrdSlice and nrrdJoin in "
- "case of \"-c\"");
+ "by \"unu minmax\"). ");
 
 int
-unrrdu_cmedianMain(int argc, const char **argv, const char *me,
-                   hestParm *hparm) {
+unrrdu_cmedianMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout, *ntmp, **mnout;
@@ -66,11 +62,6 @@ unrrdu_cmedianMain(int argc, const char **argv, const char *me,
              "closer to the center of the window.  \"1.0\" weight means that "
              "all samples are uniformly weighted over the window, which "
              "facilitates a simple speed-up. ");
-  /* FYI: these are weights which are just high enough to preserve
-     an island of N contiguous high pixels in a row:
-     1: 7.695
-     2: 6.160
-     3: 4.829 (actually only the middle pixel remains */
   hestOptAdd(&opt, "p,pad", NULL, airTypeInt, 0, 0, &pad, NULL,
              "Pad the input (with boundary method \"bleed\"), "
              "and crop the output, so as to "
@@ -89,13 +80,13 @@ unrrdu_cmedianMain(int argc, const char **argv, const char *me,
   USAGE(_unrrdu_cmedianInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
-
+  
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
   if (chan) {
-    nsize = AIR_UINT(nin->axis[0].size);
-    mnout = AIR_CALLOC(nsize, Nrrd*);
+    nsize = nin->axis[0].size;
+    mnout = (Nrrd **)calloc(nsize, sizeof(Nrrd));
     airMopAdd(mop, mnout, airFree, airMopAlways);
     ntmp = nrrdNew();
     airMopAdd(mop, ntmp, (airMopper)nrrdNuke, airMopAlways);
@@ -115,25 +106,9 @@ unrrdu_cmedianMain(int argc, const char **argv, const char *me,
         return 1;
       }
     }
-    if (nrrdJoin(nout, (const Nrrd*const*)mnout, nsize, 0, AIR_TRUE)) {
+    if (nrrdJoin(nout, (const Nrrd**)mnout, nsize, 0, AIR_TRUE)) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: error doing final join:\n%s", me, err);
-      airMopError(mop);
-      return 1;
-    }
-    nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_NONE);
-    if (nrrdBasicInfoCopy(nout, nin,
-                          NRRD_BASIC_INFO_DATA_BIT
-                          | NRRD_BASIC_INFO_TYPE_BIT
-                          | NRRD_BASIC_INFO_BLOCKSIZE_BIT
-                          | NRRD_BASIC_INFO_DIMENSION_BIT
-                          | NRRD_BASIC_INFO_CONTENT_BIT
-                          | NRRD_BASIC_INFO_COMMENTS_BIT
-                          | (nrrdStateKeyValuePairsPropagate
-                             ? 0
-                             : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
-      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-      fprintf(stderr, "%s: error copying basic info:\n%s", me, err);
       airMopError(mop);
       return 1;
     }

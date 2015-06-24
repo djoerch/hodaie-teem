@@ -1,6 +1,5 @@
 #
 # Teem: Tools to process and visualize scientific data and images
-# Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
 # Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
 # Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 #
@@ -40,7 +39,7 @@
 
 ## TEEM_ROOT: a relative path to the directory which contains the
 ## "src", "include", and all the architecture-specific directories
-## (which in turn contain "bin", "lib", and "obj"). Whether
+## (which in turn contain "bin", "lib", "obj", and "purify"). Whether
 ## make started on this makefile or on an individual library's
 ## makefile determines who gets to set TEEM_ROOT first.  Same for
 ## TEEM_SRC, a relative path to the "src" directory
@@ -89,8 +88,9 @@ SLEEP = sleep
 ##
 include $(TEEM_SRC)/make/$(ARCH).mk
 $(checkShext)
+$(checkPurify)
 
-## information about optional external ("xtern") libraries to link with
+## information about optional external libraries to link with
 ##
 include $(TEEM_SRC)/make/externals.mk
 
@@ -98,7 +98,6 @@ include $(TEEM_SRC)/make/externals.mk
 ## NUMS: "numbering" of all the libraries in dependency order
 ## RNUMS: in link order, and "top-dep" order needed by bin/GNUmakefile
 ## {R}NUM/LIBS: used for craziness below
-## (TEEM_LIB_LIST)
 ##
 LIBS = air hest biff nrrd ell unrrdu alan moss tijk gage dye bane limn echo hoover seek ten elf pull coil push mite meet
 NUMS =  0 1 2 3 4 5 6 7 8 9 A B C D E F G H I J K L M
@@ -167,10 +166,11 @@ endif
 ## create IDEST/teem if necessary
 $(call create.if.missing,$(IDEST)/teem)
 ODEST = $(TEEM_ROOT)/arch/$(TEEM_ARCH)/obj
+PCACHE = $(TEEM_ROOT)/arch/$(TEEM_ARCH)/purify
 IPATH += -I$(IDEST)
 LPATH += -L$(LDEST)
 ifneq (undefined,$(origin TEEM_DEST))
-  # we still need this for the teem*.h headers (such as teemEndian.h)
+  # we still need this for the teem*.h headers (such as teem32bit.h)
   IPATH += -I$(TEEM_ROOT)/include
 endif
 
@@ -199,9 +199,24 @@ endif
 CFLAGS += -DTEEM_BUILD_EXPERIMENTAL_LIBS $(OPT_CFLAG) $(ARCH_CFLAG)
 LDFLAGS += $(ARCH_LDFLAG) $(SHARED_LDFLAG)
 
+## The AIR_SIZE_T_FMT macro requires knowing TEEM_32BIT for all
+## source files wishing to use it, which might as well be all teem
+## source files.
+##
+CFLAGS += -DTEEM_32BIT=$(TEEM_32BIT)
+
 ## SGI's C pre-processor errors aren't fatal by default
 ##
 CFLAGS += $(TEEM_CPP_ERROR_DIE)
+
+## If using purify, set P to all the purify stuff that will prefix
+## compile and link commands
+## 
+ifneq (undefined,$(origin TEEM_PURIFY))
+  P = $(TEEM_PURIFY_CMD) \
+    -inuse-at-exit=yes -add-suppression-files=$(PCACHE)/.purify
+#    -always-use-cache-dir -cache-dir=$(PCACHE)
+endif
 
 #######################################
 ## "Functions"
@@ -270,7 +285,8 @@ link = $(foreach LIB,$(call linkorder,$(1)),-l$(LIB))
 ## reasonable. more.cflags(L) is the list of -D flags for all required
 ## XXX.
 ##
-more.cflags = $(if $($(1).NEED_DIO),-DTEEM_DIO=$(TEEM_DIO))\
+more.cflags = $(if $($(1).NEED_ENDIAN),-DTEEM_ENDIAN=$(TEEM_ENDIAN))\
+ $(if $($(1).NEED_DIO),-DTEEM_DIO=$(TEEM_DIO))\
  $(if $($(1).NEED_QNANHIBIT),-DTEEM_QNANHIBIT=$(TEEM_QNANHIBIT)) \
 
 ## banner(L) is progress indication for compiling library L; see
@@ -289,7 +305,7 @@ banner = echo "--------------------" $(1) "--------------------"
 #used = $(call used.libs,$(1)) $(call used.hdrs,$(1))
 
 ## related to external optional libraries.  Called "xtern"s to avoid
-## similarities to library filename extensions ("ext"s) above.
+## similarities to library "ext"s above.
 ##
 ## wants.xtern(XTERN): returns XTERN if TEEM_<XTERN> has been set,
 ##   otherwise nothing

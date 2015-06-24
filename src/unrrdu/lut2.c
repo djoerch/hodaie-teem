@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,19 +24,17 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Map nrrd through a bivariate lookup table"
-static const char *_unrrdu_lut2InfoL =
+char *_unrrdu_lut2InfoL =
 (INFO
  " (itself represented as a nrrd). The lookup table "
  "can be 2D, in which case the output "
  "has the same dimension as the input, or 3D, in which case "
  "the output has one more dimension than the input, and each "
  "pair of values is mapped to a scanline (along axis 0) from the "
- "lookup table.  In any case, axis 0 of the input must have length two.\n "
- "* Uses nrrdApply2DLut");
+ "lookup table.  In any case, axis 0 of the input must have length two.");
 
 int
-unrrdu_lut2Main(int argc, const char **argv, const char *me,
-                hestParm *hparm) {
+unrrdu_lut2Main(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nlut, *nout, *ntmp[2];
@@ -92,16 +89,14 @@ unrrdu_lut2Main(int argc, const char **argv, const char *me,
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
   if (!( nin->dim > 1 && 2 == nin->axis[0].size )) {
-    char stmp[AIR_STRLEN_SMALL];
     fprintf(stderr, "%s: input nrrd dim must be > 1, and axis[0].size "
-            "must be 2 (not %s)\n", me,
-            airSprintSize_t(stmp, nin->axis[0].size));
+            "must be 2 (not " _AIR_SIZE_T_CNV ")\n", me, nin->axis[0].size);
     airMopError(mop);
     return 1;
   }
   mapAxis = nlut->dim - 2;
   if (!(0 == mapAxis || 1 == mapAxis)) {
-    fprintf(stderr, "%s: dimension of lut should be 2 or 3, not %d",
+    fprintf(stderr, "%s: dimension of lut should be 2 or 3, not %d", 
             me, nlut->dim);
     airMopError(mop);
     return 1;
@@ -109,7 +104,7 @@ unrrdu_lut2Main(int argc, const char **argv, const char *me,
 
   /* see comment in rmap.c */
   for (rai=0; rai<=1; rai++) {
-    if (!( AIR_EXISTS(nlut->axis[mapAxis + rai].min) &&
+    if (!( AIR_EXISTS(nlut->axis[mapAxis + rai].min) && 
            AIR_EXISTS(nlut->axis[mapAxis + rai].max) )) {
       rescale[rai] = AIR_TRUE;
     }

@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2010 Thomas Schultz
 
   This library is free software; you can redistribute it and/or
@@ -50,7 +50,7 @@ static void downheap (airHeap *h, unsigned int i) {
     if (left>=len)
       return;
     if ((right>=len) ||
-        (h->key[h->idx[left]] < h->key[h->idx[right]])) {
+	(h->key[h->idx[left]] < h->key[h->idx[right]])) {
       minidx = left;
       minval = h->key[h->idx[left]];
     } else {
@@ -110,25 +110,22 @@ static int heapLenIncr (airHeap *h, int delta) {
  */
 airHeap *airHeapNew(size_t dataUnit, unsigned int incr) {
   airHeap *h;
-  airPtrPtrUnion appu;
   h = AIR_CALLOC(1, airHeap);
   if (h==NULL) {
     return NULL;
   }
 
-  appu.d = &h->key;
-  h->key_a = airArrayNew(appu.v, NULL, sizeof(double), incr);
+  h->key_a = airArrayNew((void**)&h->key, NULL, sizeof(double), incr);
   if (dataUnit>0) { /* data is optional */
-    h->data_a = airArrayNew(&h->data, NULL, dataUnit, incr);
+    h->data_a = airArrayNew((void**)&h->data, NULL, dataUnit, incr);
   }
-  appu.ui = &h->idx;
-  h->idx_a = airArrayNew(appu.v, NULL, sizeof(unsigned int), incr);
-  appu.ui = &h->invidx;
-  h->invidx_a = airArrayNew(appu.v, NULL, sizeof(unsigned int), incr);
+  h->idx_a = airArrayNew((void**)&h->idx, NULL, sizeof(unsigned int), incr);
+  h->invidx_a = airArrayNew((void**)&h->invidx, NULL, sizeof(unsigned int),
+			    incr);
 
   if (h->key_a==NULL || (dataUnit>0 && h->data_a==NULL) || h->idx_a==NULL ||
       h->invidx_a==NULL) { /* allocation failed (partly) */
-    airHeapNix(h);
+    airHeapNuke(h);
     return NULL;
   }
   return h;
@@ -146,7 +143,7 @@ airHeap *airHeapFromArray(const airArray *key, const airArray *data) {
     return NULL; /* unusable input */
   h = airHeapNew((data==NULL)?0:data->unit, key->incr);
   if (heapLenIncr (h, key->len)) { /* could not allocate memory */
-    airHeapNix(h);
+    airHeapNuke(h);
     return NULL;
   }
   memcpy(h->key, key->data, key->len*sizeof(double));
@@ -160,7 +157,7 @@ airHeap *airHeapFromArray(const airArray *key, const airArray *data) {
 }
 
 /* Frees all memory associated with the heap and its data */
-airHeap *airHeapNix(airHeap *h) {
+airHeap *airHeapNuke(airHeap *h) {
   if (h!=NULL) {
     airArrayNuke(h->key_a);
     if (h->data_a!=NULL) airArrayNuke(h->data_a);
@@ -195,7 +192,7 @@ unsigned int airHeapInsert(airHeap *h, double key, const void *data) {
   h->key[oldlen]=key;
   if (h->data_a!=NULL && data!=NULL) {
     memcpy((char*)h->data_a->data+oldlen*h->data_a->unit, data,
-           h->data_a->unit);
+	   h->data_a->unit);
   }
   h->idx[oldlen]=oldlen;
   h->invidx[oldlen]=oldlen;
@@ -223,7 +220,7 @@ unsigned int airHeapMerge(airHeap *first, const airHeap *second) {
   memcpy(first->key+first_len, second->key, second_len*sizeof(double));
   if (first->data_a!=NULL)
     memcpy((char*)first->data_a->data+first_len*first->data_a->unit,
-           second->data_a->data,second_len*second->data_a->unit);
+	   second->data_a->data,second_len*second->data_a->unit);
   for (i=0; i<second_len; i++) {
     first->idx[first_len+i] = first_len+second->idx[i];
     first->invidx[first->idx[first_len+i]]=first_len+i;
@@ -239,7 +236,7 @@ double airHeapFrontPeek(const airHeap *h, void *data) {
     return 0.0;
   if (data!=NULL && h->data_a!=NULL)
     memcpy(data, (char*)h->data_a->data+h->idx[0]*h->data_a->unit,
-           h->data_a->unit);
+	   h->data_a->unit);
   return h->key[h->idx[0]];
 }
 
@@ -259,7 +256,7 @@ int airHeapFrontUpdate(airHeap *h, double newKey, const void *newData) {
     return 1;
   if (newData!=NULL && h->data_a!=NULL)
     memcpy((char*)h->data_a->data+h->idx[0]*h->data_a->unit, newData,
-           h->data_a->unit);
+	   h->data_a->unit);
   h->key[h->idx[0]]=newKey;
   downheap(h, 0);
   return 0;
@@ -280,10 +277,10 @@ int airHeapFind(const airHeap *h, unsigned int *ai, const void *data) {
     return 1;
   for (i=0; i<h->key_a->len; i++) {
     if (!memcmp((char*)h->data_a->data+i*h->data_a->unit, data,
-                h->data_a->unit)) {
+		h->data_a->unit)) {
       *ai = i;
       return 0;
-    }
+    }      
   }
   return 1;
 }
@@ -302,8 +299,8 @@ int airHeapRemove(airHeap *h, unsigned int ai) {
     h->key[ai]=h->key[h->key_a->len-1];
     if (h->data_a!=NULL) {
       memcpy((char*)h->data_a->data+ai*h->data_a->unit,
-             (char*)h->data_a->data+(h->key_a->len-1)*h->data_a->unit,
-             h->data_a->unit);
+	     (char*)h->data_a->data+(h->key_a->len-1)*h->data_a->unit,
+	     h->data_a->unit);
     }
     h->idx[h->invidx[h->key_a->len-1]]=ai;
     h->invidx[ai]=h->invidx[h->key_a->len-1];
@@ -318,7 +315,7 @@ int airHeapRemove(airHeap *h, unsigned int ai) {
 /* Changes the key (and optional data) of the element ai, re-sorting
  * the heap if necessary. Returns 0 upon success. */
 int airHeapUpdate(airHeap *h, unsigned int ai, double newKey,
-                  const void *newData) {
+		  const void *newData) {
   double oldkey;
   if (h==NULL || h->key_a->len<=ai)
     return 1;
@@ -327,7 +324,7 @@ int airHeapUpdate(airHeap *h, unsigned int ai, double newKey,
   h->key[ai] = newKey;
   if (h->data_a!=NULL && newData!=NULL) {
     memcpy((char*)h->data_a->data+ai*h->data_a->unit,
-           newData, h->data_a->unit);
+	   newData, h->data_a->unit);
   }
   if (oldkey<newKey) downheap(h, h->invidx[ai]);
   else upheap(h, h->invidx[ai]);

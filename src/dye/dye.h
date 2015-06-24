@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -71,17 +70,16 @@ typedef struct {
 } dyeColor;
 
 /* methodsDye.c */
-DYE_EXPORT const int dyePresent;
 DYE_EXPORT const char *dyeBiffKey;
 DYE_EXPORT char dyeSpaceToStr[][AIR_STRLEN_SMALL];
 DYE_EXPORT int dyeStrToSpace(char *str);
 DYE_EXPORT dyeColor *dyeColorInit(dyeColor *col);
-DYE_EXPORT dyeColor *dyeColorSet(dyeColor *col, int space,
+DYE_EXPORT dyeColor *dyeColorSet(dyeColor *col, int space, 
                                  float v0, float v1, float v2);
 DYE_EXPORT int dyeColorGet(float *v0P, float *v1P, float *v2P, dyeColor *col);
-DYE_EXPORT int dyeColorGetAs(float *v0P, float *v1P, float *v2P,
+DYE_EXPORT int dyeColorGetAs(float *v0P, float *v1P, float *v2P, 
                              dyeColor *col, int space);
-DYE_EXPORT dyeColor *dyeColorNew(void);
+DYE_EXPORT dyeColor *dyeColorNew();
 DYE_EXPORT dyeColor *dyeColorCopy(dyeColor *c1, dyeColor *c0);
 DYE_EXPORT dyeColor *dyeColorNix(dyeColor *col);
 DYE_EXPORT int dyeColorParse(dyeColor *col, char *str);

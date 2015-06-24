@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -28,20 +27,20 @@
 extern "C" {
 #endif
 
-/* methodsHest.c */
+/* methods.c */
 extern char *_hestIdent(char *ident, hestOpt *opt, hestParm *parm, int brief);
 extern int _hestKind(hestOpt *opt);
 extern void _hestPrintArgv(int argc, char **argv);
 extern int _hestWhichFlag(hestOpt *opt, char *flag, hestParm *parm);
 extern int _hestCase(hestOpt *opt, int *udflt, unsigned int *nprm, int *appr, int op);
-extern char *_hestExtract(int *argcP, char **argv,
-                          unsigned int base, unsigned int pnum);
+extern char *_hestExtract(int *argcP, char **argv, int a, int np);
 extern int _hestNumOpts(hestOpt *opt);
+extern int _hestArgc(char **argv);
 extern int _hestMax(int max);
 
-/* parseHest.c */
+/* parse.c */
 extern int _hestPanic(hestOpt *opt, char *err, hestParm *parm);
-extern int _hestErrStrlen(hestOpt *opt, int argc, const char **argv);
+extern int _hestErrStrlen(hestOpt *opt, int argc, char **argv);
 
 #ifdef __cplusplus
 }

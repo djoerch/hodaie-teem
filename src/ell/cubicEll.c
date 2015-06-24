@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -27,19 +26,19 @@
 
 
 /*
-******** ell_cubic():
+******** ell_cubic(): 
 **
 ** finds real roots of x^3 + A*x^2 + B*x + C.
 **
-** records the found real roots in the given root array.
+** records the found real roots in the given root array. 
 **
 ** returns information about the roots according to ellCubicRoot enum,
 ** the set the following values in given root[] array:
-**   ell_cubic_root_single: root[0], root[1] == root[2] == AIR_NAN
-**   ell_cubic_root_triple: root[0] == root[1] == root[2]
-**   ell_cubic_root_single_double: single root[0]; double root[1] == root[2]
-**                              or double root[0] == root[1], single root[2]
-**   ell_cubic_root_three: root[0], root[1], root[2]
+**   ellCubicRootSingle: root[0], root[1] == root[2] == AIR_NAN
+**   ellCubicRootTriple: root[0] == root[1] == root[2]
+**   ellCubicRootSingleDouble: single root[0]; double root[1] == root[2]
+**                          or double root[0] == root[1], single root[2]
+**   ellCubicRootThree: root[0], root[1], root[2]
 **
 ** The values stored in root[] are, in a change from the past, sorted
 ** in descending order!  No need to sort them any more!
@@ -52,21 +51,14 @@ ell_cubic(double root[3], double A, double B, double C, int newton) {
   double epsilon = 1.0E-11, AA, Q, R, QQQ, D, sqrt_D, der,
     u, v, x, theta, t, sub;
 
-  /*
-  printf("%s: A B C = %g %g %g\n", me, A, B, C);
-  */
   sub = A/3.0;
   AA = A*A;
   Q = (AA/3.0 - B)/3.0;
   R = (-2.0*A*AA/27.0 + A*B/3.0 - C)/2.0;
   QQQ = Q*Q*Q;
   D = R*R - QQQ;
-  /*
-  printf(" R = %15.30f\n Q = %15.30f\n QQQ = %15.30f\n D = %15.30f\n",
-         R, Q, QQQ, D);
-  */
   if (D < -epsilon) {
-    /* three distinct roots- this is the most common case, it has
+    /* three distinct roots- this is the most common case, it has 
        been tested the most, its code should go first */
     theta = acos(R/sqrt(QQQ))/3.0;
     t = 2*sqrt(Q);
@@ -95,7 +87,7 @@ ell_cubic(double root[3], double A, double B, double C, int newton) {
       return ell_cubic_root_single;
     }
 
-    /* else refine x, the known root, with newton-raphson, so as to get the
+    /* else refine x, the known root, with newton-raphson, so as to get the 
        most accurate possible calculation for nr, the possible new root */
     x -= (der = (3*x + 2*A)*x + B, ((x/der + A/der)*x + B/der)*x + C/der);
     x -= (der = (3*x + 2*A)*x + B, ((x/der + A/der)*x + B/der)*x + C/der);
@@ -120,7 +112,7 @@ ell_cubic(double root[3], double A, double B, double C, int newton) {
     else {
       if (ell_debug) {
         fprintf(stderr, "%s: rescued double root:% 20.15f\n", me, nr);
-      }
+      } 
       if (x > nr) {
         root[0] = x;
         root[1] = nr;
@@ -132,7 +124,7 @@ ell_cubic(double root[3], double A, double B, double C, int newton) {
       }
       return ell_cubic_root_single_double;
     }
-  }
+  } 
   else {
     /* else D is in the interval [-epsilon, +epsilon] */
     if (R < -epsilon || epsilon < R) {
@@ -148,7 +140,7 @@ ell_cubic(double root[3], double A, double B, double C, int newton) {
         root[2] = 2*u - sub;
       }
       return ell_cubic_root_single_double;
-    }
+    } 
     else {
       /* one triple root */
       root[0] = root[1] = root[2] = -sub;

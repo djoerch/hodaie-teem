@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -26,7 +25,7 @@
 #include <teem/hest.h>
 #include <teem/nrrd.h>
 
-static const char *overInfo = (
+char *overInfo = (
   "Composites an RGBA nrrd over "
   "a background color (or image), after doing gamma correction, "
   "then quantizes to an 8-bit image.  Actually, the "
@@ -56,15 +55,14 @@ docontrast(double val, double cfp, double cpow) {
 }
 
 int
-main(int argc, const char *argv[]) {
+main(int argc, char *argv[]) {
   hestOpt *hopt=NULL;
   Nrrd *nin, *nout,    /* initial input and final output */
     *ninD,             /* input converted to double */
     *_nbg,             /* given background image (optional) */
     *nbg,              /* resampled background image */
     *nrgbaD;           /* rgba input as double */
-  const char *me;
-  char *outS, *errS;
+  char *me, *outS, *errS;
   double gamma, contr, cfp, cpow, back[3], *rgbaD, r, g, b, a;
   airArray *mop;
   int E;
@@ -96,7 +94,7 @@ main(int argc, const char *argv[]) {
                  AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
-
+  
   if (!(3 == nin->dim && 4 <= nin->axis[0].size)) {
     fprintf(stderr, "%s: doesn't look like an RGBA nrrd\n", me);
     airMopError(mop); return 1;
@@ -110,7 +108,7 @@ main(int argc, const char *argv[]) {
   sx = nin->axis[1].size;
   sy = nin->axis[2].size;
   if (_nbg) {
-    if (!(3 == _nbg->dim
+    if (!(3 == _nbg->dim 
           && 3 == _nbg->axis[0].size
           && 2 <= _nbg->axis[1].size
           && 2 <= _nbg->axis[2].size
@@ -124,9 +122,9 @@ main(int argc, const char *argv[]) {
       /* no resampling needed, just copy */
       E = nrrdCopy(nbg, _nbg);
     } else {
-      /* have to resample background image to fit. */
+      /* have to resample background image to fit ... */
       /* because we're using the old resampler, we have to kill off any
-         space direction information, which is incompatible with
+         space direction information, which is incompatible with 
          setting per-axis min and max, as is required by the old resampler */
       nrrdOrientationReduce(_nbg, _nbg, AIR_FALSE);
       rinfo = nrrdResampleInfoNew();
@@ -147,7 +145,7 @@ main(int argc, const char *argv[]) {
     if (E) {
       fprintf(stderr, "%s: trouble:\n%s", me, errS = biffGetDone(NRRD));
       free(errS); return 1;
-    }
+    }      
   } else {
     nbg = NULL;
   }
@@ -155,7 +153,7 @@ main(int argc, const char *argv[]) {
   ninD = nrrdNew();
   airMopAdd(mop, ninD, (airMopper)nrrdNuke, airMopAlways);
   nrgbaD = nrrdNew();
-  airMopAdd(mop, nrgbaD, (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, nrgbaD, (airMopper)nrrdNuke, airMopAlways);  
   nout=nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
@@ -166,7 +164,7 @@ main(int argc, const char *argv[]) {
     if (!E) E |= nrrdConvert(ninD, nin, nrrdTypeDouble);
   } else {
     if (!E) E |= nrrdCopy(ninD, nin);
-  }
+  }  
   min[0] = min[1] = min[2] = 0;
   max[0] = 3;
   max[1] = sx-1;
@@ -216,7 +214,7 @@ main(int argc, const char *argv[]) {
     fprintf(stderr, "%s: trouble:\n%s", me, errS = biffGetDone(NRRD));
     free(errS); return 1;
   }
-
+  
   airMopOkay(mop);
   return 0;
 }

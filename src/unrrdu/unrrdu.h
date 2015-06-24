@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -56,19 +55,17 @@ extern "C" {
 */
 typedef struct {
   const char *name, *info;
-  int (*main)(int argc, const char **argv, const char *me,
-              hestParm *hparm);
-  int hidden;
+  int (*main)(int argc, char **argv, char *me, hestParm *hparm);
 } unrrduCmd;
 
 /*
 ** UNRRDU_DECLARE, UNRRDU_LIST, UNRRDU_MAP
-**
+** 
 ** Twisted C-preprocessor tricks.  The idea is to make it as simple
 ** as possible to add new commands to unu, so that the new commands
 ** have to be added to only one thing in this source file, and
 ** the Makefile.
-**
+** 
 ** Associated with each unu command are some pieces of information:
 ** the single word command (e.g. "slice") that is used by invoke it,
 ** the short (approx. one-line) description of its function, and the
@@ -90,7 +87,7 @@ typedef struct {
 ** UNRRDU_DECLARE: declares unrrdu_xxxCmd as an extern unrrduCmd
 **                 (defined in xxx.c), used later in this header file.
 ** UNRRDU_LIST:    the address of unrrdu_xxxCmd, for listing in the array of
-**                 unrrduCmd structs in the (compile-time) definition of
+**                 unrrduCmd structs in the (compile-time) definition of 
 **                 unrrduCmdList[].  This is used in flotsam.c.
 **
 ** Then, to facilitate running these macros on each of the different
@@ -108,20 +105,14 @@ typedef struct {
 #define UNRRDU_MAP(F) \
 F(about) \
 F(env) \
-F(i2w) \
-F(w2i) \
 F(make) \
 F(head) \
 F(data) \
 F(convert) \
 F(resample) \
-F(fft) \
 F(cmedian) \
-F(dering) \
 F(dist) \
 F(minmax) \
-F(cksum) \
-F(diff) \
 F(quantize) \
 F(unquantize) \
 F(project) \
@@ -131,7 +122,6 @@ F(dice) \
 F(splice) \
 F(join) \
 F(crop) \
-F(acrop) \
 F(inset) \
 F(pad) \
 F(reshape) \
@@ -168,8 +158,6 @@ F(ccfind) \
 F(ccadj) \
 F(ccmerge) \
 F(ccsettle) \
-F(dnorm) \
-F(vidicon) \
 F(save)
 /* these two have been removed since no one uses them
 F(block) \
@@ -183,46 +171,20 @@ F(unblock) \
 ** ("xxx.c") to simplify defining a unrrduCmd.  "name" should just be
 ** the command, UNQUOTED, such as flip or slice.
 */
-#define UNRRDU_CMD(name, info)                  \
-  unrrduCmd unrrdu_##name##Cmd = {              \
-    #name, info, unrrdu_##name##Main, AIR_FALSE \
-  }
-#define UNRRDU_CMD_HIDE(name, info)             \
-  unrrduCmd unrrdu_##name##Cmd = {              \
-    #name, info, unrrdu_##name##Main, AIR_TRUE  \
-  }
+#define UNRRDU_CMD(name, info) \
+unrrduCmd unrrdu_##name##Cmd = { #name, info, unrrdu_##name##Main }
 
 /* xxx.c */
 /* Declare the extern unrrduCmds unrrdu_xxxCmd, for all xxx.  These are
    defined in as many different source files as there are commands. */
 UNRRDU_MAP(UNRRDU_DECLARE)
 
-/*
-** used with unrrduHestScaleCB to identify for "unu resample -s"
-** whether to resample along an axis, and if so, how the number of
-** samples on an axis should be scaled (though now its more general
-** than just scaling) */
-enum {
-  unrrduScaleUnknown,
-  unrrduScaleNothing,      /* "=" */
-  unrrduScaleMultiply,     /* e.g. "x2" */
-  unrrduScaleDivide,       /* e.g. "/2" */
-  unrrduScaleAdd,          /* e.g. "+2" */
-  unrrduScaleSubtract,     /* e.g. "-2" */
-  unrrduScaleAspectRatio,  /* "a" */
-  unrrduScaleExact,        /* e.g. "128" */
-  unrrduScaleLast
-};
-
 /* flotsam.c */
-UNRRDU_EXPORT const int unrrduPresent;
 UNRRDU_EXPORT const char *unrrduBiffKey;
-UNRRDU_EXPORT unsigned int unrrduDefNumColumns;
+UNRRDU_EXPORT int unrrduDefNumColumns;
 /* addresses of all unrrdu_xxxCmd */
-UNRRDU_EXPORT unrrduCmd *unrrduCmdList[];
-UNRRDU_EXPORT void unrrduUsageUnu(const char *me, hestParm *hparm);
-UNRRDU_EXPORT int unrrduUsage(const char *me, hestParm *hparm,
-                              const char *title, unrrduCmd **cmdList);
+UNRRDU_EXPORT unrrduCmd *unrrduCmdList[]; 
+UNRRDU_EXPORT void unrrduUsage(const char *me, hestParm *hparm);
 UNRRDU_EXPORT hestCB unrrduHestPosCB;
 UNRRDU_EXPORT hestCB unrrduHestMaybeTypeCB;
 UNRRDU_EXPORT hestCB unrrduHestScaleCB;

@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,14 +24,13 @@
 #include "privateTen.h"
 
 #define INFO "Apply an anisotropy metric to a DT volume"
-static const char *_tend_anvolInfoL =
+char *_tend_anvolInfoL =
   (INFO
    ".  The anisotropy value will be zero in the locations which "
    "don't meet the given confidence threshold.");
 
 int
-tend_anvolMain(int argc, const char **argv, const char *me,
-               hestParm *hparm) {
+tend_anvolMain(int argc, char **argv, char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;

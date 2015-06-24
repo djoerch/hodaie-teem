@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,13 +24,10 @@
 #include "privateHest.h"
 #include <limits.h>
 
-const int
-hestPresent = 42;
-
 hestParm *
 hestParmNew() {
   hestParm *parm;
-
+  
   parm = AIR_CALLOC(1, hestParm);
   if (parm) {
     parm->verbosity = hestVerbosity;
@@ -83,7 +79,7 @@ _hestOptInit(hestOpt *opt) {
 hestOpt *
 hestOptNew(void) {
   hestOpt *opt;
-
+  
   opt = AIR_CALLOC(1, hestOpt);
   if (opt) {
     _hestOptInit(opt);
@@ -94,8 +90,8 @@ hestOptNew(void) {
 */
 
 void
-hestOptAdd(hestOpt **optP,
-           const char *flag, const char *name,
+hestOptAdd(hestOpt **optP, 
+           char *flag, char *name,
            int type, int min, int max,
            void *valueP, const char *dflt, const char *info, ...) {
   hestOpt *ret = NULL;
@@ -148,13 +144,13 @@ hestOptAdd(hestOpt **optP,
   if (*optP)
     free(*optP);
   *optP = ret;
-  AIR_UNUSED(dummy);
+  dummy = dummy;
   return;
 }
 
 void
 _hestOptFree(hestOpt *opt) {
-
+  
   opt->flag = (char *)airFree(opt->flag);
   opt->name = (char *)airFree(opt->name);
   opt->dflt = (char *)airFree(opt->dflt);
@@ -190,9 +186,7 @@ hestOptCheck(hestOpt *opt, char **errP) {
   if (!( err = AIR_CALLOC(big, char) )) {
     fprintf(stderr, "%s PANIC: couldn't allocate error message "
             "buffer (size %d)\n", me, big);
-    if (errP)
-      *errP = NULL;
-    return 1;
+    exit(1);
   }
   parm = hestParmNew();
   if (_hestPanic(opt, err, parm)) {
@@ -230,13 +224,13 @@ _hestIdent(char *ident, hestOpt *opt, hestParm *parm, int brief) {
     strcpy(copy, opt->flag);
     sep = strchr(copy, parm->multiFlagSep);
     *sep = '\0';
-    if (brief)
+    if (brief) 
       sprintf(ident, "-%s%c--%s option", copy, parm->multiFlagSep, sep+1);
-    else
+    else 
       sprintf(ident, "-%s option", copy);
   }
   else {
-    sprintf(ident, "%s%s%s option",
+    sprintf(ident, "%s%s%s option", 
             opt->flag ? "\"-"      : "<",
             opt->flag ? opt->flag : opt->name,
             opt->flag ? "\""       : ">");
@@ -246,7 +240,7 @@ _hestIdent(char *ident, hestOpt *opt, hestParm *parm, int brief) {
 
 int
 _hestMax(int max) {
-
+  
   if (-1 == max) {
     max = INT_MAX;
   }
@@ -256,7 +250,7 @@ _hestMax(int max) {
 int
 _hestKind(hestOpt *opt) {
   int max;
-
+  
   max = _hestMax(opt->max);
   if (!( (int)opt->min <= max )) {    /* HEY scrutinize casts */
     /* invalid */
@@ -277,7 +271,7 @@ _hestKind(hestOpt *opt) {
     /* multiple fixed parameters */
     return 3;
   }
-
+  
   if (0 == opt->min && 1 == max) {
     /* single optional parameter */
     return 4;
@@ -311,7 +305,7 @@ int
 _hestWhichFlag(hestOpt *opt, char *flag, hestParm *parm) {
   char buff[AIR_STRLEN_HUGE], copy[AIR_STRLEN_HUGE], *sep;
   int op, numOpts;
-
+  
   numOpts = _hestNumOpts(opt);
   if (parm->verbosity)
     printf("_hestWhichFlag: flag = %s, numOpts = %d\n", flag, numOpts);
@@ -363,7 +357,7 @@ _hestWhichFlag(hestOpt *opt, char *flag, hestParm *parm) {
 */
 int
 _hestCase(hestOpt *opt, int *udflt, unsigned int *nprm, int *appr, int op) {
-
+  
   if (opt[op].flag && !appr[op]) {
     return 0;
   }
@@ -379,53 +373,53 @@ _hestCase(hestOpt *opt, int *udflt, unsigned int *nprm, int *appr, int op) {
 /*
 ** _hestExtract()
 **
-** takes "pnum" parameters, starting at "base", out of the
-** given argv, and puts them into a string WHICH THIS FUNCTION
-** ALLOCATES, and also adjusts the argc value given as "*argcP".
+** takes "np" parameters, starting at "a", out of the given argv, and puts
+** them into a string WHICH THIS FUNCTION ALLOCATES, and also adjusts
+** the argc value given as "*argcP".
 */
 char *
-_hestExtract(int *argcP, char **argv, unsigned int base, unsigned int pnum) {
-  unsigned int len, pidx;
+_hestExtract(int *argcP, char **argv, int a, int np) {
+  int len, n;
   char *ret;
 
-  if (!pnum)
+  if (!np)
     return NULL;
 
   len = 0;
-  for (pidx=0; pidx<pnum; pidx++) {
-    if (base+pidx==AIR_UINT(*argcP)) {
+  for (n=0; n<np; n++) {
+    if (a+n==*argcP) {
       return NULL;
     }
-    len += AIR_UINT(strlen(argv[base+pidx]));
-    if (strstr(argv[base+pidx], " ")) {
+    len += strlen(argv[a+n]);
+    if (strstr(argv[a+n], " ")) {
       len += 2;
     }
   }
-  len += pnum;
+  len += np;
   ret = AIR_CALLOC(len, char);
   strcpy(ret, "");
-  for (pidx=0; pidx<pnum; pidx++) {
+  for (n=0; n<np; n++) {
     /* if a single element of argv has spaces in it, someone went
        to the trouble of putting it in quotes, and we perpetuate
        the favor by quoting it when we concatenate all the argv
-       elements together, so that airParseStrS will recover it as a
+       elements together, so that airParseStrS will recover it as a 
        single string again */
-    if (strstr(argv[base+pidx], " ")) {
+    if (strstr(argv[a+n], " ")) {
       strcat(ret, "\"");
     }
     /* HEY: if there is a '\"' character in this string, quoted or
        not, its going to totally confuse later parsing */
-    strcat(ret, argv[base+pidx]);
-    if (strstr(argv[base+pidx], " ")) {
+    strcat(ret, argv[a+n]);
+    if (strstr(argv[a+n], " ")) {
       strcat(ret, "\"");
     }
-    if (pidx < pnum-1)
+    if (n < np-1)
       strcat(ret, " ");
   }
-  for (pidx=base+pnum; pidx<=AIR_UINT(*argcP); pidx++) {
-    argv[pidx-pnum] = argv[pidx];
+  for (n=a+np; n<=*argcP; n++) {
+    argv[n-np] = argv[n];
   }
-  *argcP -= pnum;
+  *argcP -= np;
   return ret;
 }
 
@@ -438,4 +432,15 @@ _hestNumOpts(hestOpt *opt) {
   }
   return num;
 }
+
+int
+_hestArgc(char **argv) {
+  int num = 0;
+
+  while (argv && argv[num]) {
+    num++;
+  }
+  return num;
+}
+
 

@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,15 +24,14 @@
 #include "privateTen.h"
 
 #define INFO "Non-linear least-squares fitting of b-value curves"
-static const char *_tend_bfitInfoL =
+char *_tend_bfitInfoL =
   (INFO
    ". Axis 0 is replaced by three values: amp, dec, err, based on a "
    "non-linear least-squares fit of amp*exp(-b*dec) to the range of DWI "
    "values along input axis 0, as a function of changing b values.  ");
 
 int
-tend_bfitMain(int argc, const char **argv, const char *me,
-              hestParm *hparm) {
+tend_bfitMain(int argc, char **argv, char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;
@@ -69,16 +67,16 @@ tend_bfitMain(int argc, const char **argv, const char *me,
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   if (!( bbLen == nin->axis[0].size )) {
-    char stmp[AIR_STRLEN_SMALL];
-    fprintf(stderr, "%s: got %d b-values but axis 0 size is %s\n", me,
-            bbLen, airSprintSize_t(stmp, nin->axis[0].size));
+    fprintf(stderr, "%s: got %d b-values but axis 0 size is " 
+            _AIR_SIZE_T_CNV "\n", me,
+            bbLen, nin->axis[0].size);
     airMopError(mop); return 1;
   }
   if (AIR_EXISTS(_ww[0])) {
     if (!( _wwLen == nin->axis[0].size )) {
-      char stmp[AIR_STRLEN_SMALL];
-      fprintf(stderr, "%s: got %d weights but axis 0 size is %s\n", me,
-              _wwLen, airSprintSize_t(stmp, nin->axis[0].size));
+      fprintf(stderr, "%s: got %d weights but axis 0 size is " 
+              _AIR_SIZE_T_CNV "\n", me,
+              _wwLen, nin->axis[0].size);
       airMopError(mop); return 1;
     }
     ww = _ww;
@@ -90,7 +88,7 @@ tend_bfitMain(int argc, const char **argv, const char *me,
       ww[ii] = 1.0;
     }
   }
-
+  
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 

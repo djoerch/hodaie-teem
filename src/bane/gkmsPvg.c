@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -80,7 +79,7 @@ _baneGkmsDonNew(int invert) {
 }
 
 #define PVG_INFO "Create color-mapped pictures of p(v,g)"
-static const char *_baneGkms_pvgInfoL =
+char *_baneGkms_pvgInfoL =
   (PVG_INFO
    ".  This produces a qualitative visualization of the boundary information "
    "that was captured in the histogram volume.  The quantity shown is called "
@@ -88,8 +87,7 @@ static const char *_baneGkms_pvgInfoL =
    "would be \"distance map\", as a function of value (v) and gradient "
    "magnitude (g).");
 int
-baneGkms_pvgMain(int argc, const char **argv, const char *me,
-                 hestParm *hparm) {
+baneGkms_pvgMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *outS, *perr, *mapS;
   Nrrd *ninfo, *nposA, *nposB, *ndon, *npvg;
@@ -174,7 +172,7 @@ baneGkms_pvgMain(int argc, const char **argv, const char *me,
     biffMovef(BANE, NRRD, "%s: trouble doing histo-eq on p(v,g)", me);
     airMopError(mop); return 1;
   }
-
+  
   /* warp position values that pos[smlI] gets mapped back to zero,
      and so that [newmin,newmax] is centered on zero */
   pos = (float *)nposB->data;
@@ -205,7 +203,7 @@ baneGkms_pvgMain(int argc, const char **argv, const char *me,
     biffMovef(BANE, NRRD, "%s: trouble applying colormap", me);
     airMopError(mop); return 1;
   }
-
+  
   nio->format = nrrdFormatPNM;
   if (nrrdSave(outS, npvg, nio)) {
     biffMovef(BANE, NRRD, "%s: trouble saving pvg image", me);

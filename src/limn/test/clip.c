@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,9 +25,8 @@
 char *info = ("test limnPolyDataClip");
 
 int
-main(int argc, const char *argv[]) {
-  const char *me;
-  char *err, *outS;
+main(int argc, char *argv[]) {
+  char *me, *err, *outS;
   hestOpt *hopt=NULL;
   airArray *mop;
 
@@ -36,7 +35,7 @@ main(int argc, const char *argv[]) {
   Nrrd *nin;
   double thresh;
   int bitflag;
-
+  
   me = argv[0];
   hestOptAdd(&hopt, "vi", "nin", airTypeOther, 1, 1, &nin, NULL,
              "input values",
@@ -74,7 +73,7 @@ main(int argc, const char *argv[]) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
     airMopError(mop); return 1;
   }
-
+  
   airMopOkay(mop);
   return 0;
 }

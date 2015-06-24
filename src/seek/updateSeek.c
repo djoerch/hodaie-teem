@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2009  Thomas Schultz
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -37,7 +36,7 @@ updateNinEtAl(seekContext *sctx) {
     biffAddf(SEEK, "%s: data never set", me);
     return 1;
   }
-
+  
   if (sctx->flag[flagData]) {
     if (sctx->ninscl) {
       sctx->nin = sctx->ninscl;
@@ -75,7 +74,7 @@ updateAnswerPointers(seekContext *sctx) {
     fprintf(stderr, "%s: flagItemEigensystem = %d\n", me,
             sctx->flag[flagItemEigensystem]);
     fprintf(stderr, "%s: flagItemHess = %d\n", me,
-            sctx->flag[flagItemHess]);
+	    sctx->flag[flagItemHess]);
     fprintf(stderr, "%s: flagNinEtAl = %d\n", me,
             sctx->flag[flagNinEtAl]);
     fprintf(stderr, "%s: flagNormalsFind = %d\n", me,
@@ -92,7 +91,7 @@ updateAnswerPointers(seekContext *sctx) {
     biffAddf(SEEK, "%s: feature type never set", me);
     return 1;
   }
-
+  
   if (sctx->flag[flagItemValue]
       || sctx->flag[flagItemStrength]
       || sctx->flag[flagItemNormal]
@@ -146,7 +145,7 @@ updateAnswerPointers(seekContext *sctx) {
       }
       if (sctx->flag[flagItemGradient]
           || sctx->flag[flagItemEigensystem]
-          || sctx->flag[flagItemHess]) {
+	  || sctx->flag[flagItemHess]) {
         biffAddf(SEEK,
                  "%s: can't set gradient, Hessian, or eigensystem for %s",
                  me, airEnumStr(seekType, seekTypeIsocontour));
@@ -177,10 +176,10 @@ updateAnswerPointers(seekContext *sctx) {
         return 1;
       }
       if ((sctx->type==seekTypeRidgeSurfaceT ||
-           sctx->type==seekTypeValleySurfaceT) &&
-          -1 == sctx->hessItem) {
-        biffAddf(SEEK, "%s: hess item not set", me);
-        return 1;
+	   sctx->type==seekTypeValleySurfaceT) &&
+	  -1 == sctx->hessItem) {
+	biffAddf(SEEK, "%s: hess item not set", me);
+	return 1;
       }
       if (sctx->normalsFind) {
         /* NOTE simplifying assumption described in seek.h */
@@ -199,11 +198,11 @@ updateAnswerPointers(seekContext *sctx) {
       sctx->evalAns = gageAnswerPointer(sctx->gctx, sctx->pvl, sctx->evalItem);
       sctx->evecAns = gageAnswerPointer(sctx->gctx, sctx->pvl, sctx->evecItem);
       if (sctx->type==seekTypeRidgeSurfaceT ||
-          sctx->type==seekTypeValleySurfaceT)
-        sctx->hessAns = gageAnswerPointer(sctx->gctx, sctx->pvl,
-                                          sctx->hessItem);
+	  sctx->type==seekTypeValleySurfaceT)
+	sctx->hessAns = gageAnswerPointer(sctx->gctx, sctx->pvl,
+					  sctx->hessItem);
       else
-        sctx->hessAns = NULL;
+	sctx->hessAns = NULL;
       break;
     default:
       biffAddf(SEEK, "%s: sorry, %s extraction not implemented", me,
@@ -262,10 +261,10 @@ updateSxSySz(seekContext *sctx) {
       }
       ELL_3V_COPY(sizeOut, sctx->samples);
     }
-    /* want to make absolutely sure txfIdx was being set ...
-       if (sctx->sx != sizeOut[0]
-       || sctx->sy != sizeOut[1]
-       || sctx->sz != sizeOut[2]) { */
+    /* want to make absolutely sure txfIdx was being set ... 
+    if (sctx->sx != sizeOut[0]
+        || sctx->sy != sizeOut[1]
+        || sctx->sz != sizeOut[2]) { */
     sctx->sx = sizeOut[0];
     sctx->sy = sizeOut[1];
     sctx->sz = sizeOut[2];
@@ -372,8 +371,8 @@ updateSlabCacheAlloc(seekContext *sctx) {
                                    sctx->sy);
     if (!E) sctx->vidx = AIR_CAST(int*, sctx->nvidx->data);
     if (!E) E |= nrrdMaybeAlloc_va(sctx->ntreated, nrrdTypeChar, 2,
-                                   sctx->sx,
-                                   sctx->sy);
+				   sctx->sx,
+				   sctx->sy);
     if (!E) sctx->treated = AIR_CAST(signed char*, sctx->ntreated->data);
     if (sctx->strengthUse) {
       if (!E) E |= nrrdMaybeAlloc_va(sctx->nstng, nrrdTypeDouble, 3,
@@ -393,11 +392,11 @@ updateSlabCacheAlloc(seekContext *sctx) {
         || seekTypeValleySurface == sctx->type
         || seekTypeMaximalSurface == sctx->type
         || seekTypeMinimalSurface == sctx->type
-        || seekTypeRidgeSurfaceOP == sctx->type
-        || seekTypeRidgeSurfaceT == sctx->type
-        || seekTypeValleySurfaceOP == sctx->type
-        || seekTypeValleySurfaceT == sctx->type) {
-      if (!E) E |= nrrdMaybeAlloc_va(sctx->ngrad, nrrdTypeDouble, 4,
+	|| seekTypeRidgeSurfaceOP == sctx->type
+	|| seekTypeRidgeSurfaceT == sctx->type
+	|| seekTypeValleySurfaceOP == sctx->type
+	|| seekTypeValleySurfaceT == sctx->type) {
+      if (!E) E |= nrrdMaybeAlloc_va(sctx->ngrad, nrrdTypeDouble, 4, 
                                      AIR_CAST(size_t, 3),
                                      AIR_CAST(size_t, 2),
                                      sctx->sx,
@@ -411,21 +410,21 @@ updateSlabCacheAlloc(seekContext *sctx) {
         || seekTypeValleySurface == sctx->type
         || seekTypeMaximalSurface == sctx->type
         || seekTypeMinimalSurface == sctx->type
-        || seekTypeRidgeSurfaceOP == sctx->type
-        || seekTypeValleySurfaceOP == sctx->type) {
-      if (!E) E |= nrrdMaybeAlloc_va(sctx->neval, nrrdTypeDouble, 4,
+	|| seekTypeRidgeSurfaceOP == sctx->type
+	|| seekTypeValleySurfaceOP == sctx->type) {
+      if (!E) E |= nrrdMaybeAlloc_va(sctx->neval, nrrdTypeDouble, 4, 
                                      AIR_CAST(size_t, 3),
                                      AIR_CAST(size_t, 2),
                                      sctx->sx,
                                      sctx->sy);
       if (!E) sctx->eval = AIR_CAST(double*, sctx->neval->data);
-      if (!E) E |= nrrdMaybeAlloc_va(sctx->nevec, nrrdTypeDouble, 4,
+      if (!E) E |= nrrdMaybeAlloc_va(sctx->nevec, nrrdTypeDouble, 4, 
                                      AIR_CAST(size_t, 9),
                                      AIR_CAST(size_t, 2),
                                      sctx->sx,
                                      sctx->sy);
       if (!E) sctx->evec = AIR_CAST(double*, sctx->nevec->data);
-      if (!E) E |= nrrdMaybeAlloc_va(sctx->nflip, nrrdTypeChar, 3,
+      if (!E) E |= nrrdMaybeAlloc_va(sctx->nflip, nrrdTypeChar, 3, 
                                      AIR_CAST(size_t, 5),
                                      sctx->sx,
                                      sctx->sy);
@@ -437,85 +436,85 @@ updateSlabCacheAlloc(seekContext *sctx) {
     }
 
     if (seekTypeRidgeSurfaceT == sctx->type ||
-        seekTypeValleySurfaceT == sctx->type) {
+	seekTypeValleySurfaceT == sctx->type) {
       if (!E) E |= nrrdMaybeAlloc_va(sctx->nfacevidx, nrrdTypeInt, 3,
-                                     AIR_CAST(size_t, 4),
-                                     sctx->sx,
-                                     sctx->sy);
+				     AIR_CAST(size_t, 4),
+				     sctx->sx,
+				     sctx->sy);
       if (!E) sctx->facevidx = AIR_CAST(int*, sctx->nfacevidx->data);
       if (!E) E |= nrrdMaybeAlloc_va(sctx->nhess, nrrdTypeDouble, 4,
-                                     AIR_CAST(size_t, 9),
-                                     AIR_CAST(size_t, 2),
-                                     sctx->sx,
-                                     sctx->sy);
+				     AIR_CAST(size_t, 9),
+				     AIR_CAST(size_t, 2),
+				     sctx->sx,
+				     sctx->sy);
       if (!E) sctx->hess = AIR_CAST(double*, sctx->nhess->data);
       if (!E) E |= nrrdMaybeAlloc_va(sctx->nt, nrrdTypeDouble,  4,
-                                     AIR_CAST(size_t, 9),
-                                     AIR_CAST(size_t, 2),
-                                     sctx->sx,
-                                     sctx->sy);
+				     AIR_CAST(size_t, 9),
+				     AIR_CAST(size_t, 2),
+				     sctx->sx,
+				     sctx->sy);
       if (!E) sctx->t = AIR_CAST(double*, sctx->nt->data);
       if (!E) E |= nrrdMaybeAlloc_va(sctx->nedgealpha, nrrdTypeDouble, 4,
-                                     AIR_CAST(size_t, 5),
-                                     AIR_CAST(size_t, 3),
-                                     sctx->sx,
-                                     sctx->sy);
+				     AIR_CAST(size_t, 5),
+				     AIR_CAST(size_t, 3),
+				     sctx->sx,
+				     sctx->sy);
       if (!E) sctx->edgealpha = AIR_CAST(double*, sctx->nedgealpha->data);
       if (!E) E |= nrrdMaybeAlloc_va(sctx->nedgenorm, nrrdTypeDouble, 4,
-                                     AIR_CAST(size_t, 5),
-                                     AIR_CAST(size_t, 9),
-                                     sctx->sx,
-                                     sctx->sy);
+				     AIR_CAST(size_t, 5),
+				     AIR_CAST(size_t, 9),
+				     sctx->sx,
+				     sctx->sy);
       if (!E) sctx->edgenorm = AIR_CAST(double*, sctx->nedgenorm->data);
       if (!E) E |= nrrdMaybeAlloc_va(sctx->nedgeicoord, nrrdTypeDouble, 4,
-                                     AIR_CAST(size_t, 5),
-                                     AIR_CAST(size_t, 9),
-                                     sctx->sx,
-                                     sctx->sy);
+				     AIR_CAST(size_t, 5),
+				     AIR_CAST(size_t, 9),
+				     sctx->sx,
+				     sctx->sy);
       if (!E) sctx->edgeicoord = AIR_CAST(double*, sctx->nedgeicoord->data);
       if (!E) E |= nrrdMaybeAlloc_va(sctx->nfacecoord, nrrdTypeDouble, 4,
-                                     AIR_CAST(size_t, 4),
-                                     AIR_CAST(size_t, 2),
-                                     sctx->sx,
-                                     sctx->sy);
+				     AIR_CAST(size_t, 4),
+				     AIR_CAST(size_t, 2),
+				     sctx->sx,
+				     sctx->sy);
       if (!E) sctx->facecoord = AIR_CAST(double*, sctx->nfacecoord->data);
       if (!E) E |= nrrdMaybeAlloc_va(sctx->nfacenorm, nrrdTypeDouble, 4,
-                                     AIR_CAST(size_t, 4),
-                                     AIR_CAST(size_t, 3),
-                                     sctx->sx,
-                                     sctx->sy);
+				     AIR_CAST(size_t, 4),
+				     AIR_CAST(size_t, 3),
+				     sctx->sx,
+				     sctx->sy);
       if (!E) sctx->facenorm = AIR_CAST(double*, sctx->nfacenorm->data);
       if (!E) E |= nrrdMaybeAlloc_va(sctx->nfaceicoord, nrrdTypeDouble, 4,
-                                     AIR_CAST(size_t, 4),
-                                     AIR_CAST(size_t, 3),
-                                     sctx->sx,
-                                     sctx->sy);
+				     AIR_CAST(size_t, 4),
+				     AIR_CAST(size_t, 3),
+				     sctx->sx,
+				     sctx->sy);
       if (!E) sctx->faceicoord = AIR_CAST(double*, sctx->nfaceicoord->data);
       if (!E) E |= nrrdMaybeAlloc_va(sctx->npairs, nrrdTypeChar, 4,
-                                     AIR_CAST(size_t, 4),
-                                     AIR_CAST(size_t, 12),
-                                     sctx->sx,
-                                     sctx->sy);
+				     AIR_CAST(size_t, 4),
+				     AIR_CAST(size_t, 12),
+				     sctx->sx,
+				     sctx->sy);
       if (!E) sctx->pairs = AIR_CAST(signed char*, sctx->npairs->data);
-      if (!E) E |= nrrdMaybeAlloc_va(sctx->ngradcontext, nrrdTypeDouble, 4,
+      if (!E) E |= nrrdMaybeAlloc_va(sctx->ngradcontext, nrrdTypeDouble, 4, 
                                      AIR_CAST(size_t, 3),
                                      AIR_CAST(size_t, 2),
                                      sctx->sx,
                                      sctx->sy);
       if (!E) sctx->gradcontext = AIR_CAST(double*, sctx->ngradcontext->data);
-      if (!E) E |= nrrdMaybeAlloc_va(sctx->nhesscontext, nrrdTypeDouble, 4,
+      if (!E) E |= nrrdMaybeAlloc_va(sctx->nhesscontext, nrrdTypeDouble, 4, 
                                      AIR_CAST(size_t, 9),
                                      AIR_CAST(size_t, 2),
                                      sctx->sx,
                                      sctx->sy);
       if (!E) sctx->hesscontext = AIR_CAST(double*, sctx->nhesscontext->data);
-      if (!E) E |= nrrdMaybeAlloc_va(sctx->ntcontext, nrrdTypeDouble, 4,
+      if (!E) E |= nrrdMaybeAlloc_va(sctx->ntcontext, nrrdTypeDouble, 4, 
                                      AIR_CAST(size_t, 9),
                                      AIR_CAST(size_t, 2),
                                      sctx->sx,
                                      sctx->sy);
       if (!E) sctx->tcontext = AIR_CAST(double*, sctx->ntcontext->data);
-      if (!E) E |= nrrdMaybeAlloc_va(sctx->nstngcontext, nrrdTypeDouble, 2,
+      if (!E) E |= nrrdMaybeAlloc_va(sctx->nstngcontext, nrrdTypeDouble, 2, 
                                      sctx->sx,
                                      sctx->sy);
       if (!E) sctx->stngcontext = AIR_CAST(double*, sctx->nstngcontext->data);
@@ -602,7 +601,7 @@ updateSclDerived(seekContext *sctx) {
     }
     sctx->flag[flagSclDerived] = AIR_TRUE;
   }
-
+  
   return 0;
 }
 
@@ -653,8 +652,8 @@ updateSpanSpaceHist(seekContext *sctx) {
       }
 
       /* calculate the span space histogram */
-      if (nrrdMaybeAlloc_va(sctx->nspanHist, nrrdTypeUInt, 2,
-                            AIR_CAST(size_t, sctx->spanSize),
+      if (nrrdMaybeAlloc_va(sctx->nspanHist, nrrdTypeUInt, 2, 
+                            AIR_CAST(size_t, sctx->spanSize), 
                             AIR_CAST(size_t, sctx->spanSize))) {
         biffMovef(SEEK, NRRD,
                   "%s: couldn't allocate space space histogram", me);
@@ -783,7 +782,7 @@ updateResult(seekContext *sctx) {
 ** traverses dependency graph for all of seek stuff, which necessarily
 ** includes nodes specific to, say, isosurfacing, even when isosurfacing
 ** is not being done.  The idea is to use the same graph for all feature
-** types, for error checking if nothing else, leavings steps as no-ops
+** types, for error checking if nothing else, leavings steps as no-ops 
 ** as needed.
 */
 int
@@ -809,6 +808,6 @@ seekUpdate(seekContext *sctx) {
     biffAddf(SEEK, "%s: trouble updating", me);
     return 1;
   }
-
+  
   return 0;
 }

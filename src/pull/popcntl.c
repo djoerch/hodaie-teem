@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -27,7 +26,7 @@
 
 int
 _pullPointProcessNeighLearn(pullTask *task, pullBin *bin, pullPoint *point) {
-
+  
   /* sneaky: we just learn (and discard) the energy, and this function
      will do the work of learning the neighbors */
   _pullEnergyFromPoints(task, bin, point, NULL);
@@ -40,7 +39,7 @@ _pointEnergyOfNeighbors(pullTask *task, pullBin *bin, pullPoint *point,
   double enr;
   unsigned int ii, xx;
   pullPoint *her;
-
+  
   enr = 0;
   xx = 0;
   for (ii=0; ii<point->neighPointNum; ii++) {
@@ -73,12 +72,15 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
     unsigned int plenty;
     plenty = (1 == task->pctx->targetDim
               ? 3
-              : (2 == task->pctx->targetDim
-                 ? 7
-                 : (3 == task->pctx->targetDim
-                    ? 13 /* = 1 + 12
-                            = 1 + coordination number of 3D sphere packing */
-                    : 0 /* shouldn't get here */)));
+              : (1.5 == task->pctx->targetDim
+                 ? 5
+                 : (2 == task->pctx->targetDim
+                    ? 7
+                    : (2.5 == task->pctx->targetDim
+                       ? 10
+                       : (3 == task->pctx->targetDim
+                          ? 13
+                          : 0 /* shouldn't get here */)))));
     /*
     if (0 == (point->idtag % 100)) {
       printf("%s: #num %d >?= plenty %d\n", me, point->neighPointNum, plenty);
@@ -104,21 +106,23 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
     /*
     if (0 == (point->idtag % 100)) {
       printf("%s: len(offavg) %g >?= thresh %g\n", me,
-             ELL_4V_LEN(noffavg)/point->neighPointNum,
+             ELL_4V_LEN(noffavg)/point->neighPointNum, 
              _PULL_NEIGH_OFFSET_SUM_THRESH);
     }
     */
-    if (ELL_4V_LEN(noffavg)/point->neighPointNum
+    if (ELL_4V_LEN(noffavg)/point->neighPointNum 
         < _PULL_NEIGH_OFFSET_SUM_THRESH) {
       /* we have neighbors, and they seem to be balanced well enough;
          don't try to add */
       return 0;
     }
   }
-  if (task->pctx->energySpecR->energy->well(&newSpcDist,
-                                            task->pctx->energySpecR->parm)) {
-    /* HEY: if we don't actually have a well, what is the point of
-       guessing a new distance? */
+  if (pullEnergyCubicWell == task->pctx->energySpecR->energy
+      || pullEnergyBetterCubicWell == task->pctx->energySpecR->energy
+      || pullEnergyQuarticWell == task->pctx->energySpecR->energy
+      || pullEnergyHepticWell == task->pctx->energySpecR->energy) {
+    newSpcDist = task->pctx->energySpecR->parm[0];
+  } else {
     newSpcDist = _PULL_NEWPNT_DIST;
   }
   /* compute offset (normalized) direction from current point location */
@@ -156,15 +160,13 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
     return 1;
   }
   ELL_4V_COPY(newpnt->pos, npos);
-  /* set status to indicate this is an unbinned point, with no
+  /* set status to indicate this is an unbinned point, with no 
      knowledge of its neighbors */
   newpnt->status |= PULL_STATUS_NEWBIE_BIT;
   /* satisfy constraint if needed */
   if (task->pctx->constraint) {
     int constrFail;
-    if (_pullConstraintSatisfy(task, newpnt,
-                               _PULL_CONSTRAINT_TRAVEL_MAX,
-                               &constrFail)) {
+    if (_pullConstraintSatisfy(task, newpnt, &constrFail)) {
       biffAddf(PULL, "%s: on newbie point %u (spawned from %u)", me,
                newpnt->idtag, point->idtag);
       pullPointNix(newpnt); return 1;
@@ -186,8 +188,8 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
       return 0;
     }
   }
-  /* do some descent, on this point only, which (HACK!) we do by
-     changing the per-task process mode . . . */
+  /* do some descent, on this point only, which (HACK!) we do by 
+     changing the per-task process mode ... */
   task->processMode = pullProcessModeDescent;
   E = 0;
   for (iter=0; iter<task->pctx->iterParm.addDescent; iter++) {
@@ -195,11 +197,11 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
     if (!E) E |= _pullPointProcessDescent(task, bin, newpnt,
                                           /* ignoreImage; actually it is
                                            this use which motivated the
-                                           creation of ignoreImage */
+                                          creation of ignoreImage */
                                           AIR_TRUE);
     if (newpnt->status & PULL_STATUS_STUCK_BIT) {
       if (task->pctx->verbose > 2) {
-        printf("%s: possible newpnt %u stuck @ iter %u; nope\n", me,
+        printf("%s: possible newpnt %u stuck @ iter %u; nope\n", me, 
                newpnt->idtag, iter);
       }
       newpnt = pullPointNix(newpnt);
@@ -233,27 +235,27 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
     /* still okay to continue descending */
     newpnt->stepEnergy *= task->pctx->sysParm.opporStepScale;
   }
-  /* now that newbie point is final test location, see if it meets
+  /* now that newbie point is final test location, see if it meets 
      the live thresh, if there is one */
   if (task->pctx->ispec[pullInfoLiveThresh]
-      && 0 > pullPointScalar(task->pctx, newpnt, pullInfoLiveThresh,
-                             NULL, NULL)) {
+      && 0 > _pullPointScalar(task->pctx, newpnt, pullInfoLiveThresh,
+                              NULL, NULL)) {
     /* didn't meet threshold */
     newpnt = pullPointNix(newpnt);
     task->processMode = pullProcessModeAdding;
     return 0;
   }
   if (task->pctx->ispec[pullInfoLiveThresh2] /* HEY: copy & paste */
-      && 0 > pullPointScalar(task->pctx, newpnt, pullInfoLiveThresh2,
-                             NULL, NULL)) {
+      && 0 > _pullPointScalar(task->pctx, newpnt, pullInfoLiveThresh2,
+                              NULL, NULL)) {
     /* didn't meet threshold */
     newpnt = pullPointNix(newpnt);
     task->processMode = pullProcessModeAdding;
     return 0;
   }
   if (task->pctx->ispec[pullInfoLiveThresh3] /* HEY: copy & paste */
-      && 0 > pullPointScalar(task->pctx, newpnt, pullInfoLiveThresh3,
-                             NULL, NULL)) {
+      && 0 > _pullPointScalar(task->pctx, newpnt, pullInfoLiveThresh3,
+                              NULL, NULL)) {
     /* didn't meet threshold */
     newpnt = pullPointNix(newpnt);
     task->processMode = pullProcessModeAdding;
@@ -313,62 +315,50 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
 
 int
 _pullPointProcessNixing(pullTask *task, pullBin *bin, pullPoint *point) {
-  double enrWith, enrNeigh, enrWithout, fracNixed;
+  double enrWith, enrWithout, fracNixed;
 
   task->pctx->count[pullCountNixing] += 1;
 
   /* if there's a live thresh, do we meet it? */
   if (task->pctx->ispec[pullInfoLiveThresh]
-      && 0 > pullPointScalar(task->pctx, point, pullInfoLiveThresh,
-                             NULL, NULL)) {
+      && 0 > _pullPointScalar(task->pctx, point, pullInfoLiveThresh,
+                              NULL, NULL)) {
     point->status |= PULL_STATUS_NIXME_BIT;
     return 0;
   }
   /* HEY copy & paste */
   if (task->pctx->ispec[pullInfoLiveThresh2]
-      && 0 > pullPointScalar(task->pctx, point, pullInfoLiveThresh2,
-                             NULL, NULL)) {
+      && 0 > _pullPointScalar(task->pctx, point, pullInfoLiveThresh2,
+                              NULL, NULL)) {
     point->status |= PULL_STATUS_NIXME_BIT;
     return 0;
   }
   /* HEY copy & paste */
   if (task->pctx->ispec[pullInfoLiveThresh3]
-      && 0 > pullPointScalar(task->pctx, point, pullInfoLiveThresh3,
-                             NULL, NULL)) {
+      && 0 > _pullPointScalar(task->pctx, point, pullInfoLiveThresh3,
+                              NULL, NULL)) {
     point->status |= PULL_STATUS_NIXME_BIT;
     return 0;
   }
-
+  /* is energy lower without us around? */
+  enrWith = (_pullEnergyFromPoints(task, bin, point, NULL)
+             + _pointEnergyOfNeighbors(task, bin, point, &fracNixed));
   /* if many neighbors have been nixed, then system is far from convergence,
-     so energy is not a very meaningful guide to whether to nix this point
-     NOTE that we use this function to *learn* fracNixed */
-  enrNeigh = _pointEnergyOfNeighbors(task, bin, point, &fracNixed);
+     so the energy is a less meaningful description of the neighborhood,
+     and so its a bad idea to try to nix this point */
   if (fracNixed < task->pctx->sysParm.fracNeighNixedMax) {
-    /* is energy lower without us around? */
-    enrWith = enrNeigh + _pullEnergyFromPoints(task, bin, point, NULL);
     point->status |= PULL_STATUS_NIXME_BIT;    /* turn nixme on */
     enrWithout = _pointEnergyOfNeighbors(task, bin, point, &fracNixed);
     if (enrWith <= enrWithout) {
       /* Energy isn't distinctly lowered without the point, so keep it;
          turn off nixing.  If enrWith == enrWithout == 0, as happens to
-         isolated points, then the difference between "<=" and "<"
+         isolated points, then the difference between "<=" and "<" 
          keeps the isolated points from getting nixed */
       point->status &= ~PULL_STATUS_NIXME_BIT; /* turn nixme off */
-    }
+    } 
     /* else energy is certainly higher with the point, do nix it */
   }
-
-  return 0;
-}
-
-int
-_pullIterFinishNeighLearn(pullContext *pctx) {
-  static const char me[]="_pullIterFinishNeighLearn";
-
-  /* a no-op for now */
-  AIR_UNUSED(pctx);
-  AIR_UNUSED(me);
-
+  
   return 0;
 }
 
@@ -376,7 +366,7 @@ int
 _pullIterFinishAdding(pullContext *pctx) {
   static const char me[]="_pullIterFinishAdding";
   unsigned int taskIdx;
-
+  
   pctx->addNum = 0;
   for (taskIdx=0; taskIdx<pctx->threadNum; taskIdx++) {
     pullTask *task;
@@ -444,7 +434,7 @@ _pullNixTheNixed(pullContext *pctx) {
         /* copy last point pointer to this slot */
         bin->point[pointIdx] = bin->point[bin->pointNum-1];
         airArrayLenIncr(bin->pointArr, -1); /* will decrement bin->pointNum */
-        pctx->nixNum++;
+	pctx->nixNum++;
       } else {
         pointIdx++;
       }

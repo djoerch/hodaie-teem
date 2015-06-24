@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -24,21 +23,17 @@
 #include "ten.h"
 #include "privateTen.h"
 
-#define INFO "Converts masked non-redundant tensor images to redundant"
-static const char *_tend_expandInfoL =
+#define INFO "Converts a 7-value DT volume to a 9-value DT volume"
+char *_tend_expandInfoL =
   (INFO
-   ". For images of 3D tensors, this converts from a 7-value tensor "
-   "starting with the confidence/mask value "
-   "(conf, Dxx, Dxy, Dxz, Dyy, Dyz, Dzz) to "
-   "a 9-value tensor with the full matrix "
-   "(Dxx, Dxy, Dxz, Dxy, Dyy, Dyz, Dxz, Dyz, Dzz). "
-   "This is set to all zeros when the confidence is below the given "
-   "threshold. For images of 2D tensors, the conversion is from "
-   "(conf, Dxx, Dxy, Dyy) to (Dxx, Dxy, Dxy, Dyy). " );
+   ". The 7-value tensor is confidence value followed by the unique "
+   "tensor components (Dxx, Dxy, Dxz, Dyy, Dyz, Dzz).  The 9-value tensor "
+   "is the full matrix (Dxx, Dxy, Dxz, Dxy, Dyy, Dyz, Dxz, Dyz, Dzz), "
+   "which is set to all zeros when the confidence is below the given "
+   "threshold.");
 
 int
-tend_expandMain(int argc, const char **argv, const char *me,
-                hestParm *hparm) {
+tend_expandMain(int argc, char **argv, char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;
@@ -79,8 +74,8 @@ tend_expandMain(int argc, const char **argv, const char *me,
 
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-  if (mfRed
-      && 3 == nin->spaceDim
+  if (mfRed 
+      && 3 == nin->spaceDim 
       && AIR_EXISTS(nin->measurementFrame[0][0])) {
     if (tenMeasurementFrameReduce(nin, nin)) {
       airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
@@ -88,15 +83,13 @@ tend_expandMain(int argc, const char **argv, const char *me,
       airMopError(mop); return 1;
     }
   }
-  if (4 == nin->axis[0].size
-      ? tenExpand2D(nout, nin, scale, thresh)
-      : tenExpand(nout, nin, scale, thresh)) {
+  if (tenExpand(nout, nin, scale, thresh)) {
     airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble expanding tensors:\n%s\n", me, err);
     airMopError(mop); return 1;
   }
   if (orientRedWithOrigin || orientRed) {
-    if (nrrdOrientationReduce(nout, nout,
+    if (nrrdOrientationReduce(nout, nout, 
                               orientRedWithOrigin
                               ? AIR_TRUE
                               : AIR_FALSE)) {

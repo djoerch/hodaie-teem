@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -38,7 +37,7 @@ echoSphereSet(echoObject *sphere,
 void
 echoCylinderSet(echoObject *cylind,
                 int axis) {
-
+  
   if (cylind && echoTypeCylinder == cylind->type) {
     CYLINDER(cylind)->axis = axis;
   }
@@ -70,17 +69,17 @@ echoRectangleSet(echoObject *rect,
   }
   return;
 }
-
+                       
 void
 echoTriangleSet(echoObject *tri,
-                echoPos_t xx0, echoPos_t yy0, echoPos_t zz0,
-                echoPos_t xx1, echoPos_t yy1, echoPos_t zz1,
-                echoPos_t xx2, echoPos_t yy2, echoPos_t zz2) {
+                echoPos_t x0, echoPos_t y0, echoPos_t z0, 
+                echoPos_t x1, echoPos_t y1, echoPos_t z1, 
+                echoPos_t x2, echoPos_t y2, echoPos_t z2) {
 
   if (tri && echoTypeTriangle == tri->type) {
-    ELL_3V_SET(TRIANGLE(tri)->vert[0], xx0, yy0, zz0);
-    ELL_3V_SET(TRIANGLE(tri)->vert[1], xx1, yy1, zz1);
-    ELL_3V_SET(TRIANGLE(tri)->vert[2], xx2, yy2, zz2);
+    ELL_3V_SET(TRIANGLE(tri)->vert[0], x0, y0, z0);
+    ELL_3V_SET(TRIANGLE(tri)->vert[1], x1, y1, z1);
+    ELL_3V_SET(TRIANGLE(tri)->vert[2], x2, y2, z2);
   }
   return;
 }
@@ -122,7 +121,7 @@ echoTriMeshSet(echoObject *trim,
 void
 echoInstanceSet(echoObject *inst,
                 echoPos_t *M, echoObject *obj) {
-
+  
   if (inst && echoTypeInstance == inst->type) {
     ell_4m_INV(INSTANCE(inst)->Mi, M);
     ELL_4M_COPY(INSTANCE(inst)->M, M);

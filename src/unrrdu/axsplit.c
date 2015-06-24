@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,16 +24,14 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Split one axis into two axes"
-static const char *_unrrdu_axsplitInfoL =
+char *_unrrdu_axsplitInfoL =
 (INFO
  ". More general version of \"unu axinsert\", since a given axis can "
  "be split into fast and slow axes of arbitrary size, as long as the "
- "product of the fast and slow sizes is the same as the original size.\n "
- "* Uses nrrdAxesSplit");
+ "product of the fast and slow sizes is the same as the original size.");
 
 int
-unrrdu_axsplitMain(int argc, const char **argv, const char *me,
-                   hestParm *hparm) {
+unrrdu_axsplitMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;

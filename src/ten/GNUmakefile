@@ -1,6 +1,5 @@
 #
 # Teem: Tools to process and visualize scientific data and images
-# Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
 # Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
 # Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 #
@@ -53,9 +52,8 @@ $(L).OBJS = tensor.o chan.o aniso.o glyph.o enumsTen.o grads.o miscTen.o \
 	mod.o estimate.o tenGage.o tenDwiGage.o qseg.o path.o qglox.o \
 	fiberMethods.o fiber.o epireg.o defaultsTen.o bimod.o bvec.o \
 	triple.o experSpec.o tenModel.o modelBall.o model1Stick.o \
-	model1Vector2D.o model1Unit2D.o model2Unit2D.o \
 	modelBall1Stick.o modelBall1StickEMD.o modelBall1Cylinder.o \
-	model1Cylinder.o model1Tensor2.o modelZero.o modelB0.o \
+	model1Cylinder.o model1Tensor2.o modelZero.o \
 	tendAbout.o \
 	tendFlotsam.o tendGrads.o tendAnplot.o tendAnvol.o tendEval.o \
 	tendEvec.o tendSten.o tendExpand.o tendEvq.o tendPoint.o \
@@ -70,7 +68,7 @@ $(L).OBJS = tensor.o chan.o aniso.o glyph.o enumsTen.o grads.o miscTen.o \
 $(L).TESTS = test/roistat test/tg test/tt test/tem test/rotedge \
 	test/tsoid test/odf-hist test/to test/tensorDotDat \
 	test/igrt test/cntr test/geode test/taniso test/csim \
-	test/ttriple test/tqgl test/teigen
+	test/ttriple test/tqgl
 ####
 ####
 ####

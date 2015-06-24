@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,7 +24,7 @@
 #include "privateTen.h"
 
 #define INFO "Register diffusion-weighted echo-planar images"
-static const char *_tend_epiregInfoL =
+char *_tend_epiregInfoL =
   (INFO
    ". This registration corrects the shear, scale, and translate along "
    "the phase encoding direction (assumed to be the Y (second) axis of "
@@ -35,11 +34,10 @@ static const char *_tend_epiregInfoL =
    "procedure based on blurring (optional), thresholding and "
    "connected component analysis. "
    "The registered DWIs are resampled with the "
-   "chosen kernel, with the separate DWIs stacked along axis 0.");
+   "chosen kernel, with the seperate DWIs stacked along axis 0.");
 
 int
-tend_epiregMain(int argc, const char **argv, const char *me,
-                hestParm *hparm) {
+tend_epiregMain(int argc, char **argv, char *me, hestParm *hparm) {
   int pret, rret;
   hestOpt *hopt = NULL;
   char *perr, *err;
@@ -53,9 +51,9 @@ tend_epiregMain(int argc, const char **argv, const char *me,
   int ref, noverbose, progress, nocc, baseNum;
   float bw[2], thr, fitFrac;
   double bvalue;
-
+  
   hestOptAdd(&hopt, "i", "dwi0 dwi1", airTypeOther, 1, -1, &nin, NULL,
-             "all the diffusion-weighted images (DWIs), as separate 3D nrrds, "
+             "all the diffusion-weighted images (DWIs), as seperate 3D nrrds, "
              "**OR**: one 4D nrrd of all DWIs stacked along axis 0",
              &ninLen, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "g", "grads", airTypeString, 1, 1, &gradS, NULL,
@@ -86,7 +84,7 @@ tend_epiregMain(int argc, const char **argv, const char *me,
              "Use \"0.0 0.0\" to say \"no blurring\"");
   hestOptAdd(&hopt, "t", "DWI thresh", airTypeFloat, 1, 1, &thr, "nan",
              "Threshold value to use on DWIs, "
-             "to do initial separation of brain and non-brain.  By default, "
+             "to do initial seperation of brain and non-brain.  By default, "
              "the threshold is determined automatically by histogram "
              "analysis. ");
   hestOptAdd(&hopt, "ncc", NULL, airTypeInt, 0, 0, &nocc, NULL,
@@ -110,7 +108,7 @@ tend_epiregMain(int argc, const char **argv, const char *me,
   hestOptAdd(&hopt, "s", "start #", airTypeInt, 1, 1, &baseNum, "1",
              "first number to use in numbered sequence of output files.");
   hestOptAdd(&hopt, "o", "output/prefix", airTypeString, 1, 1, &outS, "-",
-             "For separate 3D DWI volume inputs: prefix for output filenames; "
+             "For seperate 3D DWI volume inputs: prefix for output filenames; "
              "will save out one (registered) "
              "DWI for each input DWI, using the same type as the input. "
              "**OR**: For single 4D DWI input: output file name. ");
@@ -148,16 +146,16 @@ tend_epiregMain(int argc, const char **argv, const char *me,
   }
   airMopAdd(mop, ngrad, (airMopper)nrrdNuke, airMopAlways);
 
-  nout3D = AIR_CALLOC(ninLen, Nrrd *);
-  airMopAdd(mop, nout3D, airFree, airMopAlways);
+  nout3D = (Nrrd **)calloc(ninLen, sizeof(Nrrd *));
   nout4D = nrrdNew();
-  airMopAdd(mop, nout4D, (airMopper)nrrdNuke, airMopAlways);
-  buff = AIR_CALLOC(airStrlen(outS) + 10, char);
-  airMopAdd(mop, buff, airFree, airMopAlways);
+  buff = (char *)calloc(airStrlen(outS) + 10, sizeof(char));
   if (!( nout3D && nout4D && buff )) {
     fprintf(stderr, "%s: couldn't allocate buffers", me);
     airMopError(mop); return 1;
   }
+  airMopAdd(mop, nout4D, (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, nout3D, airFree, airMopAlways);
+  airMopAdd(mop, buff, airFree, airMopAlways);
   for (ni=0; ni<ninLen; ni++) {
     nout3D[ni]=nrrdNew();
     airMopAdd(mop, nout3D[ni], (airMopper)nrrdNuke, airMopAlways);
@@ -203,7 +201,7 @@ tend_epiregMain(int argc, const char **argv, const char *me,
       }
     }
   }
-
+  
   airMopOkay(mop);
   return 0;
 }

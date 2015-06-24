@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,16 +24,14 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Brighten or darken values with a gamma"
-static const char *_unrrdu_gammaInfoL =
+char *_unrrdu_gammaInfoL =
 (INFO
  ". Just as in xv, the gamma value here is actually the "
  "reciprocal of the exponent actually used to transform "
- "the values.\n "
- "* Uses nrrdArithGamma");
+ "the values.");
 
 int
-unrrdu_gammaMain(int argc, const char **argv, const char *me,
-                 hestParm *hparm) {
+unrrdu_gammaMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;

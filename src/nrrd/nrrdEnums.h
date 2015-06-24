@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -32,13 +31,13 @@ extern "C" {
 ******** NONE of these enums should have values set explicitly in their
 ******** definition.  The values should simply start at 0 (for Unknown)
 ******** and increase one integer per value.  The _nrrdCheckEnums()
-******** sanity check assumes this, and there is no reason to use
+******** sanity check assumes this, and there is no reason to use 
 ******** explicit values for any of the enums.
 *******/
 
 /*
 ******** nrrdIoState* enum
-**
+** 
 ** the various things it makes sense to get and set in nrrdIoState struct
 ** via nrrdIoStateGet and nrrdIoStateSet
 */
@@ -97,7 +96,7 @@ enum {
 **
 ** all the different types, identified by integer
 **
-** 18 July 03: After some consternation, GLK decided to set
+** 18 July 03: After some consternation, I decided to set
 ** nrrdTypeUnknown and nrrdTypeDefault to the same thing, with the
 ** reasoning that the only times that nrrdTypeDefault is used is when
 ** controlling an *output* type (the type of "nout"), or rather,
@@ -193,7 +192,7 @@ enum {
 ** supports bricking.  Since nrrd is never going to be in the business
 ** of manipulating the kind information or supporting kind-specific
 ** semantics, there can be proliferation of nrrdKinds, provided
-** pointless redundancy is avoided.
+** pointless redundancy is avoided.  
 **
 **  There is a relationship between some of these (nrrdKindSpace is a
 ** specific nrrdKindDomain), but currently there is no effort to
@@ -205,7 +204,7 @@ enum {
 **        axis.c: _nrrdKindAltered()
 **
 ** NOTE: The nrrdKindSize() function returns the valid size for these.
-**
+** 
 */
 enum {
   nrrdKindUnknown,
@@ -262,7 +261,7 @@ enum {
   nrrdAxisInfoThickness,              /*  3: thickness of sample region */
 #define NRRD_AXIS_INFO_THICKNESS_BIT (1<< 3)
   nrrdAxisInfoMin,                    /*  4: min pos. assoc. w/ 1st sample */
-#define NRRD_AXIS_INFO_MIN_BIT       (1<< 4)
+#define NRRD_AXIS_INFO_MIN_BIT       (1<< 4) 
   nrrdAxisInfoMax,                    /*  5: max pos. assoc. w/ last sample */
 #define NRRD_AXIS_INFO_MAX_BIT       (1<< 5)
   nrrdAxisInfoSpaceDirection,         /*  6: inter-sample vector in "space" */
@@ -318,7 +317,7 @@ enum {
 #define NRRD_BASIC_INFO_MEASUREMENTFRAME_BIT (1<<11)
   nrrdBasicInfoOldMin,                        /* 12 */
 #define NRRD_BASIC_INFO_OLDMIN_BIT           (1<<12)
-  nrrdBasicInfoOldMax,                        /* 13 */
+  nrrdBasicInfoOldMax,                        /* 13 */ 
 #define NRRD_BASIC_INFO_OLDMAX_BIT           (1<<13)
   nrrdBasicInfoComments,                      /* 14 */
 #define NRRD_BASIC_INFO_COMMENTS_BIT         (1<<14)
@@ -338,12 +337,22 @@ enum {
 #define NRRD_BASIC_INFO_NONE 0
 
 /*
+** the "endian" enum is actually in the air library, but it is very
+** convenient to have it incorporated into the nrrd enum framework for
+** the purposes of string<-->int conversion.  Unfortunately, the
+** little and big values are 1234 and 4321 respectively, so
+** NRRD_ENDIAN_MAX is not actually the highest valid value, but only
+** an indicator of how many valid values there are.
+*/
+#define NRRD_ENDIAN_MAX 2
+
+/*
 ******** nrrdField enum
 **
 ** the various fields we can parse in a NRRD header
 **
 ** other things which must be kept in sync:
-** arraysNrrd.c:
+** arraysNrrd.c: 
 **    _nrrdFieldValidInImage[]
 **    _nrrdFieldOnePerAxis[]
 **    _nrrdFieldValidInText[]
@@ -362,7 +371,7 @@ enum {
 ** axis.c (for per-axis info):
 **    _nrrdAxisInfoCopy()
 ** methodsNrrd.c:
-**    lots of functions, but you knew that . . .
+**    lots of functions, but you knew that ...
 */
 enum {
   nrrdField_unknown,
@@ -402,13 +411,13 @@ enum {
 };
 #define NRRD_FIELD_MAX            32
 
-/*
+/* 
 ******** nrrdHasNonExist* enum
 **
 ** oh look, I'm violating my rules outline above for how the enum values
 ** should be ordered.  The reason for this is that its just too bizarro to
 ** have the logical value of both nrrdHasNonExistFalse and nrrdHasNonExistTrue
-** to be (in C) true.  For instance, nrrdHasNonExist() should be able to
+** to be (in C) true.  For instance, nrrdHasNonExist() should be able to 
 ** return a value from this enum which also functions in a C expressions as
 ** the expected boolean value.  If for some reason (outide the action of
 ** nrrdHasNonExist(), nrrdHasNonExistUnknown is interpreted as true, that's
@@ -417,7 +426,7 @@ enum {
 enum {
   nrrdHasNonExistFalse,     /* 0: no non-existent values were seen */
   nrrdHasNonExistTrue,      /* 1: some non-existent values were seen */
-  nrrdHasNonExistOnly,      /* 2: NOTHING BUT non-existent values were seen */
+  nrrdHasNonExistOnly,      /* 2: NOTHING BUT non-existant values were seen */
   nrrdHasNonExistUnknown,   /* 3 */
   nrrdHasNonExistLast
 };
@@ -476,7 +485,7 @@ enum {
 /*
 ******** nrrdSpacingStatus* enum
 **
-** a way of describing how spacing information is known or not known for a
+** a way of describing how spacing information is known or not known for a 
 ** given axis, as determined by nrrdSpacingCalculate
 */
 enum {
@@ -490,7 +499,7 @@ enum {
                                          space info, which means the spacing
                                          does *not* live in the surrounding
                                          space */
-  nrrdSpacingStatusDirection,         /* 4: axis->spaceDirection set, and
+  nrrdSpacingStatusDirection,         /* 4: axis->spaceDirection set, and 
                                          measured according to surrounding
                                          space */
   nrrdSpacingStatusLast
@@ -532,49 +541,45 @@ enum {
   nrrdMeasureSum,            /* 7: sum of all values */
   nrrdMeasureL1,             /* 8 */
   nrrdMeasureL2,             /* 9 */
-  nrrdMeasureNormalizedL2,   /* 10 */
-  nrrdMeasureRootMeanSquare, /* 11 */
-  nrrdMeasureLinf,           /* 12 */
-  nrrdMeasureVariance,       /* 13 */
-  nrrdMeasureSD,             /* 14: standard deviation */
-  nrrdMeasureCoV,            /* 15: coefficient of variation */
-  nrrdMeasureSkew,           /* 16: skew */
-  nrrdMeasureLineSlope,      /* 17: slope of line of best fit */
-  nrrdMeasureLineIntercept,  /* 18: y-intercept of line of best fit */
-  nrrdMeasureLineError,      /* 19: error of line fitting */
-  /*
-  ** the nrrduMeasureHisto* measures interpret the array as a
+  nrrdMeasureLinf,           /* 10 */
+  nrrdMeasureVariance,       /* 11 */
+  nrrdMeasureSD,             /* 12: standard deviation */
+  nrrdMeasureSkew,           /* 13: skew */
+  nrrdMeasureLineSlope,      /* 14: slope of line of best fit */
+  nrrdMeasureLineIntercept,  /* 15: y-intercept of line of best fit */
+  nrrdMeasureLineError,      /* 16: error of line fitting */
+  /* 
+  ** the nrrduMeasureHisto... measures interpret the array as a
   ** histogram of some implied value distribution
   */
-  nrrdMeasureHistoMin,       /* 20 */
-  nrrdMeasureHistoMax,       /* 21 */
-  nrrdMeasureHistoMean,      /* 22 */
-  nrrdMeasureHistoMedian,    /* 23 */
-  nrrdMeasureHistoMode,      /* 24 */
-  nrrdMeasureHistoProduct,   /* 25 */
-  nrrdMeasureHistoSum,       /* 26 */
-  nrrdMeasureHistoL2,        /* 27 */
-  nrrdMeasureHistoVariance,  /* 28 */
-  nrrdMeasureHistoSD,        /* 29 */
+  nrrdMeasureHistoMin,       /* 17 */
+  nrrdMeasureHistoMax,       /* 18 */
+  nrrdMeasureHistoMean,      /* 19 */
+  nrrdMeasureHistoMedian,    /* 20 */
+  nrrdMeasureHistoMode,      /* 21 */
+  nrrdMeasureHistoProduct,   /* 22 */
+  nrrdMeasureHistoSum,       /* 23 */
+  nrrdMeasureHistoL2,        /* 24 */
+  nrrdMeasureHistoVariance,  /* 25 */
+  nrrdMeasureHistoSD,        /* 26 */
   nrrdMeasureLast
 };
-#define NRRD_MEASURE_MAX        29
+#define NRRD_MEASURE_MAX        26
 #define NRRD_MEASURE_DESC \
    "Possibilities include:\n " \
    "\b\bo \"min\", \"max\", \"mean\", \"median\", \"mode\", \"variance\", " \
-     "\"skew\": (self-explanatory)\n " \
+     "\"skew\"\n (self-explanatory)\n " \
    "\b\bo \"intc\", \"slope\", \"error\": " \
      "intercept, slope, and error from line fitting\n " \
-   "\b\bo \"stdv\": standard deviation\n " \
-   "\b\bo \"cov\": coefficient of variation\n " \
+   "\b\bo \"sd\": standard deviation\n " \
    "\b\bo \"product\", \"sum\": product or sum of all values\n " \
-   "\b\bo \"L1\", \"L2\", \"NL2\", \"RMS\", \"Linf\": different norms\n " \
-   "\b\bo \"histo-min\", \"histo-max\", \"histo-mean\"," \
+   "\b\bo \"L1\", \"L2\", \"Linf\": different norms\n " \
+   "\b\bo \"histo-min\",  \"histo-max\", \"histo-mean\", " \
      "\"histo-median\", \"histo-mode\", \"histo-product\", \"histo-l2\", " \
      "\"histo-sum\", \"histo-variance\", \"histo-sd\": same measures, " \
      "but for situations " \
      "where we're given not the original values, but a histogram of them."
-
+  
 
 /*
 ******** nrrdBlind8BitRange
@@ -592,7 +597,7 @@ enum {
   nrrdBlind8BitRangeLast
 };
 #define NRRD_BLIND_8BIT_RANGE_MAX 3
-
+  
 /*
 ******** nrrdUnaryOp enum
 **
@@ -613,26 +618,24 @@ enum {
   nrrdUnaryOpLog2,       /* 11 */
   nrrdUnaryOpLog10,      /* 12 */
   nrrdUnaryOpLog1p,      /* 13 */
-  nrrdUnaryOpExpm1,      /* 14 */
-  nrrdUnaryOpSqrt,       /* 15 */
-  nrrdUnaryOpCbrt,       /* 16 */
-  nrrdUnaryOpErf,        /* 17 */
-  nrrdUnaryOpNerf,       /* 18 */
-  nrrdUnaryOpCeil,       /* 19 */
-  nrrdUnaryOpFloor,      /* 20 */
-  nrrdUnaryOpRoundUp,    /* 21 */
-  nrrdUnaryOpRoundDown,  /* 22 */
-  nrrdUnaryOpAbs,        /* 23 */
-  nrrdUnaryOpSgn,        /* 24 */
-  nrrdUnaryOpExists,     /* 25 */
-  nrrdUnaryOpRand,       /* 26 */
-  nrrdUnaryOpNormalRand, /* 27 */
-  nrrdUnaryOpIf,         /* 28 */
-  nrrdUnaryOpZero,       /* 29 */
-  nrrdUnaryOpOne,        /* 30 */
+  nrrdUnaryOpSqrt,       /* 14 */
+  nrrdUnaryOpCbrt,       /* 15 */
+  nrrdUnaryOpErf,        /* 16 */
+  nrrdUnaryOpCeil,       /* 17 */
+  nrrdUnaryOpFloor,      /* 18 */
+  nrrdUnaryOpRoundUp,    /* 19 */
+  nrrdUnaryOpRoundDown,  /* 20 */
+  nrrdUnaryOpAbs,        /* 21 */
+  nrrdUnaryOpSgn,        /* 22 */
+  nrrdUnaryOpExists,     /* 23 */
+  nrrdUnaryOpRand,       /* 24 */
+  nrrdUnaryOpNormalRand, /* 25 */
+  nrrdUnaryOpIf,         /* 26 */
+  nrrdUnaryOpZero,       /* 27 */
+  nrrdUnaryOpOne,        /* 28 */
   nrrdUnaryOpLast
 };
-#define NRRD_UNARY_OP_MAX   30
+#define NRRD_UNARY_OP_MAX   28
 
 /*
 ******** nrrdBinaryOp enum
@@ -647,26 +650,25 @@ enum {
   nrrdBinaryOpDivide,     /*  4 */
   nrrdBinaryOpPow,        /*  5 */
   nrrdBinaryOpSgnPow,     /*  6 */
-  nrrdBinaryOpFlippedSgnPow, /*  7 */
-  nrrdBinaryOpMod,        /*  8 */
-  nrrdBinaryOpFmod,       /*  9 */
-  nrrdBinaryOpAtan2,      /* 10 */
-  nrrdBinaryOpMin,        /* 11 */
-  nrrdBinaryOpMax,        /* 12 */
-  nrrdBinaryOpLT,         /* 13 */
-  nrrdBinaryOpLTE,        /* 14 */
-  nrrdBinaryOpGT,         /* 15 */
-  nrrdBinaryOpGTE,        /* 16 */
-  nrrdBinaryOpCompare,    /* 17 */
-  nrrdBinaryOpEqual,      /* 18 */
-  nrrdBinaryOpNotEqual,   /* 19 */
-  nrrdBinaryOpExists,     /* 20 */
-  nrrdBinaryOpIf,         /* 21 */
-  nrrdBinaryOpNormalRandScaleAdd, /* 22 */
-  nrrdBinaryOpRicianRand, /* 23 */
+  nrrdBinaryOpMod,        /*  7 */
+  nrrdBinaryOpFmod,       /*  8 */
+  nrrdBinaryOpAtan2,      /*  9 */
+  nrrdBinaryOpMin,        /* 10 */
+  nrrdBinaryOpMax,        /* 11 */
+  nrrdBinaryOpLT,         /* 12 */
+  nrrdBinaryOpLTE,        /* 13 */
+  nrrdBinaryOpGT,         /* 14 */
+  nrrdBinaryOpGTE,        /* 15 */
+  nrrdBinaryOpCompare,    /* 16 */
+  nrrdBinaryOpEqual,      /* 17 */
+  nrrdBinaryOpNotEqual,   /* 18 */
+  nrrdBinaryOpExists,     /* 19 */
+  nrrdBinaryOpIf,         /* 20 */
+  nrrdBinaryOpNormalRandScaleAdd, /* 21 */
+  nrrdBinaryOpRicianRand, /* 22 */
   nrrdBinaryOpLast
 };
-#define NRRD_BINARY_OP_MAX   23
+#define NRRD_BINARY_OP_MAX   22
 
 /*
 ******** nrrdTernaryOp
@@ -675,54 +677,19 @@ enum {
 */
 enum {
   nrrdTernaryOpUnknown,
-  nrrdTernaryOpAdd,       /*  1 */
-  nrrdTernaryOpMultiply,  /*  2 */
-  nrrdTernaryOpMin,       /*  3 */
-  nrrdTernaryOpMinSmooth, /*  4 */
-  nrrdTernaryOpMax,       /*  5 */
-  nrrdTernaryOpMaxSmooth, /*  6 */
-  nrrdTernaryOpLTSmooth,  /*  7 */
-  nrrdTernaryOpGTSmooth,  /*  8 */
-  nrrdTernaryOpClamp,     /*  9 */
-  nrrdTernaryOpIfElse,    /* 10 */
-  nrrdTernaryOpLerp,      /* 11 */
-  nrrdTernaryOpExists,    /* 12 */
-  nrrdTernaryOpInOpen,    /* 13 */
-  nrrdTernaryOpInClosed,  /* 14 */
-  nrrdTernaryOpGaussian,  /* 15 */
-  nrrdTernaryOpRician,    /* 16 */
+  nrrdTernaryOpAdd,      /*  1 */
+  nrrdTernaryOpMultiply, /*  2 */
+  nrrdTernaryOpMin,      /*  3 */
+  nrrdTernaryOpMax,      /*  4 */
+  nrrdTernaryOpClamp,    /*  5 */
+  nrrdTernaryOpIfElse,   /*  6 */
+  nrrdTernaryOpLerp,     /*  7 */
+  nrrdTernaryOpExists,   /*  8 */
+  nrrdTernaryOpInOpen,   /*  9 */
+  nrrdTernaryOpInClosed, /* 10 */
   nrrdTernaryOpLast
 };
-#define NRRD_TERNARY_OP_MAX  16
-
-/*
-******** nrrdFFTWPlanRigor
-**
-** Different levels of rigor in FFTW planning
-*/
-enum {
-  nrrdFFTWPlanRigorUnknown,
-  nrrdFFTWPlanRigorEstimate,   /* 1 */
-  nrrdFFTWPlanRigorMeasure,    /* 2 */
-  nrrdFFTWPlanRigorPatient,    /* 3 */
-  nrrdFFTWPlanRigorExhaustive, /* 4 */
-  nrrdFFTWPlanRigorLast
-};
-#define NRRD_FFTW_PLAN_RIGOR_MAX  4
-
-/*
-******** nrrdResampleNonExistent
-**
-** different ways that nrrdResample should handle non-existent values
-*/
-enum {
-  nrrdResampleNonExistentUnknown,
-  nrrdResampleNonExistentNoop,         /* 1 */
-  nrrdResampleNonExistentRenormalize,  /* 2 */
-  nrrdResampleNonExistentWeight,       /* 3 */
-  nrrdResampleNonExistentLast
-};
-#define NRRD_RESAMPLE_NON_EXISTENT_MAX    3
+#define NRRD_TERNARY_OP_MAX 10
 
 /* ---- END non-NrrdIO */
 

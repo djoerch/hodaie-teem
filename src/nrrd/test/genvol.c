@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -34,17 +33,8 @@ rho(double r) {
 
 double
 genvolFunc(double x, double y, double z) {
-  double mask, phi, R2, R3, Rbig, Rlit, sig0=0.17, sig1=0.04, a, b, w, ret;
+  double phi, Rbig, Rlit, sig0=0.17, sig1=0.04, a, b, ret;
 
-  /* three bladed thing */
-  R3 = sqrt(x*x + y*y + z*z);
-  mask = AIR_AFFINE(-1.0, erf((R3 - 0.75)*15), 1.0, 1.0, 0.0);
-  R2 = sqrt(x*x + y*y);
-  phi = atan2(y+0.001,x+0.001) + z*1.2;
-  w = pow((1+cos(3*phi))/2, R2*R2*90);
-  return w*mask;
-
-#if 0
   /* ridge surface is a Mobius aka Moebius strip */
   Rbig = sqrt(x*x + y*y);
   Rlit = sqrt(z*z + (Rbig-0.5)*(Rbig-0.5));
@@ -54,15 +44,14 @@ genvolFunc(double x, double y, double z) {
   /*
     ret = airGaussian(a, 0, sig0)*airGaussian(b, 0, sig1);
   */
-  a = (a > sig0
-       ? a - sig0
+  a = (a > sig0 
+       ? a - sig0 
        : (a < -sig0
           ? a + sig0
           : 0));
   ret = airGaussian(a, 0, sig1)*airGaussian(b, 0, sig1);
   return ret;
-#endif
-
+  
   /*
   double A, B;
 
@@ -77,7 +66,7 @@ genvolFunc(double x, double y, double z) {
   return (1 - (AIR_PI*z + 3)/5
           + 0.25*(1 + rho(sqrt(x*x + y*y)))/(2*(1 + 0.25)));
   */
-  /* cone
+  /* cone 
   return z - 2*sqrt(x*x + y*y) + 0.5;
   */
   /* pin-cushion
@@ -95,16 +84,15 @@ genvolFunc(double x, double y, double z) {
 }
 
 int
-main(int argc, const char *argv[]) {
-  const char *me;
-  char *err, *out;
+main(int argc, char *argv[]) {
+  char *me, *err, *out;
   int size[3], xi, yi, zi;
   hestOpt *hopt;
   hestParm *hparm;
   airArray *mop;
   double min[3], max[3], x, y, z, *data;
   Nrrd *nout;
-
+  
   me = argv[0];
   mop = airMopNew();
   hparm = hestParmNew();
@@ -147,26 +135,13 @@ main(int argc, const char *argv[]) {
     }
   }
 
-  nrrdAxisInfoSet_va(nout, nrrdAxisInfoCenter,
-                     nrrdCenterNode, nrrdCenterNode, nrrdCenterNode);
-#if 0
   nrrdAxisInfoSet_va(nout, nrrdAxisInfoMin, min[0], min[1], min[2]);
   nrrdAxisInfoSet_va(nout, nrrdAxisInfoMax, max[0], max[1], max[2]);
+  nrrdAxisInfoSet_va(nout, nrrdAxisInfoCenter, 
+                     nrrdCenterNode, nrrdCenterNode, nrrdCenterNode);
   nrrdAxisInfoSpacingSet(nout, 0);
   nrrdAxisInfoSpacingSet(nout, 1);
   nrrdAxisInfoSpacingSet(nout, 2);
-#else
-  /* impatient, not using API, bad! */
-#define ELL_3V_SET(v, a, b, c) \
-  ((v)[0] = (a), (v)[1] = (b), (v)[2] = (c))
-  nout->space = nrrdSpaceLeftPosteriorSuperior;
-  nout->spaceDim = 3;
-  ELL_3V_SET(nout->spaceOrigin, 0, 0, 0);
-  ELL_3V_SET(nout->axis[0].spaceDirection, 1, 0, 0);
-  ELL_3V_SET(nout->axis[1].spaceDirection, 0, 1, 0);
-  ELL_3V_SET(nout->axis[2].spaceDirection, 0, 0, 1);
-#endif
-
   if (nrrdSave(out, nout, NULL)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: problem saving output:\n%s\n", me, err);

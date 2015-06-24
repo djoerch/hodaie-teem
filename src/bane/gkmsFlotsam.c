@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -32,14 +31,14 @@
 ** baneGkmsParseIncStrategy
 **
 ** inc[0]: member of baneInc* enum
-** inc[1], inc[2] ... : incParm[0], incParm[1] ...
+** inc[1], inc[2] ... : incParm[0], incParm[1] ... 
 */
 int
 baneGkmsParseIncStrategy(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   char me[]="baneGkmsParseIncStrategy";
   double *inc, *incParm;
   int i, bins;
-
+  
   if (!(ptr && str)) {
     sprintf(err, "%s: got NULL pointer", me);
     return 1;
@@ -49,7 +48,7 @@ baneGkmsParseIncStrategy(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   for (i=0; i<BANE_PARM_NUM; i++) {
     incParm[i] = AIR_NAN;
   }
-  if (1 == sscanf(str, "f:%lg", incParm+0)
+  if (1 == sscanf(str, "f:%lg", incParm+0) 
       || 2 == sscanf(str, "f:%lg,%lg", incParm+0, incParm+1)) {
     inc[0] = baneIncRangeRatio;
     return 0;
@@ -101,7 +100,7 @@ baneGkmsParseBEF(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   float cent, width, shape, alpha, off, *bef;
   Nrrd **nrrdP;
   airArray *mop;
-
+  
   if (!(ptr && str)) {
     sprintf(err, "%s: got NULL pointer", me);
     return 1;
@@ -114,7 +113,7 @@ baneGkmsParseBEF(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
     if (nrrdMaybeAlloc_va(*nrrdP, nrrdTypeFloat, 2,
                           AIR_CAST(size_t, 2), AIR_CAST(size_t, 6))) {
       airMopAdd(mop, nerr = biffGetDone(NRRD), airFree, airMopOnError);
-      airStrcpy(err, AIR_STRLEN_HUGE, nerr);
+      strncpy(err, nerr, AIR_STRLEN_HUGE-1);
       airMopError(mop);
       return 1;
     }
@@ -179,7 +178,7 @@ int
 baneGkmsParseGthresh(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   char me[]="baneGkmsParseGthresh";
   float *gthr;
-
+  
   if (!(ptr && str)) {
     sprintf(err, "%s: got NULL pointer", me);
     return 1;
@@ -235,37 +234,37 @@ baneGkmsCmdList[] = {
 ** with their one-line descriptions
 */
 void
-baneGkmsUsage(const char *me, hestParm *hparm) {
+baneGkmsUsage(char *me, hestParm *hparm) {
+  int i, maxlen, len, c;
   char buff[AIR_STRLEN_LARGE], fmt[AIR_STRLEN_LARGE];
-  unsigned int ci, si, len, maxlen;
 
   maxlen = 0;
-  for (ci=0; baneGkmsCmdList[ci]; ci++) {
-    maxlen = AIR_MAX(maxlen, AIR_UINT(strlen(baneGkmsCmdList[ci]->name)));
+  for (i=0; baneGkmsCmdList[i]; i++) {
+    maxlen = AIR_MAX(maxlen, (int)strlen(baneGkmsCmdList[i]->name));
   }
 
   sprintf(buff, "--- Semi-Automatic Generation of Transfer Functions ---");
   sprintf(fmt, "%%%ds\n",
           (int)((hparm->columns-strlen(buff))/2 + strlen(buff) - 1));
   fprintf(stderr, fmt, buff);
-
-  for (ci=0; baneGkmsCmdList[ci]; ci++) {
-    len = AIR_UINT(strlen(baneGkmsCmdList[ci]->name));
+  
+  for (i=0; baneGkmsCmdList[i]; i++) {
+    len = strlen(baneGkmsCmdList[i]->name);
     strcpy(buff, "");
-    for (si=len; si<maxlen; si++)
+    for (c=len; c<maxlen; c++)
       strcat(buff, " ");
     strcat(buff, me);
     strcat(buff, " ");
-    strcat(buff, baneGkmsCmdList[ci]->name);
+    strcat(buff, baneGkmsCmdList[i]->name);
     strcat(buff, " ... ");
-    len = AIR_UINT(strlen(buff));
+    len = strlen(buff);
     fprintf(stderr, "%s", buff);
     _hestPrintStr(stderr, len, len, hparm->columns,
-                  baneGkmsCmdList[ci]->info, AIR_FALSE);
+                  baneGkmsCmdList[i]->info, AIR_FALSE);
   }
 }
 
-static const char *
+const char *
 _baneGkmsMeasrStr[] = {
   "(unknown measr)",
   "min",

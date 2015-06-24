@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -254,29 +253,28 @@ airRandInt(unsigned int N) {
 
 unsigned int
 airRandInt_r(airRandMTState *state, unsigned int N) {
-
+  
   return airUIrandMT_r(state)%N;
 }
 
 /* This checks to see if the sequence of numbers we get is what we
-   expect.  It should return 1 if all is well, 0 if not.
+   expect.  It should return 0 if all is well, 1 if not.
 
    One thing to check for if it fails is the presence of twos
    complement interger representation.  The code here relies on it.
 */
 int
-airRandMTSanity(void) {
+airRandMTSanity() {
   int result = 0;
   /* Create a new generator with our seed */
   airRandMTState* rng = airRandMTStateNew(AIR_RANDMT_DEFAULT_SEED);
 
   if (!rng) {
     /* Couldn't allocate memory */
-    return 0;
+    return 1;
   }
 
-  /* Now check against a predetermined list of values; any inequality
-     will set result to be non-zero */
+  /* Now check against a predetermined list of values. */
   result |= airUIrandMT_r(rng) != 1608637542U;
   result |= airUIrandMT_r(rng) != 3421126067U;
   result |= airUIrandMT_r(rng) != 4083286876U;
@@ -289,5 +287,5 @@ airRandMTSanity(void) {
   result |= airUIrandMT_r(rng) != 1914837113U;
 
   airRandMTStateNix(rng);
-  return !result;
+  return result;
 }

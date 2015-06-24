@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -38,7 +37,7 @@ _pullInterTypeStrEqv[] = {
   "r", "justr",
   "univariate", "univar", "uni",
   "separable", "separ", "sep",
-  "additive", "add",
+  "additive", "add", 
   ""
 };
 
@@ -64,7 +63,6 @@ pullInterType = &_pullInterType;
 
 #define SPRING    "spring"
 #define GAUSS     "gauss"
-#define BSPLN     "bspln"
 #define BUTTER    "butter"
 #define COTAN     "cotan"
 #define CUBIC     "cubic"
@@ -81,7 +79,6 @@ _pullEnergyTypeStr[PULL_ENERGY_TYPE_MAX+1] = {
   "(unknown_energy)",
   SPRING,
   GAUSS,
-  BSPLN,
   BUTTER,
   COTAN,
   CUBIC,
@@ -99,7 +96,6 @@ _pullEnergyTypeDesc[PULL_ENERGY_TYPE_MAX+1] = {
   "unknown_energy",
   "Hooke's law-based potential, with a tunable region of attraction",
   "Gaussian potential",
-  "uniform cubic B-spline basis function",
   "like a Gaussian, but a lot wider",
   "Cotangent-based potential (from Meyer et al. SMI '05)",
   "Cubic thing",
@@ -124,14 +120,6 @@ _pullEnergyType = {
 const airEnum *const
 pullEnergyType = &_pullEnergyType;
 
-double
-_pullEnergyNoWell(double *wx, const double *parm) {
-
-  AIR_UNUSED(wx);
-  AIR_UNUSED(parm);
-  return 0.0;
-}
-
 /* ----------------------------------------------------------------
 ** ------------------------------ UNKNOWN -------------------------
 ** ----------------------------------------------------------------
@@ -151,7 +139,6 @@ pullEnergy
 _pullEnergyUnknown = {
   "unknown",
   0,
-  _pullEnergyNoWell,
   _pullEnergyUnknownEval
 };
 const pullEnergy *const
@@ -161,7 +148,7 @@ pullEnergyUnknown = &_pullEnergyUnknown;
 ** ------------------------------ SPRING --------------------------
 ** ----------------------------------------------------------------
 ** 1 parms:
-** parm[0]: width of pull region.  Used to be width beyond 1.0, but
+** parm[0]: width of pull region.  Used to be width beyond 1.0, but 
 ** now things are scrunched to fit both repelling and attractive
 ** region inside [0,1]
 **
@@ -196,17 +183,10 @@ _pullEnergySpringEval(double *denr, double dist, const double *parm) {
   return enr;
 }
 
-int
-_pullEnergySpringWell(const double *parm) {
-
-  return (parm[0] > 0.0);
-}
-
 const pullEnergy
 _pullEnergySpring = {
   SPRING,
   1,
-  _pullEnergyNoWell, /* HEY: is this true? */
   _pullEnergySpringEval
 };
 const pullEnergy *const
@@ -238,60 +218,10 @@ const pullEnergy
 _pullEnergyGauss = {
   GAUSS,
   0,
-  _pullEnergyNoWell,
   _pullEnergyGaussEval
 };
 const pullEnergy *const
 pullEnergyGauss = &_pullEnergyGauss;
-
-/* ----------------------------------------------------------------
-** ------------------------------ BSPLN --------------------------
-** ----------------------------------------------------------------
-** 0 parms
-*/
-/* HEY: copied from teem/src/nrrd/bsplKernel.c */
-#define BSPL(ret, t, x)                        \
-  if (x < 1) {                                 \
-    ret = (4 + 3*(-2 + x)*x*x)/6;              \
-  } else if (x < 2) {                          \
-    t = (-2 + x);                              \
-    ret = -t*t*t/6;                            \
-  } else {                                     \
-    ret = 0;                                   \
-  }
-
-#define DBSPL(ret, t, x)                       \
-  if (x < 1) {                                 \
-    ret = (-4 + 3*x)*x/2;                      \
-  } else if (x < 2) {                          \
-    t = (-2 + x);                              \
-    ret = -t*t/2;                              \
-  } else {                                     \
-    ret = 0;                                   \
-  }
-
-double
-_pullEnergyBsplnEval(double *denr, double dist, const double *parm) {
-  double tmp, ret;
-
-  AIR_UNUSED(parm);
-  dist *= 2;
-  DBSPL(*denr, tmp, dist);
-  *denr *= 2;
-  BSPL(ret, tmp, dist);
-  return ret;
-}
-
-const pullEnergy
-_pullEnergyBspln = {
-  BSPLN,
-  0,
-  _pullEnergyNoWell,
-  _pullEnergyBsplnEval
-};
-const pullEnergy *const
-pullEnergyBspln = &_pullEnergyBspln;
-
 
 /* ----------------------------------------------------------------
 ** ------------------------------ BUTTER --------------------------
@@ -316,7 +246,6 @@ const pullEnergy
 _pullEnergyButterworth= {
   BUTTER,
   2,
-  _pullEnergyNoWell,
   _pullEnergyButterworthEval
 };
 const pullEnergy *const
@@ -343,7 +272,6 @@ const pullEnergy
 _pullEnergyCotan = {
   COTAN,
   0,
-  _pullEnergyNoWell,
   _pullEnergyCotanEval
 };
 const pullEnergy *const
@@ -373,7 +301,6 @@ const pullEnergy
 _pullEnergyCubic = {
   CUBIC,
   0,
-  _pullEnergyNoWell,
   _pullEnergyCubicEval
 };
 const pullEnergy *const
@@ -403,7 +330,6 @@ const pullEnergy
 _pullEnergyQuartic = {
   QUARTIC,
   0,
-  _pullEnergyNoWell,
   _pullEnergyQuarticEval
 };
 const pullEnergy *const
@@ -440,18 +366,10 @@ _pullEnergyCubicWellEval(double *denr, double x, const double *parm) {
   return enr;
 }
 
-double
-_pullEnergyCubicWellWell(double *wx, const double *parm) {
-
-  *wx = parm[0];
-  return AIR_MIN(0.0, parm[1]);
-}
-
 const pullEnergy
 _pullEnergyCubicWell = {
   CWELL,
   2,
-  _pullEnergyCubicWellWell,
   _pullEnergyCubicWellEval
 };
 const pullEnergy *const
@@ -466,7 +384,7 @@ double
 _pullEnergyBetterCubicWellEval(double *denr, double x, const double *parm) {
   double a, b, c, d, e, f, g, wx, wy, xmo, xmoo, xmooo, enr;
 
-  /* HEY: it would be good if there was a place to store these
+  /* HEY: it would be good if there was a place to store these 
      intermediate values, so that they don't need to be computed
      for *every*single* inter-particle interaction */
   wx = parm[0];
@@ -494,18 +412,10 @@ _pullEnergyBetterCubicWellEval(double *denr, double x, const double *parm) {
   return enr;
 }
 
-double
-_pullEnergyBetterCubicWellWell(double *wx, const double *parm) {
-
-  *wx = parm[0];
-  return AIR_MIN(0.0, parm[1]);
-}
-
 const pullEnergy
 _pullEnergyBetterCubicWell = {
   BWELL,
   2,
-  _pullEnergyBetterCubicWellWell,
   _pullEnergyBetterCubicWellEval
 };
 const pullEnergy *const
@@ -530,20 +440,10 @@ _pullEnergyQuarticWellEval(double *denr, double x, const double *parm) {
   return enr;
 }
 
-double
-_pullEnergyQuarticWellWell(double *wx, const double *parm) {
-  double t;
-
-  *wx = parm[0];
-  t = *wx - 1;
-  return t*t*t*t/(4*(*wx) - 1);
-}
-
 const pullEnergy
 _pullEnergyQuarticWell = {
   QWELL,
   1,
-  _pullEnergyQuarticWellWell,
   _pullEnergyQuarticWellEval
 };
 const pullEnergy *const
@@ -571,20 +471,10 @@ _pullEnergyHepticWellEval(double *denr, double x, const double *parm) {
   return enr;
 }
 
-double
-_pullEnergyHepticWellWell(double *wx, const double *parm) {
-  double t;
-
-  *wx = parm[0];
-  t = *wx - 1;
-  return t*t*t*t*t*t*t/(7*(*wx) - 1);
-}
-
 const pullEnergy
 _pullEnergyHepticWell = {
   HWELL,
   1,
-  _pullEnergyHepticWellWell,
   _pullEnergyHepticWellEval
 };
 const pullEnergy *const
@@ -608,7 +498,6 @@ const pullEnergy
 _pullEnergyZero = {
   ZERO,
   0,
-  _pullEnergyNoWell,
   _pullEnergyZeroEval
 };
 const pullEnergy *const
@@ -617,7 +506,7 @@ pullEnergyZero = &_pullEnergyZero;
 /* ----------------------------------------------------------------
 ** ------------------------------- BPARAB -------------------------
 ** ----------------------------------------------------------------
-** 3 parms, the first two are for butterworth,
+** 3 parms, the first two are for butterworth, 
 ** parm[2] is a shift (probably negative) on the parabola
 */
 double
@@ -633,7 +522,6 @@ const pullEnergy
 _pullEnergyButterworthParabola = {
   BPARAB,
   3,
-  _pullEnergyNoWell,
   _pullEnergyBParabEval
 };
 const pullEnergy *const
@@ -648,17 +536,16 @@ const pullEnergy *const pullEnergyAll[PULL_ENERGY_TYPE_MAX+1] = {
   &_pullEnergyUnknown,            /* 0 */
   &_pullEnergySpring,             /* 1 */
   &_pullEnergyGauss,              /* 2 */
-  &_pullEnergyBspln,              /* 3 */
-  &_pullEnergyButterworth,        /* 4 */
-  &_pullEnergyCotan,              /* 5 */
-  &_pullEnergyCubic,              /* 6 */
-  &_pullEnergyQuartic,            /* 7 */
-  &_pullEnergyCubicWell,          /* 8 */
-  &_pullEnergyBetterCubicWell,    /* 9 */
-  &_pullEnergyQuarticWell,        /* 10 */
-  &_pullEnergyHepticWell,         /* 11 */
-  &_pullEnergyZero,               /* 12 */
-  &_pullEnergyButterworthParabola /* 13 */
+  &_pullEnergyButterworth,        /* 3 */
+  &_pullEnergyCotan,              /* 4 */
+  &_pullEnergyCubic,              /* 5 */
+  &_pullEnergyQuartic,            /* 6 */
+  &_pullEnergyCubicWell,          /* 7 */
+  &_pullEnergyBetterCubicWell,    /* 8 */
+  &_pullEnergyQuarticWell,        /* 9 */
+  &_pullEnergyHepticWell,         /* 10 */
+  &_pullEnergyZero,               /* 11 */
+  &_pullEnergyButterworthParabola /* 12 */
 };
 
 pullEnergySpec *
@@ -726,10 +613,8 @@ pullEnergySpecParse(pullEnergySpec *ensp, const char *_str) {
     /* the string is the name of some energy */
     ensp->energy = pullEnergyAll[etype];
     if (0 != ensp->energy->parmNum) {
-      biffAddf(PULL, "%s: need %u parm%s for %s energy, but got none", me,
-               ensp->energy->parmNum,
-               (1 == ensp->energy->parmNum ? "" : "s"),
-               ensp->energy->name);
+      biffAddf(PULL, "%s: need %u parms for %s energy, but got none", me,
+               ensp->energy->parmNum, ensp->energy->name);
       return 1;
     }
     /* the energy needs 0 parameters */
@@ -766,7 +651,7 @@ pullEnergySpecParse(pullEnergySpec *ensp, const char *_str) {
   }
 
   _pstr = pstr = col+1;
-  /* code lifted from teem/src/nrrd/kernel.c, should probably refactor. . . */
+  /* code lifted from teem/src/nrrd/kernel.c, should probably refactor... */
   for (haveParm=0; haveParm<ensp->energy->parmNum; haveParm++) {
     if (!pstr) {
       break;
@@ -800,7 +685,7 @@ pullEnergySpecParse(pullEnergySpec *ensp, const char *_str) {
       airMopError(mop); return 1;
     }
   }
-
+  
   airMopOkay(mop);
   return 0;
 }
@@ -819,7 +704,7 @@ _pullHestEnergyParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   *enspP = pullEnergySpecNew();
   if (pullEnergySpecParse(*enspP, str)) {
     perr = biffGetDone(PULL);
-    airStrcpy(err, AIR_STRLEN_HUGE, perr);
+    strncpy(err, perr, AIR_STRLEN_HUGE-1);
     free(perr);
     return 1;
   }

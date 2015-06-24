@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -54,8 +53,8 @@ qbertSizeUp(Nrrd *nout, Nrrd *nin, unsigned int *sz,
   if (uk) {
     for (i=0; i<=2; i++) {
       anyneed |= need = sz[i] - nin->axis[i].size;
-      fprintf(stderr, "%s: sz[%d] = %u -> need = %d --> ",
-              me, i, AIR_UINT(nin->axis[i].size), need);
+      fprintf(stderr, "%s: sz[%d] = %u -> need = %d --> ", 
+              me, i, AIR_CAST(unsigned int, nin->axis[i].size), need);
       need = AIR_MAX(0, need);
       fprintf(stderr, "%d --> %s resample\n", need, need ? "WILL" : "won't");
       if (need) {
@@ -89,10 +88,9 @@ qbertSizeUp(Nrrd *nout, Nrrd *nin, unsigned int *sz,
     }
   } else {
     for (i=0; i<=2; i++) {
-      char stmp[AIR_STRLEN_SMALL];
       anyneed |= need = sz[i] - nin->axis[i].size;
-      fprintf(stderr, "%s: sz[%d] = %s -> need = %d --> ", me, i,
-              airSprintSize_t(stmp, nin->axis[i].size), need);
+      fprintf(stderr, "%s: sz[%d] = " _AIR_SIZE_T_CNV " -> need = %d --> ", 
+              me, i, nin->axis[i].size, need);
       need = AIR_MAX(0, need);
       fprintf(stderr, "%d --> ", need);
       padMin[i] = 0 - (int)floor(need/2.0);
@@ -145,7 +143,6 @@ qbertSizeDown(Nrrd *nout, Nrrd *nin, unsigned int *sz,
   need = 0;
   for (i=0; i<=2; i++) {
     if (nin->axis[i].size > sz[i]) {
-      char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
       need = 1;
       rsi->kernel[i] = dk->kernel;
       memcpy(rsi->parm[i], dk->parm, dk->kernel->numParm*sizeof(double));
@@ -159,9 +156,9 @@ qbertSizeDown(Nrrd *nout, Nrrd *nin, unsigned int *sz,
       rsi->min[i] = nin->axis[i].min;
       rsi->max[i] = nin->axis[i].max;
       nin->axis[i].center = nrrdCenterNode;
-      fprintf(stderr, "%s: downsampling axis %d from %s to %s samples\n",
-              me, i, airSprintSize_t(stmp1, nin->axis[i].size),
-              airSprintSize_t(stmp2, rsi->samples[i]));
+      fprintf(stderr, "%s: downsampling axis %d from " _AIR_SIZE_T_CNV 
+              " to " _AIR_SIZE_T_CNV " samples\n", 
+              me, i, nin->axis[i].size, rsi->samples[i]);
     }
     else {
       rsi->kernel[i] = NULL;
@@ -186,7 +183,7 @@ qbertSizeDown(Nrrd *nout, Nrrd *nin, unsigned int *sz,
     nrrdSave("down.nrrd", nout, NULL);
   }
 
-  airMopOkay(mop);
+  airMopOkay(mop); 
   return 0;
 }
 
@@ -205,12 +202,12 @@ qbertProbe(Nrrd *nout, Nrrd *nin,
   int E;
   unsigned int i, j, k;
   airArray *mop;
-
+  
   doH = !!doH;
   mop = airMopNew();
   ctx = gageContextNew();
   airMopAdd(mop, ctx, (airMopper)gageContextNix, airMopAlways);
-
+  
   nin->axis[0].center = nrrdCenterNode;
   nin->axis[1].center = nrrdCenterNode;
   nin->axis[2].center = nrrdCenterNode;
@@ -224,7 +221,7 @@ qbertProbe(Nrrd *nout, Nrrd *nin,
   E = 0;
   if (!E) E |= gagePerVolumeAttach(ctx, pvl);
   /* about kernel setting for probing: currently, the way that probing is
-     done is ONLY on grid locations, and never in between voxels.  That
+     done is ONLY on grid locations, and never in between voxels.  That 
      means that the kernels set below are really only used for creating
      discrete convolution masks at unit locations */
   if (!E) E |= gageKernelSet(ctx, gageKernel00, k00->kernel, k00->parm);
@@ -279,7 +276,7 @@ qbertProbe(Nrrd *nout, Nrrd *nin,
     nrrdSave("vghF.nrrd", nout, NULL);
   }
 
-  airMopOkay(mop);
+  airMopOkay(mop); 
   return 0;
 }
 
@@ -330,7 +327,7 @@ qbertMakeVghHists(Nrrd *nvhist, Nrrd *nghist, Nrrd *nhhist,
   fprintf(stderr, "[%g .. %g]\n", ming, maxg);
   if (doH) {
     fprintf(stderr, "%s: 2ndDDs: [%g .. %g] -> ", me, minh, maxh);
-    if (maxh > -minh)
+    if (maxh > -minh) 
       minh = -maxh;
     else
       maxh = -minh;
@@ -358,7 +355,7 @@ qbertMakeVghHists(Nrrd *nvhist, Nrrd *nghist, Nrrd *nhhist,
   memset(vhist, 0, bins*sizeof(int));
   memset(ghist, 0, bins*sizeof(int));
   if (doH) {
-    nhhist->axis[0].min = minh;   nhhist->axis[0].max = maxh;
+    nhhist->axis[0].min = minh;   nhhist->axis[0].max = maxh; 
     hhist = (int *)nhhist->data;
     memset(hhist, 0, bins*sizeof(int));
   }
@@ -402,12 +399,12 @@ qbertMakeVgh(Nrrd *nvgh, Nrrd *nvhist, Nrrd *nghist, Nrrd *nhhist,
 
   nval = nvghF->axis[0].size;
   doH = !!(nval == 3);
-  minv = nvhist->axis[0].min;   maxv = nvhist->axis[0].max;
-  ming = nghist->axis[0].min;   maxg = nghist->axis[0].max;
+  minv = nvhist->axis[0].min;   maxv = nvhist->axis[0].max; 
+  ming = nghist->axis[0].min;   maxg = nghist->axis[0].max; 
   vhist = (int *)nvhist->data;
   ghist = (int *)nghist->data;
   if (doH) {
-    minh = nhhist->axis[0].min;   maxh = nhhist->axis[0].max;
+    minh = nhhist->axis[0].min;   maxh = nhhist->axis[0].max; 
     hhist = (int *)nhhist->data;
   }
 
@@ -453,7 +450,7 @@ qbertMakeVgh(Nrrd *nvgh, Nrrd *nvhist, Nrrd *nghist, Nrrd *nhhist,
             me, (int)(perc[2]*sz[0]*sz[1]*sz[2]/100), minh, maxh);
     fprintf(stderr, "%s: putting 2ndDD in range 1 to 169 (0.0 -> 85)\n", me);
   }
-
+  
   if (nrrdMaybeAlloc_va(nvgh, nrrdTypeUChar, 4,
                         AIR_CAST(size_t, nval),
                         AIR_CAST(size_t, sz[0]),
@@ -496,11 +493,11 @@ qbertMakeVgh(Nrrd *nvgh, Nrrd *nvhist, Nrrd *nghist, Nrrd *nhhist,
 
   return 0;
 }
-
+  
 int
-qbertScat(Nrrd *nvgh, int pos, int size, const char *name) {
-  static const char me[]="qbertScat";
-  Nrrd **nin, *nv, *nx, *nscA, *nscB;
+qbertScat(Nrrd *nvgh, int pos, int size, char *name) {
+  char me[]="qbertScat";
+  Nrrd *nin[2], *nv, *nx, *nscA, *nscB;
   airArray *mop;
   size_t bins[2];
   int E, clamp[2];
@@ -513,24 +510,19 @@ qbertScat(Nrrd *nvgh, int pos, int size, const char *name) {
   airMopAdd(mop, nx=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nscA=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nscB=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-  /* HEY: this used to be nin[2], but its passing to nrrdJoin caused
-     "dereferencing type-punned pointer might break strict-aliasing rules"
-     warning; GLK not sure how else to fix it */
-  nin = AIR_CALLOC(2, Nrrd*);
-  airMopAdd(mop, nin, airFree, airMopAlways);
   nin[0] = nv;
   nin[1] = nx;
   E = 0;
   if (!E) E |= nrrdSlice(nv, nvgh, 0, 0);
   if (!E) E |= nrrdSlice(nx, nvgh, 0, pos);
-  if (!E) E |= nrrdHistoJoint(nscA, (const Nrrd*const*)nin, NULL, 2,
+  if (!E) E |= nrrdHistoJoint(nscA, (const Nrrd**)nin, NULL, 2,
                               NULL, bins, nrrdTypeFloat, clamp);
   if (!E) E |= nrrdArithUnaryOp(nscB, nrrdUnaryOpLog1p, nscA);
   if (!E) E |= nrrdHistoEq(nscA, nscB, NULL, 2048, 2, 0.45f);
-  if (!E) {
+  if (!E) { 
     range = nrrdRangeNewSet(nscA, nrrdBlind8BitRangeTrue);
     airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
-    range->max *= 0.8;
+    range->max *= 0.8; 
   }
   if (!E) E |= nrrdQuantize(nscB, nscA, range, 8);
   if (!E) E |= nrrdFlip(nscA, nscB, 1);
@@ -539,13 +531,12 @@ qbertScat(Nrrd *nvgh, int pos, int size, const char *name) {
     biffMovef(QBERT, NRRD, "%s: trouble generating/saving scatterplot", me);
     airMopError(mop); return 1;
   }
-
+  
   airMopOkay(mop);
   return 0;
 }
 
-static const char qbertInfo[]=
-"Generates volume datasets friendly to hardware-based "
+char qbertInfo[]="Generates volume datasets friendly to hardware-based "
 "volume renderers. "
 "The main value of this is a means of combining the functions of "
 "resampling a dataset to a particular size, measuring first (and "
@@ -557,9 +548,8 @@ static const char qbertInfo[]=
 "VG and VH scatterplots can be generated at a specified resolution.";
 
 int
-main(int argc, const char *argv[]) {
-  const char *me;
-  char *outS, *errS;
+main(int argc, char *argv[]) {
+  char *me, *outS, *errS;
   Nrrd *nin, *npad, *nrsmp, *nvghF, *nvhist, *nghist, *nhhist, *nvgh;
   int E, i, ups, notdoH, useFloat, scat;
   unsigned int sz[3];
@@ -575,7 +565,7 @@ main(int argc, const char *argv[]) {
   me = argv[0];
   hparm = hestParmNew();
   airMopAdd(mop, hparm, (airMopper)hestParmFree, airMopAlways);
-
+  
   hparm->elideSingleOtherType = AIR_TRUE;
   hparm->elideSingleNonExistFloatDefault = AIR_TRUE;
   hparm->elideMultipleNonExistFloatDefault = AIR_TRUE;
@@ -658,7 +648,7 @@ main(int argc, const char *argv[]) {
     airMopAdd(mop, errS=biffGetDone(QBERT), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, errS);
     airMopError(mop); exit(1);
-  }
+  }  
 
   nrsmp = nrrdNew();
   airMopAdd(mop, nrsmp, (airMopper)nrrdNuke, airMopAlways);
@@ -669,7 +659,7 @@ main(int argc, const char *argv[]) {
   }
   airMopSub(mop, npad, (airMopper)nrrdNuke);
   npad = nrrdNuke(npad);
-
+  
   /* this axis info is being saved so that it can be re-enstated at the end */
   spacing[0] = amin[0] = amax[0] = AIR_NAN;
   nrrdAxisInfoGet_nva(nrsmp, nrrdAxisInfoSpacing, spacing+1);
@@ -679,7 +669,7 @@ main(int argc, const char *argv[]) {
      they didn't exist before, and those shouldn't be saved in output.  But
      we can't just copy axis mins and maxs from the original input because
      padding could have changed them.  If no axis mins and maxs existed on
-     the input nrrd, these will all be nan, so they won't be saved out.
+     the input nrrd, these will all be nan, so they won't be saved out. 
      NOTE: we're only nixing axis min/max information, not spacing. */
   for (i=0; i<=2; i++) {
     if (!AIR_EXISTS(nin->axis[i].min))
@@ -687,7 +677,7 @@ main(int argc, const char *argv[]) {
     if (!AIR_EXISTS(nin->axis[i].max))
       amax[1+i] = AIR_NAN;
   }
-
+  
   nvghF = nrrdNew();
   airMopAdd(mop, nvghF, (airMopper)nrrdNuke, airMopAlways);
   if (qbertProbe(nvghF, nrsmp, k00, k11, k22, !notdoH, sz)) {
@@ -720,7 +710,7 @@ main(int argc, const char *argv[]) {
       fprintf(stderr, "%s: trouble:\n%s\n", me, errS = biffGetDone(QBERT));
       free(errS); exit(1);
     }
-
+    
     nvgh = nrrdNew();
     airMopAdd(mop, nvgh, (airMopper)nrrdNuke, airMopAlways);
     ELL_3V_SET(perc, vperc, gperc, hperc);
@@ -731,7 +721,7 @@ main(int argc, const char *argv[]) {
     }
     airMopSub(mop, nvghF, (airMopper)nrrdNuke);
     nvghF = nrrdNuke(nvghF);
-
+    
     if (scat && (qbertScat(nvgh, 1, scat, "vg.pgm")
                  || (!notdoH && qbertScat(nvgh, 2, scat, "vh.pgm")))) {
       airMopAdd(mop, errS=biffGetDone(QBERT), airFree, airMopAlways);
@@ -747,7 +737,7 @@ main(int argc, const char *argv[]) {
     nrrdAxisInfoSet_nva(nvgh, nrrdAxisInfoMax, amax);
     nrrdAxisInfoSet_nva(nvgh, nrrdAxisInfoSpacing, spacing);
     nrrdContentSet_va(nvgh, "qbert", nin, "");
-
+    
     E = nrrdSave(outS, nvgh, NULL);
   }
   if (E) {

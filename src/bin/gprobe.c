@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -31,23 +30,23 @@
 #include <teem/ten.h>
 #include <teem/meet.h>
 
-static void
-printans(FILE *file, const double *ans, unsigned int len) {
-  unsigned int ai;
+void
+printans(FILE *file, const double *ans, int len) {
+  int a;
 
   AIR_UNUSED(file);
-  for (ai=0; ai<len; ai++) {
-    if (ai) {
+  for (a=0; a<=len-1; a++) {
+    if (a) {
       printf(", ");
     }
-    printf("%g", ans[ai]);
+    printf("%g", ans[a]);
   }
 }
 
-static int
+int
 gridProbe(gageContext *ctx, gagePerVolume *pvl, int what,
           Nrrd *nout, int typeOut, Nrrd *_ngrid,
-          int indexSpace, int verbose, int clamp) {
+          int indexSpace, int verbose) {
   char me[]="gridProbe";
   Nrrd *ngrid;
   airArray *mop;
@@ -56,7 +55,6 @@ gridProbe(gageContext *ctx, gagePerVolume *pvl, int what,
   unsigned int ansLen, dim, aidx, baseDim, gridDim;
   size_t sizeOut[NRRD_DIM_MAX], coordOut[NRRD_DIM_MAX], II, NN;
   double (*ins)(void *v, size_t I, double d);
-  char stmp[2][AIR_STRLEN_SMALL];
 
   if (!(ctx && pvl && nout && _ngrid)) {
     biffAddf(GAGE, "%s: got NULL pointer", me);
@@ -81,7 +79,7 @@ gridProbe(gageContext *ctx, gagePerVolume *pvl, int what,
              (ctx->stackPos ? "" : "not "),
              (ctx->stackPos ? 4 : 3) + 1,
              (ctx->stackPos ? 4 : 3),
-             AIR_UINT(_ngrid->axis[0].size));
+             AIR_CAST(unsigned int, _ngrid->axis[0].size));
     return 1;
   }
 
@@ -97,8 +95,8 @@ gridProbe(gageContext *ctx, gagePerVolume *pvl, int what,
     Nrrd *ntmp;
     ptrdiff_t minIdx[2], maxIdx[2];
     minIdx[0] = minIdx[1] = 0;
-    maxIdx[0] = 4;                      /* pad by one sample */
-    maxIdx[1] = AIR_CAST(ptrdiff_t, _ngrid->axis[1].size-1); /* no padding */
+    maxIdx[0] = 4;
+    maxIdx[1] = _ngrid->axis[1].size-1;
     ntmp = nrrdNew();
     airMopAdd(mop, ntmp, (airMopper)nrrdNuke, airMopAlways);
     if (nrrdConvert(ntmp, _ngrid, nrrdTypeDouble)
@@ -110,8 +108,8 @@ gridProbe(gageContext *ctx, gagePerVolume *pvl, int what,
   grid = AIR_CAST(double *, ngrid->data);
   gridDim = AIR_ROUNDUP_UI(grid[0]);
   if (gridDim + 1 != ngrid->axis[1].size) {
-    biffAddf(GAGE, "%s: ngrid->axis[1].size = %u but expected %u = 1 + %u",
-             me, AIR_UINT(ngrid->axis[1].size),
+    biffAddf(GAGE, "%s: ngrid->axis[1].size = %u but expected %u = 1 + %u", 
+             me, AIR_CAST(unsigned int, ngrid->axis[1].size),
              1 + gridDim, gridDim);
     airMopError(mop); return 1;
   }
@@ -144,10 +142,8 @@ gridProbe(gageContext *ctx, gagePerVolume *pvl, int what,
       if (verbose > 1) {
         fprintf(stderr, "z = ");
       }
-      fprintf(stderr, " %s/%s",
-              airSprintSize_t(stmp[0], coordOut[2]),
-              airSprintSize_t(stmp[1], sizeOut[2]));
-      fflush(stderr);
+      fprintf(stderr, " " _AIR_SIZE_T_CNV "/" _AIR_SIZE_T_CNV,
+              coordOut[2], sizeOut[2]); fflush(stderr);
       if (verbose > 1) {
         fprintf(stderr, "\n");
       }
@@ -155,25 +151,24 @@ gridProbe(gageContext *ctx, gagePerVolume *pvl, int what,
     ELL_4V_COPY(pos, grid + 1 + 5*0);
     for (aidx=0; aidx<gridDim; aidx++) {
       ELL_4V_SCALE_ADD2(pos, 1, pos,
-                        AIR_CAST(double, coordOut[aidx + baseDim]),
-                        grid + 1 + 5*(1+aidx));
+                        coordOut[aidx + baseDim], grid + 1 + 5*(1+aidx));
     }
     /*
     printf("%s: %u -> (%u %u) -> %g %g %g %g (%s)\n", me,
-           AIR_UINT(II),
-           AIR_UINT(coordOut[0+baseDim]),
-           AIR_UINT(coordOut[1+baseDim]),
+           AIR_CAST(unsigned int, II),
+           AIR_CAST(unsigned int, coordOut[0+baseDim]),
+           AIR_CAST(unsigned int, coordOut[1+baseDim]),
            pos[0], pos[1], pos[2], pos[3],
            indexSpace ? "index" : "world");
     */
     E = (ctx->stackPos
          ? gageStackProbeSpace(ctx, pos[0], pos[1], pos[2], pos[3],
-                               indexSpace, clamp)
+                               indexSpace, AIR_FALSE)
          : gageProbeSpace(ctx, pos[0], pos[1], pos[2],
-                          indexSpace, clamp));
+                          indexSpace, AIR_FALSE));
     if (E) {
-      biffAddf(GAGE, "%s: trouble at II=%s =(%g,%g,%g,%g):\n%s\n(%d)\n", me,
-               airSprintSize_t(stmp[0], II),
+      biffAddf(GAGE, "%s: trouble at II=" _AIR_SIZE_T_CNV 
+               "=(%g,%g,%g,%g):\n%s\n(%d)\n", me, II, 
                pos[0], pos[1], pos[2], pos[3],
                ctx->errStr, ctx->errNum);
       airMopError(mop); return 1;
@@ -190,21 +185,19 @@ gridProbe(gageContext *ctx, gagePerVolume *pvl, int what,
   if (verbose && verbose <= 1) {
     fprintf(stderr, "\n");
   }
-
+  
   airMopOkay(mop);
   return 0;
 }
 
-static const char *probeInfo =
-  ("Shows off the functionality of the gage library. "
-   "Uses gageProbe() to query various kinds of volumes "
-   "to learn various measured or derived quantities.");
+char *probeInfo = ("Shows off the functionality of the gage library. "
+                   "Uses gageProbe() to query various kinds of volumes "
+                   "to learn various measured or derived quantities.");
 
 int
-main(int argc, const char *argv[]) {
+main(int argc, char *argv[]) {
   gageKind *kind;
-  const char *me;
-  char *whatS, *err, *outS, *stackFnameFormat;
+  char *me, *whatS, *err, *outS, *stackFnameFormat;
   hestParm *hparm;
   hestOpt *hopt = NULL;
   NrrdKernelSpec *k00, *k11, *k22, *kSS, *kSSblur;
@@ -214,17 +207,16 @@ main(int argc, const char *argv[]) {
   const double *answer;
   Nrrd *nin, *_npos, *npos, *_ngrid, *ngrid, *nout, **ninSS=NULL;
   Nrrd *ngrad=NULL, *nbmat=NULL;
-  size_t six, siy, siz, sox, soy, soz;
-  double bval=0, eps, gmc, rangeSS[2], *pntPos, scale[3], posSS, biasSS,
-    dsix, dsiy, dsiz, dsox, dsoy, dsoz;
+  size_t ansLen, six, siy, siz, sox, soy, soz;
+  double bval=0, eps, gmc, rangeSS[2], *pntPos, scale[3], posSS;
   gageContext *ctx;
   gagePerVolume *pvl=NULL;
   double t0, t1, rscl[3], min[3], maxOut[3], maxIn[3];
   airArray *mop;
-  unsigned int ansLen, *skip, skipNum, pntPosNum;
+  unsigned int *skip, skipNum, pntPosNum;
   gageStackBlurParm *sbp;
-  int otype, clamp;
-  char stmp[4][AIR_STRLEN_SMALL];
+
+  int otype;
 
   me = argv[0];
   /* parse environment variables first, in case they break nrrdDefault*
@@ -262,7 +254,7 @@ main(int argc, const char *argv[]) {
              "\"kind\" of volume (\"scalar\", \"vector\", "
              "\"tensor\", or \"dwi\")",
              NULL, NULL, meetHestGageKind);
-  hestOptAdd(&hopt, "v", "verbosity", airTypeInt, 1, 1, &verbose, "1",
+  hestOptAdd(&hopt, "v", "verbosity", airTypeInt, 1, 1, &verbose, "1", 
              "verbosity level");
   hestOptAdd(&hopt, "q", "query", airTypeString, 1, 1, &whatS, NULL,
              "the quantity (scalar, vector, or matrix) to learn by probing");
@@ -270,12 +262,10 @@ main(int argc, const char *argv[]) {
              "0.0", "For curvature-based queries, use zero when gradient "
              "magnitude is below this");
   hestOptAdd(&hopt, "ofs", "ofs", airTypeInt, 0, 0, &orientationFromSpacing,
-             NULL, "If only per-axis spacing is available, use that to "
-             "contrive full orientation info");
+	     NULL, "If only per-axis spacing is available, use that to "
+	     "contrive full orientation info");
   hestOptAdd(&hopt, "seed", "N", airTypeUInt, 1, 1, &seed, "42",
              "RNG seed; mostly for debugging");
-  hestOptAdd(&hopt, "c", "bool", airTypeBool, 1, 1, &clamp, "false",
-             "clamp positions as part of probing");
 
   hestOptAdd(&hopt, "k00", "kern00", airTypeOther, 1, 1, &k00,
              "tent", "kernel for gageKernel00",
@@ -310,8 +300,6 @@ main(int argc, const char *argv[]) {
              "sigmas when possible");
   hestOptAdd(&hopt, "ssnd", NULL, airTypeInt, 0, 0, &normdSS, NULL,
              "normalize derivatives by scale");
-  hestOptAdd(&hopt, "ssnb", "bias", airTypeDouble, 1, 1, &biasSS, "0.0",
-             "bias on scale-based derivative normalization");
   hestOptAdd(&hopt, "ssf", "SS read/save format", airTypeString, 1, 1,
              &stackFnameFormat, "",
              "printf-style format (including a \"%u\") for the "
@@ -395,11 +383,10 @@ main(int argc, const char *argv[]) {
 
     sbp = gageStackBlurParmNew();
     airMopAdd(mop, sbp, (airMopper)gageStackBlurParmNix, airMopAlways);
-    if (gageStackBlurParmScaleSet(sbp, numSS, rangeSS[0], rangeSS[1],
+    if (gageStackBlurParmScaleSet(sbp, numSS, rangeSS[0], rangeSS[1], 
                                   uniformSS, optimSS)
-        || gageStackBlurParmKernelSet(sbp, kSSblur, AIR_TRUE)
-        || gageStackBlurParmBoundarySet(sbp, nrrdBoundaryBleed, AIR_NAN)
-        || gageStackBlurParmVerboseSet(sbp, verbose)
+        || gageStackBlurParmKernelSet(sbp, kSSblur, nrrdBoundaryBleed,
+                                      AIR_TRUE, verbose)
         || gageStackBlurManage(&ninSS, &recompute, sbp,
                                stackFnameFormat, AIR_TRUE, NULL,
                                nin, kind)) {
@@ -435,18 +422,17 @@ main(int argc, const char *argv[]) {
   E = 0;
   if (!E) E |= !(pvl = gagePerVolumeNew(ctx, nin, kind));
   if (!E) E |= gageKernelSet(ctx, gageKernel00, k00->kernel, k00->parm);
-  if (!E) E |= gageKernelSet(ctx, gageKernel11, k11->kernel, k11->parm);
+  if (!E) E |= gageKernelSet(ctx, gageKernel11, k11->kernel, k11->parm); 
   if (!E) E |= gageKernelSet(ctx, gageKernel22, k22->kernel, k22->parm);
   if (numSS) {
     gagePerVolume **pvlSS;
     gageParmSet(ctx, gageParmStackUse, AIR_TRUE);
-    gageParmSet(ctx, gageParmStackNormalizeDerivBias, biasSS);
     gageParmSet(ctx, gageParmStackNormalizeDeriv, normdSS);
     if (!E) E |= !(pvlSS = AIR_CAST(gagePerVolume **,
                                     calloc(numSS, sizeof(gagePerVolume *))));
     if (!E) airMopAdd(mop, pvlSS, (airMopper)airFree, airMopAlways);
     if (!E) E |= gageStackPerVolumeNew(ctx, pvlSS,
-                                       AIR_CAST(const Nrrd*const*, ninSS),
+                                       AIR_CAST(const Nrrd**, ninSS),
                                        numSS, kind);
     if (!E) E |= gageStackPerVolumeAttach(ctx, pvl, pvlSS, sbp->scale, numSS);
     if (!E) E |= gageKernelSet(ctx, gageKernelStack, kSS->kernel, kSS->parm);
@@ -468,7 +454,7 @@ main(int argc, const char *argv[]) {
   if (verbose) {
     fprintf(stderr, "%s: kernel support = %d^3 samples\n", me,
             2*ctx->radius);
-  }
+  } 
 
   if (ELL_3V_EXISTS(pntPos)) {
     /* only interested in a single point, make sure we have the right
@@ -487,10 +473,10 @@ main(int argc, const char *argv[]) {
     if (numSS
         ? gageStackProbeSpace(ctx,
                               pntPos[0], pntPos[1], pntPos[2], pntPos[3],
-                              probeSpaceIndex, clamp)
+                              probeSpaceIndex, AIR_FALSE)
         : gageProbeSpace(ctx,
                          pntPos[0], pntPos[1], pntPos[2],
-                         probeSpaceIndex, clamp)) {
+                         probeSpaceIndex, AIR_FALSE)) {
       fprintf(stderr, "%s: trouble probing: (errNum %d) %s\n", me,
               ctx->errNum, ctx->errStr);
       airMopError(mop); return 1;
@@ -520,9 +506,9 @@ main(int argc, const char *argv[]) {
 #define PROBE(x, y, z)                                                  \
       ((numSS                                                           \
         ? gageStackProbeSpace(ctx, x, y, z, posSS,                      \
-                              probeSpaceIndex, clamp)                   \
+                              probeSpaceIndex, AIR_FALSE)               \
         : gageProbeSpace(ctx, x, y, z, probeSpaceIndex,                 \
-                         clamp)),answer[0])
+                         AIR_FALSE)),answer[0])
       for (xo=0; xo<=2; xo++) {
         for (yo=0; yo<=2; yo++) {
           for (zo=0; zo<=2; zo++) {
@@ -563,13 +549,13 @@ main(int argc, const char *argv[]) {
           && (3 == _npos->axis[0].size || 4 == _npos->axis[0].size))) {
       fprintf(stderr, "%s: need npos 2-D 3-by-N or 4-by-N "
               "(not %u-D %u-by-N)\n", me, _npos->dim,
-              AIR_UINT(_npos->axis[0].size));
+              AIR_CAST(unsigned int, _npos->axis[0].size));
       airMopError(mop); return 1;
     }
-    if ((numSS && 3 == _npos->axis[0].size)
+    if ((numSS && 3 == _npos->axis[0].size) 
         || (!numSS && 4 == _npos->axis[0].size)) {
-      fprintf(stderr, "%s: have %u point coords but %s using scale-space\n",
-              me, AIR_UINT(_npos->axis[0].size),
+      fprintf(stderr, "%s: have %u point coords but %s using scale-space\n", 
+              me, AIR_CAST(unsigned int, _npos->axis[0].size),
               numSS ? "are" : "are not");
       airMopError(mop); return 1;
     }
@@ -579,7 +565,7 @@ main(int argc, const char *argv[]) {
     nout = nrrdNew();
     airMopAdd(mop, nout, AIR_CAST(airMopper, nrrdNuke), airMopAlways);
     if (nrrdConvert(npos, _npos, nrrdTypeDouble)
-        || nrrdMaybeAlloc_va(nout, otype, 2,
+        || nrrdMaybeAlloc_va(nout, otype, 2, 
                              AIR_CAST(size_t, ansLen),
                              AIR_CAST(size_t, NN))) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
@@ -592,10 +578,10 @@ main(int argc, const char *argv[]) {
     for (II=0; II<NN; II++) {
       if (numSS) {
         gageStackProbeSpace(ctx, pos[0], pos[1], pos[2], pos[3],
-                            probeSpaceIndex, clamp);
+                            probeSpaceIndex, AIR_TRUE);
       } else {
         gageProbeSpace(ctx, pos[0], pos[1], pos[2],
-                       probeSpaceIndex, clamp);
+                       probeSpaceIndex, AIR_TRUE);
       }
       if (1 == ansLen) {
         ins(nout->data, II, *answer);
@@ -643,24 +629,16 @@ main(int argc, const char *argv[]) {
     six = nin->axis[0+iBaseDim].size;
     siy = nin->axis[1+iBaseDim].size;
     siz = nin->axis[2+iBaseDim].size;
-    dsix = AIR_CAST(double, six);
-    dsiy = AIR_CAST(double, siy);
-    dsiz = AIR_CAST(double, siz);
-    sox = AIR_CAST(size_t, scale[0]*dsix);
-    soy = AIR_CAST(size_t, scale[1]*dsiy);
-    soz = AIR_CAST(size_t, scale[2]*dsiz);
-    dsox = AIR_CAST(double, sox);
-    dsoy = AIR_CAST(double, soy);
-    dsoz = AIR_CAST(double, soz);
-    rscl[0] = dsix/dsox;
-    rscl[1] = dsiy/dsoy;
-    rscl[2] = dsiz/dsoz;
+    sox = AIR_CAST(size_t, scale[0]*six);
+    soy = AIR_CAST(size_t, scale[1]*siy);
+    soz = AIR_CAST(size_t, scale[2]*siz);
+    rscl[0] = AIR_CAST(double, six)/sox;
+    rscl[1] = AIR_CAST(double, siy)/soy;
+    rscl[2] = AIR_CAST(double, siz)/soz;
     if (verbose) {
-      fprintf(stderr, "%s: creating %u x %s x %s x %s output\n", me,
-              ansLen,
-              airSprintSize_t(stmp[1], sox),
-              airSprintSize_t(stmp[2], soy),
-              airSprintSize_t(stmp[3], soz));
+      fprintf(stderr, "%s: creating " _AIR_SIZE_T_CNV " x " _AIR_SIZE_T_CNV
+              " x " _AIR_SIZE_T_CNV " x " _AIR_SIZE_T_CNV " output\n", 
+              me, ansLen, sox, soy, soz);
       fprintf(stderr, "%s: effective scaling is %g %g %g\n", me,
               rscl[0], rscl[1], rscl[2]);
     }
@@ -674,32 +652,32 @@ main(int argc, const char *argv[]) {
     grid = AIR_CAST(double *, ngrid->data);
     if (nrrdCenterCell == ctx->shape->center) {
       ELL_3V_SET(min, -0.5, -0.5, -0.5);
-      ELL_3V_SET(maxOut, dsox-0.5, dsoy-0.5, dsoz-0.5);
-      ELL_3V_SET(maxIn,  dsix-0.5, dsiy-0.5, dsiz-0.5);
+      ELL_3V_SET(maxOut, sox-0.5, soy-0.5, soz-0.5);
+      ELL_3V_SET(maxIn,  six-0.5, siy-0.5, siz-0.5);
     } else {
       ELL_3V_SET(min, 0, 0, 0);
-      ELL_3V_SET(maxOut, dsox-1, dsoy-1, dsoz-1);
-      ELL_3V_SET(maxIn,  dsix-1, dsiy-1, dsiz-1);
+      ELL_3V_SET(maxOut, sox-1, soy-1, soz-1);
+      ELL_3V_SET(maxIn,  six-1, siy-1, siz-1);
     }
     ELL_4V_SET(grid + gridSize[0]*0, 3,
                NRRD_POS(ctx->shape->center, min[0], maxIn[0], sox, 0),
                NRRD_POS(ctx->shape->center, min[1], maxIn[1], soy, 0),
                NRRD_POS(ctx->shape->center, min[2], maxIn[2], soz, 0));
-    ELL_4V_SET(grid + gridSize[0]*1, dsox,
+    ELL_4V_SET(grid + gridSize[0]*1, sox,
                AIR_DELTA(min[0], 1, maxOut[0], min[0], maxIn[0]),
                0,
                0);
-    ELL_4V_SET(grid + gridSize[0]*2, dsoy,
+    ELL_4V_SET(grid + gridSize[0]*2, soy,
                0,
                AIR_DELTA(min[1], 1, maxOut[1], min[1], maxIn[1]),
                0);
-    ELL_4V_SET(grid + gridSize[0]*3, dsoz,
+    ELL_4V_SET(grid + gridSize[0]*3, soz,
                0,
                0,
                AIR_DELTA(min[2], 1, maxOut[2], min[2], maxIn[2]));
     if (numSS) {
       if (!probeSpaceIndex) {
-        double idxSS = AIR_NAN;
+        double idxSS;
         unsigned int vi;
         /* there's actually work to do here, weirdly: gageProbe can
            either work in index space, or in world space, but the
@@ -708,14 +686,13 @@ main(int argc, const char *argv[]) {
            consistent with the way that the grid sampling will be
            defined. So, we have to actually replicate work that is done
            by _gageProbeSpace() in converting from world to index space */
-        /* HEY: the way that idxSS is set is very strange */
         for (vi=0; vi<numSS-1; vi++) {
           if (AIR_IN_CL(sbp->scale[vi], posSS, sbp->scale[vi+1])) {
             idxSS = vi + AIR_AFFINE(sbp->scale[vi], posSS, sbp->scale[vi+1],
                                     0, 1);
             if (verbose > 1) {
               fprintf(stderr, "%s: scale pos %g -> idx %g = %u + %g\n", me,
-                      posSS, idxSS, vi,
+                      posSS, idxSS, vi, 
                       AIR_AFFINE(sbp->scale[vi], posSS, sbp->scale[vi+1],
                                  0, 1));
             }
@@ -737,8 +714,6 @@ main(int argc, const char *argv[]) {
       grid[4 + 5*3] = 0;
     }
   } else {
-    /* we did get a grid, here we only copy from _ngrid to ngrid,
-       and let further massaging be done in gridProbe below */
     six = siy = siz = 0;
     sox = soy = soz = 0;
     if (nrrdCopy(ngrid, _ngrid)) {
@@ -751,25 +726,22 @@ main(int argc, const char *argv[]) {
   /* probe onto grid */
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-  gageParmSet(ctx, gageParmVerbose, verbose);
+  gageParmSet(ctx, gageParmVerbose, 0);
   t0 = airTime();
   if (gridProbe(ctx, pvl, what, nout, otype, ngrid,
                 (_ngrid
                  ? probeSpaceIndex  /* user specifies grid space */
                  : AIR_TRUE),       /* copying vprobe index-space behavior */
-                verbose, clamp)) {
+                verbose)) {
     /* note hijacking of GAGE key */
     airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble probing on grid:\n%s\n", me, err);
     airMopError(mop); return 1;
   }
   t1 = airTime();
-  if (verbose) {
-    fprintf(stderr, "probe rate = %g KHz\n",
-            AIR_CAST(double, nrrdElementNumber(nout)/ansLen)
-            / (1000.0*(t1-t0)));
-  }
-
+  fprintf(stderr, "probe rate = %g KHz\n",
+          (nrrdElementNumber(nout)/ansLen)/(1000.0*(t1-t0)));
+  
   /* massage output some */
   nrrdContentSet_va(nout, "gprobe", nin, "%s", airEnumStr(kind->enm, what));
   if (!_ngrid) {
@@ -790,11 +762,7 @@ main(int argc, const char *argv[]) {
                                   | NRRD_BASIC_INFO_COMMENTS_BIT
                                   | NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT));
     if (ctx->shape->fromOrientation) {
-      if (nin->space) {
-        nrrdSpaceSet(nout, nin->space);
-      } else {
-        nrrdSpaceDimensionSet(nout, nin->spaceDim);
-      }
+      nrrdSpaceSet(nout, nin->space);
       nrrdSpaceVecCopy(nout->spaceOrigin, nin->spaceOrigin);
       for (axi=0; axi<3; axi++) {
         double tmp;
@@ -808,12 +776,12 @@ main(int argc, const char *argv[]) {
       }
     } else {
       for (axi=0; axi<3; axi++) {
-        nout->axis[axi+oBaseDim].spacing =
+        nout->axis[axi+oBaseDim].spacing = 
           rscl[axi]*nin->axis[axi+iBaseDim].spacing;
       }
     }
   }
-
+  
   if (nrrdSave(outS, nout, NULL)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble saving output:\n%s\n", me, err);

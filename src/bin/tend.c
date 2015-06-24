@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -26,10 +25,9 @@
 #define TEND "tend"
 
 int
-main(int argc, const char **argv) {
+main(int argc, char **argv) {
   int i, ret;
-  const char *me;
-  char *argv0 = NULL;
+  char *me, *argv0 = NULL, *err;
   hestParm *hparm;
   airArray *mop;
 
@@ -41,7 +39,25 @@ main(int argc, const char **argv) {
   nrrdStateGetenv();
 
   /* no harm done in making sure we're sane */
-  nrrdSanityOrDie(me);
+  if (!nrrdSanity()) {
+    fprintf(stderr, "******************************************\n");
+    fprintf(stderr, "******************************************\n");
+    fprintf(stderr, "\n");
+    fprintf(stderr, "  %s: nrrd sanity check FAILED.\n", me);
+    fprintf(stderr, "\n");
+    fprintf(stderr, "  This means that either nrrd can't work on this "
+            "platform, or (more likely)\n");
+    fprintf(stderr, "  there was an error in the compilation options "
+            "and variable definitions\n");
+    fprintf(stderr, "  for how Teem was built here.\n");
+    fprintf(stderr, "\n");
+    fprintf(stderr, "  %s\n", err = biffGetDone(NRRD));
+    fprintf(stderr, "\n");
+    fprintf(stderr, "******************************************\n");
+    fprintf(stderr, "******************************************\n");
+    free(err);
+    return 1;
+  }
 
   mop = airMopNew();
   hparm = hestParmNew();
@@ -58,7 +74,7 @@ main(int argc, const char **argv) {
 
   /* if there are no arguments, then we give general usage information */
   if (1 >= argc) {
-    unrrduUsage(TEND, hparm, tendTitle, tendCmdList);
+    tendUsage(TEND, hparm);
     airMopError(mop);
     exit(1);
   }

@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -23,9 +22,6 @@
 
 #include "seek.h"
 #include "privateSeek.h"
-
-const int
-seekPresent = 42;
 
 seekContext *
 seekContextNew(void) {
@@ -52,7 +48,7 @@ seekContextNew(void) {
     sctx->strengthSign = 1;
     sctx->isovalue = AIR_NAN;
     sctx->evalDiffThresh = 1.0; /* roughly reasonable for uchar data;
-                                 * really should depend on dynamic range */
+				 * really should depend on dynamic range */
     sctx->strength = 0.0;
     ELL_3V_SET(sctx->samples, 0, 0, 0);
     /* these two magic values assume a certain level of surface smoothness,
@@ -120,7 +116,7 @@ seekContextNew(void) {
     sctx->faceNum = 0;
     sctx->strengthSeenMax = AIR_NAN;
     sctx->time = AIR_NAN;
-  }
+  }  
   return sctx;
 }
 
@@ -128,8 +124,7 @@ seekContext *
 seekContextNix(seekContext *sctx) {
 
   if (sctx) {
-    airFree(sctx->flag);
-    sctx->flag = NULL;
+    sctx->flag = airFree(sctx->flag);
     sctx->_shape = gageShapeNix(sctx->_shape);
     sctx->nsclDerived = nrrdNuke(sctx->nsclDerived);
     sctx->nspanHist = nrrdNuke(sctx->nspanHist);

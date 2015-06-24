@@ -1,6 +1,5 @@
 #
 # Teem: Tools to process and visualize scientific data and images
-# Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
 # Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
 # Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 #
@@ -53,8 +52,9 @@ $(L).OBJS = 754.o randMT.o array.o miscAir.o parseAir.o math.o \
 	endianAir.o dio.o mop.o enum.o sane.o string.o threadAir.o heap.o
 $(L).TESTS = test/floatprint test/doubleprint test/tok \
 	test/tmop test/tline test/fp test/trand test/tdio \
-        test/bessy test/tarr test/texp test/logrice test/tprint
+        test/bessy test/tarr test/texp test/logrice
 
+$(L).NEED_ENDIAN = true
 $(L).NEED_QNANHIBIT = true
 $(L).NEED_DIO = true
 ####

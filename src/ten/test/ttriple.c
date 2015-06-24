@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -26,8 +26,8 @@
 char *info = ("tests conversions between info triples");
 
 int
-main(int argc, const char *argv[]) {
-  const char *me;
+main(int argc, char *argv[]) {
+  char *me;
   hestOpt *hopt=NULL;
   airArray *mop;
 
@@ -64,7 +64,7 @@ main(int argc, const char *argv[]) {
   */
 
   /*
-  printf("%s: %s %s --> %s --> %s\n", me,
+  printf("%s: %s %s --> %s --> %s\n", me, 
          tenTriple->name,
          airEnumStr(tenTriple, srcType),
          airEnumStr(tenTriple, dstType),

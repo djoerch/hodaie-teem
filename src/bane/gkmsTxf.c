@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,22 +24,21 @@
 #include "privateBane.h"
 
 #define TXF_INFO "Create Levoy-style triangular 2D opacity functions"
-static const char *_baneGkms_txfInfoL =
+char *_baneGkms_txfInfoL =
   (TXF_INFO
    ". The triangles are in the 2D space of data value and gradient "
    "magnitude.  They can be tilted sideways and clipped at the bottom. "
    "This doesn't strictly speaking belong in \"gkms\" but there's no "
    "other good place in Teem.");
 int
-baneGkms_txfMain(int argc, const char **argv, const char *me,
-                 hestParm *hparm) {
+baneGkms_txfMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *perr;
   Nrrd *nout;
   airArray *mop;
   int pret, E, res[2], vi, gi, step;
   float min[2], max[2], top[2], v0, g0, *data, v, g,
-    gwidth, width, mwidth,
+    gwidth, width, mwidth, 
     tvl, tvr, vl, vr, tmp, maxa;
 
   hestOptAdd(&opt, "r", "Vres Gres", airTypeInt, 2, 2, res, "256 256",
@@ -97,7 +95,7 @@ baneGkms_txfMain(int argc, const char **argv, const char *me,
     airMopError(mop); return 1;
   }
   data = (float *)nout->data;
-  tvl = top[0] - width/2;
+  tvl = top[0] - width/2; 
   tvr = top[0] + width/2;
   mwidth /= 2;
   for (gi=0; gi<res[1]; gi++) {
@@ -127,7 +125,7 @@ baneGkms_txfMain(int argc, const char **argv, const char *me,
     biffMovef(BANE, NRRD, "%s: trouble saving opacity function", me);
     airMopError(mop); return 1;
   }
-
+  
   airMopOkay(mop);
   return 0;
 }

@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -24,21 +23,17 @@
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-#define INFO "Affine (lerp) mapping on 5 nrrds or constants"
-static const char *_unrrdu_affineInfoL =
+#define INFO "Affine value mapping on 5 nrrds or constants"
+char *_unrrdu_affineInfoL =
 (INFO
- ". All the 5 arguments can be either nrrds or single "
- "floating-point values.  When all args are single values, this "
- "is subsuming the functionality of the previous stand-alone "
- "\"affine\" program. "
+ ". All the 5 arguments can be either nrrds or single values, "
+ "but at least one nrrd is required. "
  "Use \"-\" for an operand to signify "
  "a nrrd to be read from stdin (a pipe).  Note, however, "
- "that \"-\" can probably only be used once (reliably).\n "
- "* Uses nrrdArithAffine or nrrdArithIterAffine");
+ "that \"-\" can probably only be used once (reliably).");
 
 int
-unrrdu_affineMain(int argc, const char **argv, const char *me,
-                  hestParm *hparm) {
+unrrdu_affineMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   NrrdIter *minIn, *in, *maxIn, *minOut, *maxOut, *args[5];
@@ -51,7 +46,7 @@ unrrdu_affineMain(int argc, const char **argv, const char *me,
              "Lower end of input value range.",
              NULL, NULL, nrrdHestIter);
   hestOptAdd(&opt, NULL, "in", airTypeOther, 1, 1, &in, NULL,
-             "Input value.",
+             "Input values.",
              NULL, NULL, nrrdHestIter);
   hestOptAdd(&opt, NULL, "maxIn", airTypeOther, 1, 1, &maxIn, NULL,
              "Upper end of input value range.",
@@ -107,33 +102,20 @@ unrrdu_affineMain(int argc, const char **argv, const char *me,
       return 1;
     }
   }
-
-  if (0 == nn) {
-    /* actually, there are no nrrds; we represent the functionality
-       of the previous stand-alone binary "affine" */
-    double valOut;
-    valOut = AIR_AFFINE(minIn->val, in->val, maxIn->val,
-                        minOut->val, maxOut->val);
-    if (clamp) {
-      valOut = AIR_CLAMP(minOut->val, valOut, maxOut->val);
-    }
-    printf("%g\n", valOut);
+  if (1 == nn && in->ownNrrd) {
+    E = nrrdArithAffine(nout, minIn->val, in->ownNrrd, maxIn->val,
+                        minOut->val, maxOut->val, clamp);
   } else {
-    /* we have a nrrd output */
-    if (1 == nn && in->ownNrrd) {
-      E = nrrdArithAffine(nout, minIn->val, in->ownNrrd, maxIn->val,
-                          minOut->val, maxOut->val, clamp);
-    } else {
-      E = nrrdArithIterAffine(nout, minIn, in, maxIn, minOut, maxOut, clamp);
-    }
-    if (E) {
-      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-      fprintf(stderr, "%s: error doing ternary operation:\n%s", me, err);
-      airMopError(mop);
-      return 1;
-    }
-    SAVE(out, nout, NULL);
+    E = nrrdArithIterAffine(nout, minIn, in, maxIn, minOut, maxOut, clamp);
+  } 
+  if (E) {
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+    fprintf(stderr, "%s: error doing ternary operation:\n%s", me, err);
+    airMopError(mop);
+    return 1;
   }
+  
+  SAVE(out, nout, NULL);
 
   airMopOkay(mop);
   return 0;

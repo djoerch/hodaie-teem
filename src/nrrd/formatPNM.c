@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -29,39 +28,39 @@
 #define MAGIC_P3 "P3"
 #define MAGIC_P2 "P2"
 
-static int
+int
 _nrrdFormatPNM_available(void) {
-
+  
   return AIR_TRUE;
 }
 
-static int
+int
 _nrrdFormatPNM_nameLooksLike(const char *filename) {
-
+  
   return (airEndsWith(filename, NRRD_EXT_PGM)
           || airEndsWith(filename, NRRD_EXT_PPM));
 }
 
-static int
+int
 _nrrdFormatPNM_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
                         int useBiff) {
   static const char me[]="_nrrdFormatPNM_fitsInto";
   int ret;
-
+  
   if (!( nrrd && encoding )) {
     biffMaybeAddf(useBiff, NRRD, "%s: got NULL nrrd (%p) or encoding (%p)",
-                  me, AIR_CVOIDP(nrrd), AIR_CVOIDP(encoding));
+                  me, AIR_CAST(void*, nrrd), AIR_CAST(void*, encoding)); 
     return AIR_FALSE;
   }
   if (nrrdTypeUChar != nrrd->type) {
     biffMaybeAddf(useBiff, NRRD, "%s: type must be %s (not %s)", me,
                   airEnumStr(nrrdType, nrrdTypeUChar),
-                  airEnumStr(nrrdType, nrrd->type));
+                  airEnumStr(nrrdType, nrrd->type)); 
     return AIR_FALSE;
   }
   if (!( nrrdEncodingRaw == encoding || nrrdEncodingAscii == encoding)) {
     biffMaybeAddf(useBiff, NRRD, "%s: encoding can only be %s or %s", me,
-                  nrrdEncodingRaw->name, nrrdEncodingAscii->name);
+                  nrrdEncodingRaw->name, nrrdEncodingAscii->name); 
     return AIR_FALSE;
   }
   if (2 == nrrd->dim) {
@@ -76,10 +75,9 @@ _nrrdFormatPNM_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
       ret = 3;
     } else {
       /* else its no good */
-      char stmp[AIR_STRLEN_SMALL];
       biffMaybeAddf(useBiff, NRRD,
-                    "%s: dim is 3, but 1st axis size is %s, not 1 or 3", me,
-                    airSprintSize_t(stmp, nrrd->axis[0].size));
+                    "%s: dim is 3, but 1st axis size is " _AIR_SIZE_T_CNV 
+                    ", not 1 or 3", me, nrrd->axis[0].size); 
       return AIR_FALSE;
     }
   } else {
@@ -92,14 +90,14 @@ _nrrdFormatPNM_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
 
 int
 _nrrdFormatPNM_contentStartsLike(NrrdIoState *nio) {
-
+  
   return (!strcmp(MAGIC_P6, nio->line)
           || !strcmp(MAGIC_P5, nio->line)
           || !strcmp(MAGIC_P3, nio->line)
           || !strcmp(MAGIC_P2, nio->line));
 }
 
-static int
+int
 _nrrdFormatPNM_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   static const char me[]="_nrrdFormatPNM_read";
   const char *fs;
@@ -108,7 +106,7 @@ _nrrdFormatPNM_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   unsigned int i, llen;
 
   if (!_nrrdFormatPNM_contentStartsLike(nio)) {
-    biffAddf(NRRD, "%s: this doesn't look like a %s file", me,
+    biffAddf(NRRD, "%s: this doesn't look like a %s file", me, 
              nrrdFormatPNM->name);
     return 1;
   }
@@ -126,7 +124,7 @@ _nrrdFormatPNM_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     biffAddf(NRRD, "%s: PANIC: magic \"%s\" not handled\n", me, nio->line);
     return 1;
   }
-
+  
   switch(magic) {
   case 2:
     color = AIR_FALSE;
@@ -197,7 +195,7 @@ _nrrdFormatPNM_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
         ret = 0;
         goto plain;
       }
-      if (!nio->seen[ret]
+      if (!nio->seen[ret] 
           && nrrdFieldInfoParse[ret](file, nrrd, nio, AIR_TRUE)) {
         perr = biffGetDone(NRRD);
         if (1 <= nrrdStateVerboseIO) {
@@ -218,7 +216,7 @@ _nrrdFormatPNM_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
       }
       continue;
     }
-
+    
     if (3 == sscanf(nio->line, "%d%d%d", val+got+0, val+got+1, val+got+2)) {
       got += 3;
       continue;
@@ -234,11 +232,10 @@ _nrrdFormatPNM_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
 
     /* else, we couldn't parse ANY numbers on this line, which is okay
        as long as the line contains nothing but white space */
-    for (i=0; (i<=strlen(nio->line)-1
-               && isspace(AIR_INT(nio->line[i]))); i++)
+    for (i=0; i<=strlen(nio->line)-1 && isspace(nio->line[i]); i++)
       ;
     if (i != strlen(nio->line)) {
-      biffAddf(NRRD, "%s: \"%s\" has no integers but isn't just whitespace",
+      biffAddf(NRRD, "%s: \"%s\" has no integers but isn't just whitespace", 
                me, nio->line);
       return 1;
     }
@@ -252,7 +249,7 @@ _nrrdFormatPNM_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     return 1;
   }
   if (255 != max) {
-    biffAddf(NRRD, "%s: sorry, can only deal with max value 255 (not %d)",
+    biffAddf(NRRD, "%s: sorry, can only deal with max value 255 (not %d)", 
              me, max);
     return 1;
   }
@@ -285,14 +282,14 @@ _nrrdFormatPNM_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   return 0;
 }
 
-static int
+int
 _nrrdFormatPNM_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   static const char me[]="_nrrdFormatPNM_write";
   int color, sx, sy, magic, fi;
   unsigned int ci;
   Nrrd *nrrd;
   airArray *mop;
-
+  
   mop = airMopNew();
   airMopAdd(mop, nrrd = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   if (nrrdCopy(nrrd, _nrrd)) {
@@ -315,11 +312,11 @@ _nrrdFormatPNM_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
     sx = AIR_CAST(int, nrrd->axis[1].size);
     sy = AIR_CAST(int, nrrd->axis[2].size);
   }
-
+  
   fprintf(file, "P%d\n", magic);
   fprintf(file, "%d %d\n", sx, sy);
   for (fi=nrrdField_unknown+1; fi<nrrdField_last; fi++) {
-    if (_nrrdFieldValidInImage[fi]
+    if (_nrrdFieldValidInImage[fi] 
         && _nrrdFieldInteresting(nrrd, nio, fi)) {
       _nrrdFprintFieldInfo(file, NRRD_PNM_COMMENT, nrrd, nio, fi);
     }
@@ -336,8 +333,8 @@ _nrrdFormatPNM_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
       airMopError(mop); return 1;
     }
   }
-
-  airMopError(mop);
+  
+  airMopError(mop); 
   return 0;
 }
 

@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -27,39 +26,34 @@
 #include <stdio.h>
 #include <string.h>
 
-/* TEEM_LIB_LIST */
 #include <teem/air.h>
 #include <teem/hest.h>
 #include <teem/biff.h>
 #include <teem/nrrd.h>
 #include <teem/ell.h>
 #include <teem/unrrdu.h>
+#include <teem/dye.h>
 #if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
+#  include <teem/moss.h>
 #  include <teem/alan.h>
-#endif
-#include <teem/moss.h>
-#if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
 #  include <teem/tijk.h>
 #endif
 #include <teem/gage.h>
-#include <teem/dye.h>
 #if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
 #  include <teem/bane.h>
 #endif
 #include <teem/limn.h>
-#include <teem/echo.h>
-#include <teem/hoover.h>
 #include <teem/seek.h>
+#include <teem/hoover.h>
+#include <teem/echo.h>
 #include <teem/ten.h>
-#if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
-#  include <teem/elf.h>
-#endif
-#include <teem/pull.h>
+#include <teem/mite.h>
 #if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
 #  include <teem/coil.h>
 #  include <teem/push.h>
+#  include <teem/elf.h>
 #endif
-#include <teem/mite.h>
+#include <teem/pull.h>
 
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(TEEM_STATIC)
 #  if defined(TEEM_BUILD) || defined(meet_EXPORTS) || defined(teem_EXPORTS)
@@ -78,17 +72,10 @@ extern "C" {
 
 #define MEET meetBiffKey
 
-/* enumall.c: (not really a descriptive filename) */
-MEET_EXPORT const int meetPresent;
+/* enumall.c */
 MEET_EXPORT const char *meetBiffKey;
-MEET_EXPORT const airEnum **meetAirEnumAll(void);
+MEET_EXPORT const airEnum **meetAirEnumAll();
 MEET_EXPORT void meetAirEnumAllPrint(FILE *file);
-MEET_EXPORT int meetAirEnumAllCheck(void);
-MEET_EXPORT const char *const meetTeemLibs[];
-
-/* meetNrrd.c */
-MEET_EXPORT const NrrdKernel **meetNrrdKernelAll(void);
-MEET_EXPORT int meetNrrdKernelAllCheck(void);
 
 /* meetGage.c */
 MEET_EXPORT gageKind *meetGageKindParse(const char *str);
@@ -161,11 +148,10 @@ MEET_EXPORT meetPullVol *meetPullVolNew(void);
 MEET_EXPORT int meetPullVolParse(meetPullVol *mpv, const char *str);
 MEET_EXPORT int meetPullVolLeechable(const meetPullVol *orig,
                                      const meetPullVol *lchr);
-MEET_EXPORT meetPullVol *meetPullVolNix(meetPullVol *pvol);
+MEET_EXPORT meetPullVol *meetPullVolNuke(meetPullVol *pvol);
 MEET_EXPORT hestCB *meetHestPullVol;
-MEET_EXPORT int meetPullVolLoadMulti(meetPullVol **mpv, unsigned int mpvNum,
+MEET_EXPORT int meetPullVolLoadMulti(meetPullVol **mpv, unsigned int mpvNum, 
                                      char *cachePath, NrrdKernelSpec *kSSblur,
-                                     int boundary, double padValue,
                                      int verbose);
 MEET_EXPORT int meetPullVolAddMulti(pullContext *pctx,
                                     meetPullVol **mpv, unsigned int mpvNum,

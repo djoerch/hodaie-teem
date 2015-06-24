@@ -1,6 +1,5 @@
 #
 # Teem: Tools to process and visualize scientific data and images
-# Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
 # Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
 # Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 #
@@ -50,7 +49,7 @@ $(L).NEED = air
 $(L).PUBLIC_HEADERS = hest.h
 $(L).PRIVATE_HEADERS = privateHest.h
 $(L).OBJS = defaultsHest.o methodsHest.o usage.o parseHest.o
-$(L).TESTS = test/ex2 test/ex3 test/ex4 test/ex5 \
+$(L).TESTS = test/ex0 test/ex1 test/ex2 test/ex3 test/ex4 test/ex5 \
 	test/strings test/bday test/tmpl
 ####
 ####

@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,13 +24,12 @@
 #include "privateTen.h"
 
 #define INFO "Modify shape by raising eigenvalues to some power"
-static const char *_tend_evalpowInfoL =
+char *_tend_evalpowInfoL =
   (INFO
    ". The orientation of the tensor is unchanged.");
 
 int
-tend_evalpowMain(int argc, const char **argv, const char *me,
-                 hestParm *hparm) {
+tend_evalpowMain(int argc, char **argv, char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;
@@ -40,7 +38,7 @@ tend_evalpowMain(int argc, const char **argv, const char *me,
   Nrrd *nin, *nout;
   char *outS;
   float expo;
-
+  
   hestOptAdd(&hopt, "p", "power", airTypeFloat, 1, 1, &expo, NULL,
              "Power to which to raise all the eigenvalues.");
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",

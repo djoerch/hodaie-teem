@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -27,7 +26,7 @@
 /*
 ** _gageSclTable
 **
-** the static array of item information for the scalar kind.
+** the static array of item information for the scalar kind. 
 */
 gageItemEntry
 _gageSclTable[GAGE_SCL_ITEM_MAX+1] = {
@@ -37,7 +36,6 @@ _gageSclTable[GAGE_SCL_ITEM_MAX+1] = {
   {gageSclGradVec,       3,  1,  {0},                                            0,               0,   AIR_FALSE},
   {gageSclGradMag,       1,  1,  {gageSclGradVec},                               0,               0,   AIR_FALSE},
   {gageSclNormal,        3,  1,  {gageSclGradVec, gageSclGradMag},               0,               0,   AIR_FALSE},
-  {gageSclNProj,         9,  1,  {gageSclNormal},                                0,               0,   AIR_FALSE},
   {gageSclNPerp,         9,  1,  {gageSclNormal},                                0,               0,   AIR_FALSE},
   {gageSclHessian,       9,  2,  {gageSclHessian},                               0,               0,   AIR_FALSE},
   {gageSclHessianTen,    7,  2,  {gageSclHessian},                               0,               0,   AIR_FALSE},
@@ -77,7 +75,6 @@ _gageSclStr[] = {
   "gradient vector",
   "gradient magnitude",
   "normalized gradient",
-  "normal projector",
   "tangent projector",
   "Hessian",
   "HessianTen",
@@ -116,9 +113,8 @@ _gageSclDesc[] = {
   "reconstructed scalar data value",
   "gradient vector, un-normalized",
   "gradient magnitude (length of gradient vector)",
-  "normalized gradient vector",
-  "projection into normal",
   "projection into tangent (perp space of normal)",
+  "normalized gradient vector",
   "3x3 Hessian matrix",
   "7-element Hessian tensor",
   "Laplacian",
@@ -157,7 +153,6 @@ _gageSclVal[] = {
   gageSclGradVec,
   gageSclGradMag,
   gageSclNormal,
-  gageSclNProj,
   gageSclNPerp,
   gageSclHessian,
   gageSclHessianTen,
@@ -194,7 +189,6 @@ _gageSclVal[] = {
 #define GS_GV  gageSclGradVec
 #define GS_GM  gageSclGradMag
 #define GS_N   gageSclNormal
-#define GS_NProj  gageSclNProj
 #define GS_NP  gageSclNPerp
 #define GS_H   gageSclHessian
 #define GS_HT  gageSclHessianTen
@@ -228,28 +222,27 @@ _gageSclVal[] = {
 
 const char *
 _gageSclStrEqv[] = {
-  "v", "val", "value",
+  "v", "val", "value", 
   "gv", "gvec", "gradvec", "grad vec", "gradient vector",
   "gm", "gmag", "gradmag", "grad mag", "gradient magnitude",
   "gn", "n", "normal", "gnorm", "normg", "norm", "normgrad",
-  "norm grad", "normalized gradient",
-  "nproj", "normal projector",
-  "np", "nperp", "tangent projector",
+       "norm grad", "normalized gradient",
+  "np", "nperp", 
   "h", "hess", "hessian",
-  "ht", "hessten", "hessianten",
+  "ht", "hessten",
   "l", "lapl", "laplacian",
-  "hf", "frob(hessian)",
+  "hf",
   "heval", "hesseval", "hessian eval", "hessian eigenvalues",
-  "heval0", "hesseval0", "hessian eigenvalue[0]",
-  "heval1", "hesseval1", "hessian eigenvalue[1]",
-  "heval2", "hesseval2", "hessian eigenvalue[2]",
+  "heval0", "hesseval0",
+  "heval1", "hesseval1",
+  "heval2", "hesseval2",
   "hevec", "hessevec", "hessian evec", "hessian eigenvectors",
-  "hevec0", "hessevec0", "hessian eigenvector[0]",
-  "hevec1", "hessevec1", "hessian eigenvector[1]",
-  "hevec2", "hessevec2", "hessian eigenvector[2]",
+  "hevec0", "hessevec0",
+  "hevec1", "hessevec1",
+  "hevec2", "hessevec2",
   "2d", "2dd", "2nddd", "2nd", "2nd dd", "2nd dd along gradient",
   "gt", "gten", "geoten", "geomten", "geometry tensor",
-  "gtenten", "geometry tensor tensor",
+  "gtenten",
   "k1", "kap1", "kappa1",
   "k2", "kap2", "kappa2",
   "total curv", "totalcurv", "total curvature", "tc", "cv", "curvedness",
@@ -257,39 +250,38 @@ _gageSclStrEqv[] = {
   "si", "shape index",
   "mc", "mcurv", "meancurv", "mean curvature",
   "gc", "gcurv", "gausscurv", "gaussian curvature",
-  "cdir1", "c dir1", "curvdir1", "curv dir1", "curvature direction 1", "1st curvature direction",
-  "cdir2", "c dir2", "curvdir2", "curv dir2", "curvature direction 2", "2nd curvature direction",
+  "cdir1", "c dir1", "curvdir1", "curv dir1", "curvature direction 1",
+  "cdir2", "c dir2", "curvdir2", "curv dir2", "curvature direction 2",
   "fc", "flowlinecurv", "flowline curv", "flowline curvature",
   "med", "median",
-  "hvalley", "hessvalley", "hessian valleyness",
-  "hridge", "hessridge", "hessian ridgeness",
-  "hmode", "hessmode", "hessian mode",
+  "hvalley", "hessvalley",
+  "hridge", "hessridge",
+  "hmode", "hessmode",
   ""
 };
 
 const int
 _gageSclValEqv[] = {
   GS_V, GS_V, GS_V,
-  GS_GV, GS_GV, GS_GV, GS_GV, GS_GV,
+  GS_GV, GS_GV, GS_GV, GS_GV, GS_GV, 
   GS_GM, GS_GM, GS_GM, GS_GM, GS_GM,
   GS_N,  GS_N, GS_N, GS_N, GS_N, GS_N, GS_N, GS_N, GS_N,
-  GS_NProj, GS_NProj,
-  GS_NP, GS_NP, GS_NP,
-  GS_H, GS_H, GS_H,
-  GS_HT, GS_HT, GS_HT,
-  GS_L, GS_L, GS_L,
-  GS_HF, GS_HF,
-  GS_HA, GS_HA, GS_HA, GS_HA,
-  GS_HA0, GS_HA0, GS_HA0,
-  GS_HA1, GS_HA1, GS_HA1,
-  GS_HA2, GS_HA2, GS_HA2,
-  GS_HE, GS_HE, GS_HE, GS_HE,
-  GS_HE0, GS_HE0, GS_HE0,
-  GS_HE1, GS_HE1, GS_HE1,
-  GS_HE2, GS_HE2, GS_HE2,
+  GS_NP, GS_NP,
+  GS_H, GS_H, GS_H, 
+  GS_HT, GS_HT,
+  GS_L, GS_L, GS_L, 
+  GS_HF,
+  GS_HA, GS_HA, GS_HA, GS_HA, 
+  GS_HA0, GS_HA0,
+  GS_HA1, GS_HA1,
+  GS_HA2, GS_HA2,
+  GS_HE, GS_HE, GS_HE, GS_HE, 
+  GS_HE0, GS_HE0,
+  GS_HE1, GS_HE1,
+  GS_HE2, GS_HE2,
   GS_2D, GS_2D, GS_2D, GS_2D, GS_2D, GS_2D,
   GS_GT, GS_GT, GS_GT, GS_GT, GS_GT,
-  GS_GTT, GS_GTT,
+  GS_GTT,
   GS_K1, GS_K1, GS_K1,
   GS_K2, GS_K2, GS_K2,
   GS_TC, GS_TC, GS_TC, GS_TC, GS_TC, GS_TC,
@@ -297,13 +289,13 @@ _gageSclValEqv[] = {
   GS_SI, GS_SI,
   GS_MC, GS_MC, GS_MC, GS_MC,
   GS_GC, GS_GC, GS_GC, GS_GC,
-  GS_C1, GS_C1, GS_C1, GS_C1, GS_C1, GS_C1,
-  GS_C2, GS_C2, GS_C2, GS_C2, GS_C2, GS_C2,
+  GS_C1, GS_C1, GS_C1, GS_C1, GS_C1,
+  GS_C2, GS_C2, GS_C2, GS_C2, GS_C2,
   GS_FC, GS_FC, GS_FC, GS_FC,
   GS_MD, GS_MD,
-  GS_HV, GS_HV, GS_HV,
-  GS_HR, GS_HR, GS_HR,
-  GS_HM, GS_HM, GS_HM
+  GS_HV, GS_HV,
+  GS_HR, GS_HR,
+  GS_HM, GS_HM
 };
 
 const airEnum
@@ -335,23 +327,3 @@ _gageKindScl = {
 };
 gageKind *const
 gageKindScl = &_gageKindScl;
-
-const gageItemPack
-_gageItemPackSclValue = {
-  &_gageKindScl,
-  {gageSclUnknown,
-   gageSclValue,
-   gageSclGradVec,
-   gageSclGradMag,
-   gageSclNormal,
-   gageSclHessian,
-   gageSclHessEval0,
-   gageSclHessEval1,
-   gageSclHessEval2,
-   gageSclHessEvec0,
-   gageSclHessEvec1,
-   gageSclHessEvec2}
-};
-
-const gageItemPack *const
-gageItemPackSclValue = &_gageItemPackSclValue;

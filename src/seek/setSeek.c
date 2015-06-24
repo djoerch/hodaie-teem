@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -49,7 +48,7 @@ seekVerboseSet(seekContext *sctx, int verbose) {
 ** ninscl, gctx, pvl
 **
 ** So the rest of seek can use "if (sctx->ninscl)" to see if we're working
-** with a vanilla scalar volume or not
+** with a vanilla scalar volume or not 
 **
 ** invalidates:
 ** valItem, normItem, gradItem, evalItem, evecItem
@@ -79,7 +78,7 @@ seekDataSet(seekContext *sctx, const Nrrd *ninscl,
       return 1;
     }
     if (nrrdTypeBlock == ninscl->type) {
-      biffAddf(SEEK, "%s: can't work with %s type values", me,
+      biffAddf(SEEK, "%s: can't work with %s type values", me, 
                airEnumStr(nrrdType, nrrdTypeBlock));
       return 1;
     }

@@ -1,6 +1,5 @@
 #
-# Teem: Tools to process and visualize scientific data and images             .
-# Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+# Teem: Tools to process and visualize scientific data and images              
 # Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
 # Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 #
@@ -21,6 +20,8 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #
 
-ADD_EXECUTABLE(test_biff test.c)
-TARGET_LINK_LIBRARIES(test_biff teem)
-ADD_TEST(biff ${EXECUTABLE_OUTPUT_PATH}/test_biff)
+ADD_EXECUTABLE(biffTest test.c)
+
+TARGET_LINK_LIBRARIES(biffTest teem)
+
+ADD_TEST(biff ${EXECUTABLE_OUTPUT_PATH}/biffTest)

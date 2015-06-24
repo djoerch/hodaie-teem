@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -26,10 +25,9 @@
 #define GKMS "gkms"
 
 int
-main(int argc, const char **argv) {
+main(int argc, char **argv) {
   int i, ret;
-  const char *me;
-  char *argv0 = NULL, *err;
+  char *me, *argv0 = NULL, *err;
   hestParm *hparm;
   airArray *mop;
 
@@ -74,7 +72,7 @@ main(int argc, const char **argv) {
     airMopError(mop);
     exit(1);
   }
-  /* else, we should see if they're asking for a command we know about */
+  /* else, we should see if they're asking for a command we know about */  
   /* baneGkmsCmdList[] is NULL-terminated */
   for (i=0; baneGkmsCmdList[i]; i++) {
     if (!strcmp(argv[1], baneGkmsCmdList[i]->name))

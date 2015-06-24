@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -42,9 +41,9 @@ nrrdInvertPerm(unsigned int *invp, const unsigned int *pp, unsigned int nn) {
     biffAddf(NRRD, "%s: got NULL pointer or non-positive nn (%d)", me, nn);
     return 1;
   }
-
+  
   /* use the given array "invp" as a temp buffer for validity checking */
-  memset(invp, 0, nn*sizeof(unsigned int));
+  memset(invp, 0, nn*sizeof(int));
   for (ii=0; ii<nn; ii++) {
     if (!( pp[ii] <= nn-1)) {
       biffAddf(NRRD,
@@ -54,11 +53,6 @@ nrrdInvertPerm(unsigned int *invp, const unsigned int *pp, unsigned int nn) {
     }
     invp[pp[ii]]++;
   }
-  /* for some reason when this code was written (revision 2700 Sun Jul
-     3 04:18:33 2005 UTC) it was decided that all problems with the
-     permutation would be reported with a pile of error messages in
-     biff; rather than bailing at the first problem.  Not clear if
-     this is a good idea. */
   problem = AIR_FALSE;
   for (ii=0; ii<nn; ii++) {
     if (1 != invp[ii]) {
@@ -90,7 +84,7 @@ int
 nrrdAxesInsert(Nrrd *nout, const Nrrd *nin, unsigned int axis) {
   static const char me[]="nrrdAxesInsert", func[]="axinsert";
   unsigned int ai;
-
+  
   if (!(nout && nin)) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
@@ -138,11 +132,11 @@ nrrdAxesInsert(Nrrd *nout, const Nrrd *nin, unsigned int axis) {
 ******** nrrdAxesPermute
 **
 ** changes the scanline ordering of the data in a nrrd
-**
+** 
 ** The basic means by which data is moved around is with memcpy().
-** The goal is to call memcpy() as few times as possible, on memory
-** segments as large as possible.  Currently, this is done by
-** detecting how many of the low-index axes are left untouched by
+** The goal is to call memcpy() as few times as possible, on memory 
+** segments as large as possible.  Currently, this is done by 
+** detecting how many of the low-index axes are left untouched by 
 ** the permutation- this constitutes a "scanline" which can be
 ** copied around as a unit.  For permuting the y and z axes of a
 ** matrix-x-y-z order matrix volume, this optimization produced a
@@ -157,7 +151,7 @@ int
 nrrdAxesPermute(Nrrd *nout, const Nrrd *nin, const unsigned int *axes) {
   static const char me[]="nrrdAxesPermute", func[]="permute";
   char buff1[NRRD_DIM_MAX*30], buff2[AIR_STRLEN_SMALL];
-  size_t idxOut, idxInA=0,   /* indices for input and output scanlines */
+  size_t idxOut, idxIn,      /* indices for input and output scanlines */
     lineSize,                /* size of block of memory which can be
                                 moved contiguously from input to output,
                                 thought of as a "scanline" */
@@ -192,7 +186,7 @@ nrrdAxesPermute(Nrrd *nout, const Nrrd *nin, const unsigned int *axes) {
     biffAddf(NRRD, "%s: nrrd reports zero element size!", me);
     airMopError(mop); return 1;
   }
-
+  
   for (ai=0; ai<nin->dim && axes[ai] == ai; ai++)
     ;
   lowPax = ai;
@@ -201,7 +195,7 @@ nrrdAxesPermute(Nrrd *nout, const Nrrd *nin, const unsigned int *axes) {
   if (nout != nin) {
     if (nrrdCopy(nout, nin)) {
       biffAddf(NRRD, "%s: trouble copying input", me);
-      airMopError(mop); return 1;
+      airMopError(mop); return 1;      
     }
     dataIn = (char*)nin->data;
   } else {
@@ -218,7 +212,7 @@ nrrdAxesPermute(Nrrd *nout, const Nrrd *nin, const unsigned int *axes) {
        there's nothing to do other than the copy already done.  Otherwise,
        here we are (actually, lowPax < nin->dim-1) */
     for (ai=0; ai<nin->dim; ai++) {
-      axmap[ai] = AIR_INT(axes[ai]);
+      axmap[ai] = axes[ai];
     }
     nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, szIn);
     if (nrrdAxisInfoCopy(nout, nin, axmap, NRRD_AXIS_INFO_NONE)) {
@@ -236,13 +230,13 @@ nrrdAxesPermute(Nrrd *nout, const Nrrd *nin, const unsigned int *axes) {
     lszIn = szIn + lowPax;
     lszOut = szOut + lowPax;
     ldim = nin->dim - lowPax;
-    memset(laxes, 0, sizeof(laxes));
+    memset(laxes, 0, NRRD_DIM_MAX*sizeof(unsigned int));
     for (ai=0; ai<ldim; ai++) {
       laxes[ai] = axes[ai+lowPax]-lowPax;
     }
-    dataOut = AIR_CAST(char *, nout->data);
-    memset(cIn, 0, sizeof(cIn));
-    memset(cOut, 0, sizeof(cOut));
+    dataOut = (char *)nout->data;
+    memset(cIn, 0, NRRD_DIM_MAX*sizeof(size_t));
+    memset(cOut, 0, NRRD_DIM_MAX*sizeof(size_t));
     for (idxOut=0; idxOut<numLines; idxOut++) {
       /* in our representation of the coordinates of the start of the
          scanlines that we're copying, we are not even storing all the
@@ -251,8 +245,8 @@ nrrdAxesPermute(Nrrd *nout, const Nrrd *nin, const unsigned int *axes) {
       for (ai=0; ai<ldim; ai++) {
         cIn[laxes[ai]] = cOut[ai];
       }
-      NRRD_INDEX_GEN(idxInA, cIn, lszIn, ldim);
-      memcpy(dataOut + idxOut*lineSize, dataIn + idxInA*lineSize, lineSize);
+      NRRD_INDEX_GEN(idxIn, cIn, lszIn, ldim);
+      memcpy(dataOut + idxOut*lineSize, dataIn + idxIn*lineSize, lineSize);
       NRRD_COORD_INCR(cOut, lszOut, ldim, 0);
     }
     /* set content */
@@ -281,7 +275,7 @@ nrrdAxesPermute(Nrrd *nout, const Nrrd *nin, const unsigned int *axes) {
       }
     }
   }
-  airMopOkay(mop);
+  airMopOkay(mop); 
   return 0;
 }
 
@@ -290,7 +284,7 @@ nrrdAxesPermute(Nrrd *nout, const Nrrd *nin, const unsigned int *axes) {
 **
 ** rearranges hyperslices of a nrrd along a given axis according to
 ** given permutation.  This could be used to on a 4D array,
-** representing a 3D volume of vectors, to re-order the vector
+** representing a 3D volume of vectors, to re-order the vector 
 ** components.
 **
 ** the given permutation array must allocated for at least as long as
@@ -323,9 +317,11 @@ nrrdShuffle(Nrrd *nout, const Nrrd *nin, unsigned int axis,
      documented for long axes */
 #define LONGEST_INTERESTING_AXIS 42
   char buff1[LONGEST_INTERESTING_AXIS*30];
-  unsigned int ai, ldim, len;
-  size_t idxInB=0, idxOut, lineSize, numLines, size[NRRD_DIM_MAX], *lsize,
-    cIn[NRRD_DIM_MAX+1], cOut[NRRD_DIM_MAX+1];
+  unsigned int 
+    ai, ldim, len,
+    cIn[NRRD_DIM_MAX+1],
+    cOut[NRRD_DIM_MAX+1];
+  size_t idxIn, idxOut, lineSize, numLines, size[NRRD_DIM_MAX], *lsize;
   char *dataIn, *dataOut;
 
   if (!(nin && nout && perm)) {
@@ -337,16 +333,15 @@ nrrdShuffle(Nrrd *nout, const Nrrd *nin, unsigned int axis,
     return 1;
   }
   if (!( axis < nin->dim )) {
-    biffAddf(NRRD, "%s: axis %d outside valid range [0,%d]",
+    biffAddf(NRRD, "%s: axis %d outside valid range [0,%d]", 
              me, axis, nin->dim-1);
     return 1;
   }
   len = AIR_CAST(unsigned int, nin->axis[axis].size);
   for (ai=0; ai<len; ai++) {
     if (!( perm[ai] < len )) {
-      char stmp[AIR_STRLEN_SMALL];
-      biffAddf(NRRD, "%s: perm[%d] (%s) outside valid range [0,%d]", me, ai,
-               airSprintSize_t(stmp, perm[ai]), len-1);
+      biffAddf(NRRD, "%s: perm[%d] (" _AIR_SIZE_T_CNV
+               ") outside valid range [0,%d]", me, ai, perm[ai], len-1);
       return 1;
     }
   }
@@ -395,16 +390,16 @@ nrrdShuffle(Nrrd *nout, const Nrrd *nin, unsigned int axis,
   lineSize *= nrrdElementSize(nin);
   lsize = size + axis;
   ldim = nin->dim - axis;
-  dataIn = AIR_CAST(char *, nin->data);
-  dataOut = AIR_CAST(char *, nout->data);
-  memset(cIn, 0, sizeof(cIn));
-  memset(cOut, 0, sizeof(cOut));
+  dataIn = (char *)nin->data;
+  dataOut = (char *)nout->data;
+  memset(cIn, 0, (NRRD_DIM_MAX+1)*sizeof(int));
+  memset(cOut, 0, (NRRD_DIM_MAX+1)*sizeof(int));
   for (idxOut=0; idxOut<numLines; idxOut++) {
-    memcpy(cIn, cOut, sizeof(cIn));
-    cIn[0] = perm[cOut[0]];
-    NRRD_INDEX_GEN(idxInB, cIn, lsize, ldim);
+    memcpy(cIn, cOut, ldim*sizeof(int));
+    cIn[0] = AIR_CAST(unsigned int, perm[cOut[0]]);
+    NRRD_INDEX_GEN(idxIn, cIn, lsize, ldim);
     NRRD_INDEX_GEN(idxOut, cOut, lsize, ldim);
-    memcpy(dataOut + idxOut*lineSize, dataIn + idxInB*lineSize, lineSize);
+    memcpy(dataOut + idxOut*lineSize, dataIn + idxIn*lineSize, lineSize);
     NRRD_COORD_INCR(cOut, lsize, ldim, 0);
   }
   /* Set content. The LONGEST_INTERESTING_AXIS hack avoids the
@@ -412,8 +407,7 @@ nrrdShuffle(Nrrd *nout, const Nrrd *nin, unsigned int axis,
   if (len <= LONGEST_INTERESTING_AXIS) {
     strcpy(buff1, "");
     for (ai=0; ai<len; ai++) {
-      char stmp[AIR_STRLEN_SMALL];
-      sprintf(buff2, "%s%s", (ai ? "," : ""), airSprintSize_t(stmp, perm[ai]));
+      sprintf(buff2, "%s" _AIR_SIZE_T_CNV, (ai ? "," : ""), perm[ai]);
       strcat(buff1, buff2);
     }
     if (nrrdContentSet_va(nout, func, nin, "%s", buff1)) {
@@ -439,7 +433,7 @@ nrrdShuffle(Nrrd *nout, const Nrrd *nin, unsigned int axis,
     biffAddf(NRRD, "%s:", me);
     return 1;
   }
-
+  
   return 0;
 #undef LONGEST_INTERESTING_AXIS
 }
@@ -451,7 +445,7 @@ nrrdShuffle(Nrrd *nout, const Nrrd *nin, unsigned int axis,
 ******** nrrdAxesSwap()
 **
 ** for when you just want to switch the order of two axes, without
-** going through the trouble of creating the permutation array
+** going through the trouble of creating the permutation array 
 ** needed to call nrrdAxesPermute()
 */
 int
@@ -464,7 +458,7 @@ nrrdAxesSwap(Nrrd *nout, const Nrrd *nin, unsigned int ax1, unsigned int ax2) {
     return 1;
   }
   if (!( ax1 < nin->dim && ax2 < nin->dim )) {
-    biffAddf(NRRD, "%s: ax1 (%d) or ax2 (%d) out of bounds [0,%d]",
+    biffAddf(NRRD, "%s: ax1 (%d) or ax2 (%d) out of bounds [0,%d]", 
              me, ax1, ax2, nin->dim-1);
     return 1;
   }
@@ -503,7 +497,7 @@ nrrdFlip(Nrrd *nout, const Nrrd *nin, unsigned int axis) {
     airMopError(mop); return 1;
   }
   if (!(  axis < nin->dim )) {
-    biffAddf(NRRD, "%s: given axis (%d) is outside valid range ([0,%d])",
+    biffAddf(NRRD, "%s: given axis (%d) is outside valid range ([0,%d])", 
              me, axis, nin->dim-1);
     airMopError(mop); return 1;
   }
@@ -532,9 +526,9 @@ nrrdFlip(Nrrd *nout, const Nrrd *nin, unsigned int axis) {
      sample order, so that samples maintain location.  In the latter,
      the position information is copied verbatim from the original.  */
   /* (Tue Sep 13 09:59:12 EDT 2005) answer: we keep the "location" of
-     the samples fixed, while changing their ordering.  This is the
+     the samples fixed, while changing their ordering.  This is the 
      low-level thing to do, so for a nrrd function, its the right thing
-     to do.  You don't need a nrrd function to simply manipulate
+     to do.  You don't need a nrrd function to simply manipulate 
      per-axis meta-information */
   nout->axis[axis].min = nin->axis[axis].max;
   nout->axis[axis].max = nin->axis[axis].min;
@@ -547,7 +541,7 @@ nrrdFlip(Nrrd *nout, const Nrrd *nin, unsigned int axis) {
   nout->axis[axis].thickness = nin->axis[axis].thickness;
   /* need to set general orientation info too */
   for (axisIdx=0; axisIdx<NRRD_SPACE_DIM_MAX; axisIdx++) {
-    nout->axis[axis].spaceDirection[axisIdx] =
+    nout->axis[axis].spaceDirection[axisIdx] = 
       -nin->axis[axis].spaceDirection[axisIdx];
   }
   /* modify origin only if we flipped a spatial axis */
@@ -560,17 +554,17 @@ nrrdFlip(Nrrd *nout, const Nrrd *nin, unsigned int axis) {
   } else {
     nrrdSpaceVecCopy(nout->spaceOrigin, nin->spaceOrigin);
   }
-  airMopOkay(mop);
+  airMopOkay(mop); 
   return 0;
 }
 
 /*
 **
 ** NOTE: this seems to destroy all space/orientation info.  What
-** should be done?
+** should be done? 
 */
 int
-nrrdJoin(Nrrd *nout, const Nrrd *const *nin, unsigned int ninNum,
+nrrdJoin(Nrrd *nout, const Nrrd *const *nin, unsigned int numNin,
          unsigned int axis, int incrDim) {
   static const char me[]="nrrdJoin";
   unsigned int ni, ai, mindim, maxdim, outdim,
@@ -581,18 +575,17 @@ nrrdJoin(Nrrd *nout, const Nrrd *const *nin, unsigned int ninNum,
   Nrrd *ntmpperm,    /* axis-permuted version of output */
     **ninperm;
   airArray *mop;
-  char stmp[2][AIR_STRLEN_SMALL];
 
   /* error checking */
   if (!(nout && nin)) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
-  if (!(ninNum >= 1)) {
-    biffAddf(NRRD, "%s: ninNum (%d) must be >= 1", me, ninNum);
+  if (!(numNin >= 1)) {
+    biffAddf(NRRD, "%s: numNin (%d) must be >= 1", me, numNin);
     return 1;
   }
-  for (ni=0; ni<ninNum; ni++) {
+  for (ni=0; ni<numNin; ni++) {
     if (!(nin[ni])) {
       biffAddf(NRRD, "%s: input nrrd #%d NULL", me, ni);
       return 1;
@@ -604,7 +597,7 @@ nrrdJoin(Nrrd *nout, const Nrrd *const *nin, unsigned int ninNum,
   }
 
   mop = airMopNew();
-  ninperm = AIR_CALLOC(ninNum, Nrrd *);
+  ninperm = (Nrrd **)calloc(numNin, sizeof(Nrrd *));
   if (!(ninperm)) {
     biffAddf(NRRD, "%s: couldn't calloc() temp nrrd array", me);
     airMopError(mop); return 1;
@@ -612,7 +605,7 @@ nrrdJoin(Nrrd *nout, const Nrrd *const *nin, unsigned int ninNum,
   airMopAdd(mop, ninperm, airFree, airMopAlways);
 
   maxdim = mindim = nin[0]->dim;
-  for (ni=0; ni<ninNum; ni++) {
+  for (ni=0; ni<numNin; ni++) {
     mindim = AIR_MIN(mindim, nin[ni]->dim);
     maxdim = AIR_MAX(maxdim, nin[ni]->dim);
   }
@@ -657,19 +650,19 @@ nrrdJoin(Nrrd *nout, const Nrrd *const *nin, unsigned int ninNum,
   if (outdim > NRRD_DIM_MAX) {
     biffAddf(NRRD, "%s: output dimension (%d) exceeds NRRD_DIM_MAX (%d)",
              me, outdim, NRRD_DIM_MAX);
-    airMopError(mop); return 1;
+    airMopError(mop); return 1;    
   }
-
+  
   /* do tacit reshaping, and possibly permuting, as needed */
   for (ai=0; ai<outdim; ai++) {
     permute[ai] = (ai < axis
-                   ? ai
+                   ? ai 
                    : (ai < outdim-1
                       ? ai + 1
                       : axis));
     /* fprintf(stderr, "!%s: 1st permute[%d] = %d\n", me, ai, permute[ai]); */
   }
-  for (ni=0; ni<ninNum; ni++) {
+  for (ni=0; ni<numNin; ni++) {
     ninperm[ni] = nrrdNew();
     diffdim = outdim - nin[ni]->dim;
     /* fprintf(stderr, "!%s: ni = %d ---> diffdim = %d\n", me, ni, diffdim); */
@@ -701,9 +694,9 @@ nrrdJoin(Nrrd *nout, const Nrrd *const *nin, unsigned int ninNum,
                        nin[ni]->dim+1, size)) {
         biffAddf(NRRD, "%s: trouble creating interm. version of nrrd %d",
                  me, ni);
-        airMopError(mop); return 1;
+        airMopError(mop); return 1;    
       }
-      nrrdAxisInfoCopy(ninperm[ni], nin[ni], axmap,
+      nrrdAxisInfoCopy(ninperm[ni], nin[ni], axmap, 
                        (NRRD_AXIS_INFO_SIZE_BIT
                         /* HEY: this is being nixed because I can't think
                            of a sane way of keeping it consistent */
@@ -721,7 +714,7 @@ nrrdJoin(Nrrd *nout, const Nrrd *const *nin, unsigned int ninNum,
   /* make sure all parts are compatible in type and shape,
      determine length of final output along axis (outlen) */
   outlen = 0;
-  for (ni=0; ni<ninNum; ni++) {
+  for (ni=0; ni<numNin; ni++) {
     if (ninperm[ni]->type != ninperm[0]->type) {
       biffAddf(NRRD, "%s: type (%s) of part %d unlike first's (%s)",
                me, airEnumStr(nrrdType, ninperm[ni]->type),
@@ -730,25 +723,26 @@ nrrdJoin(Nrrd *nout, const Nrrd *const *nin, unsigned int ninNum,
     }
     if (nrrdTypeBlock == ninperm[0]->type) {
       if (ninperm[ni]->blockSize != ninperm[0]->blockSize) {
-        biffAddf(NRRD, "%s: blockSize (%s) of part %d != first's (%s)", me,
-                 airSprintSize_t(stmp[0], ninperm[ni]->blockSize), ni,
-                 airSprintSize_t(stmp[1], ninperm[0]->blockSize));
+        biffAddf(NRRD, "%s: blockSize (" _AIR_SIZE_T_CNV 
+                 ") of part %d unlike first's (" _AIR_SIZE_T_CNV ")",
+                 me, ninperm[ni]->blockSize, ni, ninperm[0]->blockSize);
         airMopError(mop); return 1;
       }
     }
     if (!nrrdElementSize(ninperm[ni])) {
-      biffAddf(NRRD, "%s: got wacky elements size (%s) for part %d", me,
-               airSprintSize_t(stmp[0], nrrdElementSize(ninperm[ni])), ni);
+      biffAddf(NRRD, "%s: got wacky elements size (" _AIR_SIZE_T_CNV 
+               ") for part %d", me, nrrdElementSize(ninperm[ni]), ni);
       airMopError(mop); return 1;
     }
-
+    
     /* fprintf(stderr, "!%s: part %03d shape: ", me, ni); */
     for (ai=0; ai<outdim-1; ai++) {
       /* fprintf(stderr, "%03u ", (unsigned int)ninperm[ni]->axis[ai].size);*/
       if (ninperm[ni]->axis[ai].size != ninperm[0]->axis[ai].size) {
-        biffAddf(NRRD, "%s: axis %d size (%s) of part %d != first's (%s)", me,
-                 ai, airSprintSize_t(stmp[0], ninperm[ni]->axis[ai].size),
-                 ni, airSprintSize_t(stmp[1], ninperm[0]->axis[ai].size));
+        biffAddf(NRRD, "%s: axis %d size (" _AIR_SIZE_T_CNV 
+                 ") of part %d unlike first's (" _AIR_SIZE_T_CNV ")",
+                 me, ai, ninperm[ni]->axis[ai].size,
+                 ni, ninperm[0]->axis[ai].size);
         airMopError(mop); return 1;
       }
     }
@@ -775,20 +769,20 @@ nrrdJoin(Nrrd *nout, const Nrrd *const *nin, unsigned int ninNum,
     airMopError(mop); return 1;
   }
   airMopAdd(mop, ntmpperm, (airMopper)nrrdNuke, airMopAlways);
-  dataPerm = AIR_CAST(char *, ntmpperm->data);
-  for (ni=0; ni<ninNum; ni++) {
+  dataPerm = (char *)ntmpperm->data;
+  for (ni=0; ni<numNin; ni++) {
     /* here is where the actual joining happens */
     chunksize = nrrdElementNumber(ninperm[ni])*nrrdElementSize(ninperm[ni]);
     memcpy(dataPerm, ninperm[ni]->data, chunksize);
     dataPerm += chunksize;
   }
-
+  
   /* copy other axis-specific fields from nin[0] to ntmpperm */
   for (ai=0; ai<outdim-1; ai++) {
     axmap[ai] = ai;
   }
   axmap[outdim-1] = -1;
-  nrrdAxisInfoCopy(ntmpperm, ninperm[0], axmap,
+  nrrdAxisInfoCopy(ntmpperm, ninperm[0], axmap, 
                    (NRRD_AXIS_INFO_NONE
                     /* HEY: this is being nixed because I can't think
                        of a sane way of keeping it consistent */
@@ -805,7 +799,7 @@ nrrdJoin(Nrrd *nout, const Nrrd *const *nin, unsigned int ninNum,
 
   /* HEY: set content on output! */
 
-  airMopOkay(mop);
+  airMopOkay(mop); 
   return 0;
 }
 
@@ -819,7 +813,7 @@ nrrdAxesSplit(Nrrd *nout, const Nrrd *nin,
               unsigned int saxi, size_t sizeFast, size_t sizeSlow) {
   static const char me[]="nrrdAxesSplit", func[]="axsplit";
   unsigned int ai;
-
+  
   if (!(nout && nin)) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
@@ -835,13 +829,11 @@ nrrdAxesSplit(Nrrd *nout, const Nrrd *nin,
     return 1;
   }
   if (!(sizeFast*sizeSlow == nin->axis[saxi].size)) {
-    char stmp[4][AIR_STRLEN_SMALL];
-    biffAddf(NRRD, "%s: # samples along axis %d (%s) != "
-             "product of fast and slow sizes (%s * %s = %s)", me, saxi,
-             airSprintSize_t(stmp[0], nin->axis[saxi].size),
-             airSprintSize_t(stmp[1], sizeFast),
-             airSprintSize_t(stmp[2], sizeSlow),
-             airSprintSize_t(stmp[3], sizeFast*sizeSlow));
+    biffAddf(NRRD, "%s: # samples along axis %d (" _AIR_SIZE_T_CNV
+             ") != product of fast and slow sizes (" _AIR_SIZE_T_CNV 
+             " * " _AIR_SIZE_T_CNV " = " _AIR_SIZE_T_CNV ")",
+             me, saxi, nin->axis[saxi].size,
+             sizeFast, sizeSlow, sizeFast*sizeSlow);
     return 1;
   }
   if (nout != nin) {
@@ -882,7 +874,7 @@ int
 nrrdAxesDelete(Nrrd *nout, const Nrrd *nin, unsigned int daxi) {
   static const char me[]="nrrdAxesDelete", func[]="axdelete";
   unsigned int ai;
-
+  
   if (!(nout && nin)) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
@@ -897,9 +889,8 @@ nrrdAxesDelete(Nrrd *nout, const Nrrd *nin, unsigned int daxi) {
     return 1;
   }
   if (1 != nin->axis[daxi].size) {
-    char stmp[AIR_STRLEN_SMALL];
-    biffAddf(NRRD, "%s: size along axis %d is %s, not 1",  me, daxi,
-             airSprintSize_t(stmp, nin->axis[daxi].size));
+    biffAddf(NRRD, "%s: size along axis %d is " _AIR_SIZE_T_CNV ", not 1",
+             me, daxi, nin->axis[daxi].size);
     return 1;
   }
   if (nout != nin) {
@@ -928,14 +919,14 @@ nrrdAxesDelete(Nrrd *nout, const Nrrd *nin, unsigned int daxi) {
 ******** nrrdAxesMerge
 **
 ** like reshape, but preserves axis information on old axes
-** merges axis ax and ax+1 into one
+** merges axis ax and ax+1 into one 
 */
 int
 nrrdAxesMerge(Nrrd *nout, const Nrrd *nin, unsigned int maxi) {
   static const char me[]="nrrdAxesMerge", func[]="axmerge";
   unsigned int ai;
   size_t sizeFast, sizeSlow;
-
+  
   if (!(nout && nin)) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
@@ -976,6 +967,7 @@ nrrdAxesMerge(Nrrd *nout, const Nrrd *nin, unsigned int maxi) {
   return 0;
 }
 
+
 /*
 ******** nrrdReshape_nva()
 **
@@ -987,8 +979,7 @@ nrrdReshape_nva(Nrrd *nout, const Nrrd *nin,
   char buff1[NRRD_DIM_MAX*30], buff2[AIR_STRLEN_SMALL];
   size_t numOut;
   unsigned int ai;
-  char stmp[2][AIR_STRLEN_SMALL];
-
+  
   if (!(nout && nin && size)) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
@@ -1007,9 +998,9 @@ nrrdReshape_nva(Nrrd *nout, const Nrrd *nin,
     numOut *= size[ai];
   }
   if (numOut != nrrdElementNumber(nin)) {
-    biffAddf(NRRD, "%s: new sizes product (%s) != # elements (%s)", me,
-             airSprintSize_t(stmp[0], numOut),
-             airSprintSize_t(stmp[1], nrrdElementNumber(nin)));
+    biffAddf(NRRD, "%s: new sizes product (" _AIR_SIZE_T_CNV ") "
+             "!= # elements (" _AIR_SIZE_T_CNV ")",
+             me, numOut, nrrdElementNumber(nin));
     return 1;
   }
 
@@ -1031,11 +1022,10 @@ nrrdReshape_nva(Nrrd *nout, const Nrrd *nin,
 
   strcpy(buff1, "");
   for (ai=0; ai<dim; ai++) {
-    sprintf(buff2, "%s%s", (ai ? "x" : ""),
-            airSprintSize_t(stmp[0], size[ai]));
+    sprintf(buff2, "%s" _AIR_SIZE_T_CNV, (ai ? "x" : ""), size[ai]);
     strcat(buff1, buff2);
   }
-  /* basic info copied by _nrrdCopy, but probably more than we
+  /* basic info copied by _nrrdCopy, but probably more than we 
      want- perhaps space dimension and origin should be nixed? */
   if (nrrdContentSet_va(nout, func, nin, "%s", buff1)) {
     biffAddf(NRRD, "%s:", me);
@@ -1075,7 +1065,7 @@ nrrdReshape_va(Nrrd *nout, const Nrrd *nin, unsigned int dim, ...) {
     biffAddf(NRRD, "%s:", me);
     return 1;
   }
-
+  
   return 0;
 }
 
@@ -1110,7 +1100,7 @@ nrrdBlock(Nrrd *nout, const Nrrd *nin) {
     biffAddf(NRRD, "%s: nrrd reports zero element size!", me);
     return 1;
   }
-
+  
   numEl = nin->axis[0].size;;
   nout->blockSize = numEl*nrrdElementSize(nin);
   /*
@@ -1155,7 +1145,7 @@ nrrdBlock(Nrrd *nout, const Nrrd *nin) {
 /*
 ******** nrrdUnblock()
 **
-** takes a nrrdTypeBlock nrrd and breaks the blocks into elements of
+** takes a nrrdTypeBlock nrrd and breaks the blocks into elements of 
 ** type "type", and shifts other axis information up by one axis
 */
 int
@@ -1164,7 +1154,6 @@ nrrdUnblock(Nrrd *nout, const Nrrd *nin, int type) {
   unsigned int dim;
   size_t size[NRRD_DIM_MAX], outElSz;
   int map[NRRD_DIM_MAX];
-  char stmp[2][AIR_STRLEN_SMALL];
 
   if (!(nout && nin)) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
@@ -1198,14 +1187,13 @@ nrrdUnblock(Nrrd *nout, const Nrrd *nin, int type) {
     biffAddf(NRRD, "%s: nin or nout reports zero element size!", me);
     return 1;
   }
-
+  
   nout->type = type;
   outElSz = nrrdElementSize(nout);
   if (nin->blockSize % outElSz) {
-    biffAddf(NRRD, "%s: input blockSize (%s) not multiple of output "
-             "element size (%s)", me,
-             airSprintSize_t(stmp[0], nin->blockSize),
-             airSprintSize_t(stmp[1], outElSz));
+    biffAddf(NRRD, "%s: input blockSize (" _AIR_SIZE_T_CNV 
+             ") not multiple of output element size (" _AIR_SIZE_T_CNV  ")",
+             me, nin->blockSize, outElSz);
     return 1;
   }
   for (dim=0; dim<=nin->dim; dim++) {
@@ -1266,7 +1254,7 @@ nrrdTile2D(Nrrd *nout, const Nrrd *nin, unsigned int ax0, unsigned int ax1,
   int E,                     /* error flag */
     insAxis[2*NRRD_DIM_MAX], /* array for inserting the two axes resulting
                                 from the initial split amongst the other
-                                axes: inserted axes go in odd slots,
+                                axes: inserted axes go in odd slots, 
                                 other axes go in even slots */
     mapIdx,                  /* index for filling map[] */
     merge[2],                /* two axes to be merged post-permute */
@@ -1278,10 +1266,10 @@ nrrdTile2D(Nrrd *nout, const Nrrd *nin, unsigned int ax0, unsigned int ax1,
     biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
-
+  
   /* at least for now, axSplit, ax0, and ax1 need to be distinct */
-  if (!( axSplit != ax0
-         && axSplit != ax1
+  if (!( axSplit != ax0 
+         && axSplit != ax1 
          && ax0 != ax1 )) {
     biffAddf(NRRD, "%s: axSplit, ax0, ax1 (%d,%d,%d) must be distinct",
              me, axSplit, ax0, ax1);
@@ -1294,7 +1282,7 @@ nrrdTile2D(Nrrd *nout, const Nrrd *nin, unsigned int ax0, unsigned int ax1,
              me, axSplit, ax0, ax1, nin->dim-1);
     return 1;
   }
-
+  
   if (nout != nin) {
     if (_nrrdCopy(nout, nin, (NRRD_BASIC_INFO_COMMENTS_BIT
                               | (nrrdStateKeyValuePairsPropagate
@@ -1342,7 +1330,7 @@ nrrdTile2D(Nrrd *nout, const Nrrd *nin, unsigned int ax0, unsigned int ax1,
   E = AIR_FALSE;
   if (!E) E |= nrrdAxesSplit(nout, nout, axSplit, sizeFast, sizeSlow);
   if (!E) E |= nrrdAxesPermute(nout, nout, map);
-  if (!E) E |= nrrdAxesMerge(nout, nout, merge[1]);
+  if (!E) E |= nrrdAxesMerge(nout, nout, merge[1]);    
   if (!E) E |= nrrdAxesMerge(nout, nout, merge[0]);
   if (E) {
     biffAddf(NRRD, "%s: trouble", me);
@@ -1385,8 +1373,7 @@ int nrrdUntile2D(Nrrd *nout, const Nrrd *nin,
   static const char me[]="nrrdUntile2D";
   int E;
   unsigned int ii, mapIdx, map[NRRD_DIM_MAX];
-  char stmp[2][AIR_STRLEN_SMALL];
-
+  
   if (!(nout && nin)) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
@@ -1407,15 +1394,15 @@ int nrrdUntile2D(Nrrd *nout, const Nrrd *nin,
     return 1;
   }
   if (nin->axis[ax0].size != sizeFast*(nin->axis[ax0].size/sizeFast)) {
-    biffAddf(NRRD, "%s: sizeFast (%s) doesn't divide into axis %d size (%s)",
-             me, airSprintSize_t(stmp[0], sizeFast),
-             ax0, airSprintSize_t(stmp[1], nin->axis[ax0].size));
+    biffAddf(NRRD, "%s: sizeFast (" _AIR_SIZE_T_CNV ") doesn't divide into "
+             "axis %d size (" _AIR_SIZE_T_CNV ")",
+             me, sizeFast, ax0, nin->axis[ax0].size);
     return 1;
   }
   if (nin->axis[ax1].size != sizeSlow*(nin->axis[ax1].size/sizeSlow)) {
-    biffAddf(NRRD, "%s: sizeSlow (%s) doesn't divide into axis %d size (%s)",
-             me, airSprintSize_t(stmp[0], sizeSlow),
-             ax1, airSprintSize_t(stmp[1], nin->axis[ax1].size));
+    biffAddf(NRRD, "%s: sizeSlow (" _AIR_SIZE_T_CNV ") doesn't divide into "
+             "axis %d size (" _AIR_SIZE_T_CNV ")",
+             me, sizeSlow, ax1, nin->axis[ax1].size);
     return 1;
   }
 
@@ -1434,7 +1421,7 @@ int nrrdUntile2D(Nrrd *nout, const Nrrd *nin,
   if (ax0 < ax1) {
     if (!E) E |= nrrdAxesSplit(nout, nout, ax1,
                                nin->axis[ax1].size/sizeSlow, sizeSlow);
-    if (!E) E |= nrrdAxesSplit(nout, nout, ax0,
+    if (!E) E |= nrrdAxesSplit(nout, nout, ax0, 
                                nin->axis[ax0].size/sizeFast, sizeFast);
     /* Increment the larger value as it will get shifted by the lower
        split. */
@@ -1442,7 +1429,7 @@ int nrrdUntile2D(Nrrd *nout, const Nrrd *nin,
   } else {
     if (!E) E |= nrrdAxesSplit(nout, nout, ax0,
                                nin->axis[ax0].size/sizeFast, sizeFast);
-    if (!E) E |= nrrdAxesSplit(nout, nout, ax1,
+    if (!E) E |= nrrdAxesSplit(nout, nout, ax1, 
                                nin->axis[ax1].size/sizeSlow, sizeSlow);
     ax0++;
   }
@@ -1450,7 +1437,7 @@ int nrrdUntile2D(Nrrd *nout, const Nrrd *nin,
     biffAddf(NRRD, "%s: trouble with initial splitting", me);
     return 1;
   }
-
+  
   /* Determine the axis permutation map */
   mapIdx = 0;
   for (ii=0; ii<nout->dim; ii++) {
@@ -1477,12 +1464,12 @@ int nrrdUntile2D(Nrrd *nout, const Nrrd *nin,
 
   E = AIR_FALSE;
   if (!E) E |= nrrdAxesPermute(nout, nout, map);
-  if (!E) E |= nrrdAxesMerge(nout, nout, axMerge);
+  if (!E) E |= nrrdAxesMerge(nout, nout, axMerge);    
   if (E) {
     biffAddf(NRRD, "%s: trouble", me);
     return 1;
   }
-
+  
   if (nrrdBasicInfoCopy(nout, nin,
                         NRRD_BASIC_INFO_DATA_BIT
                         | NRRD_BASIC_INFO_TYPE_BIT

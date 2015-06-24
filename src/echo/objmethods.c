@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -128,9 +127,8 @@ NEW_TMPL(Split,
          )
 
 NEW_TMPL(List,
-         echoPtrPtrUnion eppu;
          obj->obj = NULL;
-         obj->objArr = airArrayNew((eppu.obj = &(obj->obj),eppu.v), NULL,
+         obj->objArr = airArrayNew((void**)&(obj->obj), NULL,
                                    sizeof(echoObject *),
                                    ECHO_LIST_OBJECT_INCR);
          )

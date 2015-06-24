@@ -69,17 +69,17 @@ SET(TEN_SOURCES
   experSpec.c
   tenModel.c
   modelZero.c
-  modelB0.c
   modelBall.c
   model1Stick.c
-  model1Vector2D.c
-  model1Unit2D.c
-  model2Unit2D.c
   modelBall1StickEMD.c
   modelBall1Stick.c
   modelBall1Cylinder.c
   model1Cylinder.c
   model1Tensor2.c
+  lm.c
+  Axb.c
+  lmbc.c
+  misc.c
   )
 
 ADD_TEEM_LIBRARY(ten ${TEN_SOURCES})

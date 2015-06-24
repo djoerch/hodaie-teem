@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -36,13 +35,48 @@ tendCmdList[] = {
   NULL
 };
 
-const char *tendTitle = "tend: Diffusion Image Processing and Analysis";
+/*
+******** tendUsage
+**
+** prints out a little banner, and a listing of all available commands
+** with their one-line descriptions
+*/
+void
+tendUsage(char *me, hestParm *hparm) {
+  int i, maxlen, len, c;
+  char buff[AIR_STRLEN_LARGE], fmt[AIR_STRLEN_LARGE];
+
+  maxlen = 0;
+  for (i=0; tendCmdList[i]; i++) {
+    maxlen = AIR_MAX(maxlen, (int)strlen(tendCmdList[i]->name));
+  }
+
+  sprintf(buff, "--- Diffusion Image Processing and Analysis ---");
+  sprintf(fmt, "%%%ds\n",
+          (int)((hparm->columns-strlen(buff))/2 + strlen(buff) - 1));
+  fprintf(stdout, fmt, buff);
+  
+  for (i=0; tendCmdList[i]; i++) {
+    len = strlen(tendCmdList[i]->name);
+    strcpy(buff, "");
+    for (c=len; c<maxlen; c++)
+      strcat(buff, " ");
+    strcat(buff, me);
+    strcat(buff, " ");
+    strcat(buff, tendCmdList[i]->name);
+    strcat(buff, " ... ");
+    len = strlen(buff);
+    fprintf(stdout, "%s", buff);
+    _hestPrintStr(stdout, len, len, hparm->columns,
+                  tendCmdList[i]->info, AIR_FALSE);
+  }
+}
 
 /*
 ******** tendFiberStopParse
-**
+** 
 ** for parsing the different ways in which a fiber should be stopped
-** For the sake of laziness and uniformity, the stop information is
+** For the sake of laziness and uniformity, the stop information is 
 ** stored in an array of 3 (three) doubles:
 ** info[0]: int value from tenFiberStop* enum
 ** info[1]: 1st parameter associated with stop method (always used)
@@ -69,7 +103,7 @@ tendFiberStopParse(void *ptr, char *_str, char err[AIR_STRLEN_HUGE]) {
     /* couldn't parse string as nrrdEncoding, but there wasn't a colon */
     sprintf(err, "%s: didn't see a colon in \"%s\"", me, str);
     airMopError(mop); return 1;
-  }
+  } 
   *opt = '\0';
   opt++;
   info[0] = AIR_CAST(int, airEnumVal(tenFiberStop, str));
@@ -117,7 +151,7 @@ tendFiberStopParse(void *ptr, char *_str, char err[AIR_STRLEN_HUGE]) {
       airMopError(mop); return 1;
     }
     /*
-    fprintf(stderr, "!%s: parse %s:%g\n", me,
+    fprintf(stderr, "!%s: parse %s:%g\n", me, 
             airEnumStr(tenFiberStop, AIR_CAST(int, info[0])),
             info[1]);
     */

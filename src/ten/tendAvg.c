@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,14 +24,13 @@
 #include "privateTen.h"
 
 #define INFO "Average across tensor volumes"
-static const char *_tend_avgInfoL =
+char *_tend_avgInfoL =
   (INFO
    ".  The output is the same size as the any one of the inputs. "
    "The individual tensors may be averaged in various ways.");
 
 int
-tend_avgMain(int argc, const char **argv, const char *me,
-             hestParm *hparm) {
+tend_avgMain(int argc, char **argv, char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;
@@ -60,7 +58,7 @@ tend_avgMain(int argc, const char **argv, const char *me,
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  if (tenInterpMulti3D(nout, AIR_CAST(const Nrrd*const*, nin), NULL,
+  if (tenInterpMulti3D(nout, AIR_CAST(const Nrrd**, nin), NULL,
                        ninLen, itype, NULL)) {
     airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);

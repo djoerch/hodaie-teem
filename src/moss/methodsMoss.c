@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -24,9 +23,6 @@
 #include "moss.h"
 #include "privateMoss.h"
 
-const int
-mossPresent = 42;
-
 /*
 ******** mossSamplerNew()
 **
@@ -35,7 +31,7 @@ mossSampler *
 mossSamplerNew (void) {
   mossSampler *smplr;
   int i;
-
+  
   smplr = (mossSampler *)calloc(1, sizeof(mossSampler));
   if (smplr) {
     smplr->image = NULL;
@@ -67,7 +63,7 @@ mossSamplerFill (mossSampler *smplr, int fdiam, int ncol) {
   smplr->yFslw = (double*)calloc(fdiam, sizeof(double));
   smplr->xIdx = (int*)calloc(fdiam, sizeof(int));
   smplr->yIdx = (int*)calloc(fdiam, sizeof(int));
-  if (!( smplr->ivc && smplr->xFslw && smplr->yFslw
+  if (!( smplr->ivc && smplr->xFslw && smplr->yFslw 
          && smplr->xIdx && smplr->yIdx )) {
     biffAddf(MOSS, "%s: couldn't allocate buffers", me);
     return 1;
@@ -117,7 +113,7 @@ mossImageCheck (Nrrd *image) {
              image->dim, airEnumStr(nrrdType, image->type));
     return 1;
   }
-
+  
   return 0;
 }
 
@@ -145,14 +141,14 @@ mossImageAlloc (Nrrd *image, int type, int sx, int sy, int ncol) {
     biffMovef(MOSS, NRRD, "%s: couldn't allocate image", me);
     return 1;
   }
-
-
+  
+  
   return 0;
 }
 
 int
 _mossCenter(int center) {
-
+  
   center =  (nrrdCenterUnknown == center
              ? mossDefCenter
              : center);

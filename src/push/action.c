@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -54,7 +53,7 @@ _pushProbe(pushTask *task, pushPoint *point) {
              task->gctx->errNum, task->gctx->errStr);
     return 1;
   }
-
+    
   TEN_T_COPY(point->ten, task->tenAns);
   TEN_T_COPY(point->inv, task->invAns);
   ELL_3V_COPY(point->cnt, task->cntAns);
@@ -77,6 +76,7 @@ pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut,
   float *posOut, *tenOut, *enrOut;
   pushBin *bin;
   pushPoint *point;
+  double sclmin, sclmax, sclmean;
 
   pointNum = _pushPointTotal(pctx);
   E = AIR_FALSE;
@@ -86,12 +86,12 @@ pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut,
                            AIR_CAST(size_t, pointNum));
   }
   if (nTenOut) {
-    E |= nrrdMaybeAlloc_va(nTenOut, nrrdTypeFloat, 2,
+    E |= nrrdMaybeAlloc_va(nTenOut, nrrdTypeFloat, 2, 
                            AIR_CAST(size_t, 7),
                            AIR_CAST(size_t, pointNum));
   }
   if (nEnrOut) {
-    E |= nrrdMaybeAlloc_va(nEnrOut, nrrdTypeFloat, 1,
+    E |= nrrdMaybeAlloc_va(nEnrOut, nrrdTypeFloat, 1, 
                            AIR_CAST(size_t, pointNum));
   }
   if (E) {
@@ -103,19 +103,21 @@ pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut,
   enrOut = nEnrOut ? (float*)(nEnrOut->data) : NULL;
 
   pointRun = 0;
+  sclmean = 0;
+  sclmin = sclmax = AIR_NAN;
   for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
     bin = pctx->bin + binIdx;
     for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
       point = bin->point[pointIdx];
       if (posOut) {
-        ELL_3V_SET_TT(posOut + 3*pointRun, float,
-                      point->pos[0], point->pos[1], point->pos[2]);
+        ELL_3V_SET(posOut + 3*pointRun,
+                   point->pos[0], point->pos[1], point->pos[2]);
       }
       if (tenOut) {
-        TEN_T_COPY_TT(tenOut + 7*pointRun, float, point->ten);
+        TEN_T_COPY(tenOut + 7*pointRun, point->ten);
       }
       if (enrOut) {
-        enrOut[pointRun] = AIR_CAST(float, point->enr);
+        enrOut[pointRun] = point->enr;
       }
       pointRun++;
     }
@@ -153,7 +155,7 @@ _pushPairwiseEnergy(pushTask *task,
   }
   TEN_TV_MUL(XX, inv, YY);
   ELL_3V_NORM(nXX, XX, rr);
-
+  
   ensp->energy->eval(enrP, &mag, rr*iscl, ensp->parm);
   if (mag) {
     mag *= iscl;
@@ -227,7 +229,7 @@ pushBinProcess(pushTask *task, unsigned int myBinIdx) {
           if (!ELL_3V_EXISTS(myPoint->frc)) {
             biffAddf(PUSH, "%s: bad myPoint->frc (%g,%g,%g) @ bin %p end", me,
                      myPoint->frc[0], myPoint->frc[1], myPoint->frc[2],
-                     AIR_VOIDP(herBin));
+                     herBin);
             return 1;
           }
         }
@@ -261,14 +263,14 @@ pushBinProcess(pushTask *task, unsigned int myBinIdx) {
     ELL_3V_SCALE(frc, task->pctx->cntScl, myPoint->cnt);
     ELL_3V_INCR(myPoint->frc, frc);
     myPoint->enr += task->pctx->cntScl*(1 - myPoint->ten[0]);
-
+    
     /* each point also maybe experiences gravity */
     if (tenGageUnknown != task->pctx->gravItem) {
       ELL_3V_SCALE(frc, -task->pctx->gravScl, myPoint->gravGrad);
-      myPoint->enr +=
+      myPoint->enr += 
         task->pctx->gravScl*(myPoint->grav - task->pctx->gravZero);
       ELL_3V_INCR(myPoint->frc, frc);
-    }
+    }      
     if (!ELL_3V_EXISTS(myPoint->frc)) {
       biffAddf(PUSH, "%s: post-grav myPoint->frc (%g,%g,%g) doesn't exist", me,
                myPoint->frc[0], myPoint->frc[1], myPoint->frc[2]);
@@ -280,7 +282,7 @@ pushBinProcess(pushTask *task, unsigned int myBinIdx) {
       /* there's an effort here to get the forces and energies, which
          are actually computed in index space, to be correctly scaled
          into world space, but no promises that its right ... */
-      double enrIdx[4]={0,0,0,0}, enrWorld[4];
+      double enrIdx[4], enrWorld[4];
       unsigned int ci;
       double posWorld[4], posIdx[4], len, frcIdx[4], frcWorld[4];
       ELL_3V_COPY(posWorld, myPoint->pos); posWorld[3] = 1.0;
@@ -288,7 +290,7 @@ pushBinProcess(pushTask *task, unsigned int myBinIdx) {
       ELL_4V_HOMOG(posIdx, posIdx);
       for (ci=0; ci<3; ci++) {
         if (1 == task->pctx->gctx->shape->size[ci]) {
-          frcIdx[ci] = 0;
+          frcIdx[ci] = 0;          
         } else {
           len = posIdx[ci] - -0.5;
           if (len < 0) {
@@ -328,10 +330,6 @@ pushBinProcess(pushTask *task, unsigned int myBinIdx) {
 
     ELL_3V_SCALE(delta, task->pctx->step, myPoint->frc);
     ELL_3V_NORM(deltaNorm, delta, deltaLen);
-    if (0 == deltaLen) {
-      /* an unforced point, but this isn't an error */
-      return 0;
-    }
     if (!(AIR_EXISTS(deltaLen) && ELL_3V_EXISTS(deltaNorm))) {
       biffAddf(PUSH, "%s: deltaLen %g or deltaNorm (%g,%g,%g) doesn't exist",
                me, deltaLen, deltaNorm[0], deltaNorm[1], deltaNorm[2]);
@@ -366,7 +364,7 @@ pushBinProcess(pushTask *task, unsigned int myBinIdx) {
       if (!ELL_3V_EXISTS(myPoint->pos)) {
         biffAddf(PUSH, "%s: myPoint->pos (%g,%g,%g) -> (%g,%g,%g) "
                  "doesn't exist", me,
-                 posOrig[0], posOrig[1], posOrig[2],
+                 posOrig[0], posOrig[1], posOrig[2], 
                  myPoint->pos[0], myPoint->pos[1], myPoint->pos[2]);
         return 1;
       }
@@ -378,10 +376,10 @@ pushBinProcess(pushTask *task, unsigned int myBinIdx) {
         return 1;
       }
     }
-
+    
     /* the point lived, count it */
     task->pointNum += 1;
   } /* for myPointIdx */
-
+  
   return 0;
 }

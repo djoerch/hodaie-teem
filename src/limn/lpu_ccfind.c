@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,13 +24,12 @@
 #include "privateLimn.h"
 
 #define INFO "Find connected components (CCs)"
-static const char *myinfo =
+static char *myinfo =
 (INFO
  ", and then sorts primitive according to area.");
 
 int
-limnpu_ccfindMain(int argc, const char **argv, const char *me,
-                  hestParm *hparm) {
+limnpu_ccfindMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *hopt = NULL;
   char *err, *perr;
   airArray *mop;
@@ -46,7 +44,7 @@ limnpu_ccfindMain(int argc, const char **argv, const char *me,
              NULL, NULL, limnHestPolyDataLMPD);
   hestOptAdd(&hopt, NULL, "output", airTypeString, 1, 1, &out, NULL,
              "output polydata filename");
-
+  
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
 
@@ -66,7 +64,7 @@ limnpu_ccfindMain(int argc, const char **argv, const char *me,
     airMopError(mop);
     return 1;
   }
-
+  
   airMopOkay(mop);
   return 0;
 }

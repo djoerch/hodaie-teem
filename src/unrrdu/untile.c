@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,7 +24,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Undo \"unu tile\": merge slow parts of two axis splits"
-static const char *_unrrdu_untileInfoL =
+char *_unrrdu_untileInfoL =
 (INFO
  ". Untiling an array means spliting two axes, permuting the slow parts "
  "of those axes to be adjecent in the axis ordering, and then merging "
@@ -34,12 +33,10 @@ static const char *_unrrdu_untileInfoL =
  "as demonstrated here for a 3-D array:\n "
  "\"unu untile -a 2 0 1\" undoes \"unu tile -a 2 0 1\"\n "
  "\"unu untile -a 1 0 1\" undoes \"unu tile -a 1 0 2\"\n "
- "\"unu untile -a 0 0 1\" undoes \"unu tile -a 0 1 2\".\n "
- "* Uses nrrdUntile2D");
+ "\"unu untile -a 0 0 1\" undoes \"unu tile -a 0 1 2\". ");
 
 int
-unrrdu_untileMain(int argc, const char **argv, const char *me,
-                  hestParm *hparm) {
+unrrdu_untileMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -67,7 +64,7 @@ unrrdu_untileMain(int argc, const char **argv, const char *me,
 
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-
+  
   if (nrrdUntile2D(nout, nin, axes[1], axes[2], axes[0], size[0], size[1])) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error tiling nrrd:\n%s", me, err);

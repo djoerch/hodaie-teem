@@ -1,38 +1,21 @@
 
-GLK's list of things to do for each release.  This started with an
-early version of Teem and has been only partially maintained since
-then; consider it a work-in-progress ...
+Things for Gordon to do with each teem release:
 
--5) use names.pl to make sure all sourcefile names are unique
-
--4) Make sure the CMake and GNUMake agree on source files per-library
-
--3.5) make sure that teem/src/meet/enumall.c:meetAirEnumAll()
- is up-to-date
-
--3) make sure that all the files have the right copyright
-pre-ambles
+-3) make sure that all the files have the right pre-ambles
 
 -2.5) make sure that there are no DOS files
-find . -name \*.c -exec undos -n {}  \;
-find . -name \*.h -exec undos -n {}  \;
-find . -name \*.txt -exec undos -n {} \;
 
 -2) make sure there are no tabs:
 cat > tab.txt
 (tab) (return)
 ^D
 
-find . -name \*.c -exec grep -f tab.txt {} /dev/null \; | more
-find . -name \*.h -exec grep -f tab.txt {} /dev/null \; | more
-find . -name \*.txt -exec grep -f tab.txt {} /dev/null \; | more
+find . -name \*.c -exec grep -f tab.txt {} \; -print
+find . -name \*.h -exec grep -f tab.txt {} \; -print
+find . -name \*.txt -exec grep -f tab.txt {} \; -print
 rm -f tab.txt
 
 -1) finalize TEEM_VERSION* in air/air.h and airTeemReleaseDate in air/misc.c
-
--0.5) regenerate teem/python/ctypes/teem.py
-
--0.25) regenerate NrrdIO
 
 0) Bring documentation up-to-date with source tree
 make sure all the unrrdu pages agree with unu usage info
@@ -47,8 +30,52 @@ sftp kindlmann,teem@web.sourceforge.net
 is one way of putting files onto the web server
 
 1) Check namespace safety
-  a) Make sure all library symbols are properly prefixed:
-  run make/release-nm-check.csh and make/release-def-check.csh
+  a) Make sure all library symbols are properly prefixed.  On linux,
+  this should return nothing (actually this shows lots of Bzip2 stuff, why?):
+  cd teem/linux.32/lib
+  nm libteem.so \
+  | grep -v "gcc2_compiled." | grep -v " U " | grep -v " A " \
+  | grep -v " t Letext" \
+  | grep -v " air" | grep -v " _air" \
+  | grep -v " hest" | grep -v " _hest" \
+  | grep -v " biff" | grep -v " _biff" \
+  | grep -v " ell" | grep -v " _ell" \
+  | grep -v " nrrd" | grep -v " _nrrd" \
+  | grep -v " unrrdu" | grep -v " _unrrdu" \
+  | grep -v " dye" | grep -v " _dye" \
+  | grep -v " moss" | grep -v " _moss" \
+  | grep -v " gage" | grep -v " _gage" \
+  | grep -v " bane" | grep -v " _bane" \
+  | grep -v " limn" | grep -v " _limn" \
+  | grep -v " hoover" | grep -v " _hoover" \
+  | grep -v " mite" | grep -v " _mite" \
+  | grep -v " alan" | grep -v " _alan" \
+  | grep -v " coil" | grep -v " _coil" \
+  | grep -v " ten" | grep -v " _ten" \
+  | grep -v " echo" | grep -v " _echo" \
+  | grep -v " push" | grep -v " _push"
+  b) Make sure #defines in header files are properly prefixed:
+  cd ../../include
+  grep #define teem/*.h | grep -v _export \
+  | grep -v " echo" | grep -v " ell" | grep -v " gage" \
+  | grep -v " AIR" | grep -v " _AIR" \
+  | grep -v " HEST" | grep -v " _HEST" \
+  | grep -v " BIFF" | grep -v " _BIFF" \
+  | grep -v " ELL" | grep -v " _ELL" \
+  | grep -v " NRRD" | grep -v " _NRRD" \
+  | grep -v " UNRRDU" | grep -v " _UNRRDU" \
+  | grep -v " DYE" | grep -v " _DYE" \
+  | grep -v " MOSS" | grep -v " _MOSS" \
+  | grep -v " GAGE" | grep -v " _GAGE" \
+  | grep -v " BANE" | grep -v " _BANE" \
+  | grep -v " LIMN" | grep -v " _LIMN" \
+  | grep -v " HOOVER" | grep -v " _HOOVER" \
+  | grep -v " MITE" | grep -v " _MITE" | grep -v "mite_" \
+  | grep -v " ALAN" | grep -v " _ALAN" \
+  | grep -v " COIL" | grep -v " _COIL" \
+  | grep -v " ECHO" | grep -v " _ECHO" \
+  | grep -v " TEN" | grep -v " _TEN" \
+  | grep -v " PUSH" | grep -v " _PUSH"
 
 2) Make sure it works
   "make teem/dev teem/install" on every supported architecture,
@@ -68,7 +95,6 @@ cd ..; mv teem teem-${VERSION}-src
 tar czvf teem-${VERSION}-src.tar.gz teem-${VERSION}-src
 mv teem-${VERSION}-src.tar.gz ~/rel
 
-(HEY update this to use svn, not cvs!)
 cvs -d:ext:kindlmann@teem.cvs.sf.net:/cvsroot/teem co NrrdIO
 cd NrrdIO
 find . -name CVS  -exec rm -rf {} \;

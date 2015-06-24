@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -65,18 +64,9 @@ gageDefStackNormalizeDeriv = AIR_FALSE;
 double
 gageDefStackNormalizeDerivBias = 0.0;
 
-double
-gageDefStackBlurSigmaMax = 8.0;
-
 int
 gageDefOrientationFromSpacing = AIR_FALSE;
 /* Before teem 1.10.0, gage behaved inconsistently: Derivatives were
    taken as if orientationFromSpacing were TRUE, the index space to
    world space mapping acted as if it were FALSE. Now, you have the
    choice and get consistent results in either case. */
-
-int
-gageDefGenerateErrStr = AIR_TRUE;
-/* Before Teem 1.11, error strings were always sprintf, which can easily
-   become a bottleneck in some situations, but this should still stay
-   the default behavior */

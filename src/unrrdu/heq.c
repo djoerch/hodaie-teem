@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,19 +24,17 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Perform histogram equalization"
-static const char *_unrrdu_heqInfoL =
+char *_unrrdu_heqInfoL =
 (INFO
  ". If this seems to be doing nothing, try increasing the "
  "number of histograms bins by an order of magnitude or "
  "two (or more).  Or, use \"unu gamma\" to warp the values "
  "in the direction you know they need to go.  Either of "
  "these might work because extremely tall and narrow peaks "
- "in the equalization histogram will produce poor results.\n "
- "* Uses nrrdHistoEq");
+ "in the equalization histogram will produce poor results.");
 
 int
-unrrdu_heqMain(int argc, const char **argv, const char *me,
-               hestParm *hparm) {
+unrrdu_heqMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err, *mapS;
   Nrrd *nin, *nout, *nmap;
@@ -81,7 +78,7 @@ unrrdu_heqMain(int argc, const char **argv, const char *me,
 
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-
+  
   if (nrrdHistoEq(nout, nin, airStrlen(mapS) ? &nmap : NULL,
                   bins, smart, amount)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);

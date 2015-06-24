@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,23 +24,22 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Print header of one or more nrrd files"
-static const char *_unrrdu_headInfoL =
+char *_unrrdu_headInfoL = 
 (INFO  ".  The value of this is simply to print the contents of nrrd "
  "headers.  This avoids the use of \"head -N\", where N has to be "
  "determined manually, which always risks printing raw binary data "
  "(following the header) to screen, which tends to clobber terminal "
- "settings, make pointless beeps, and be annoying.\n "
- "* Uses _nrrdOneLine");
+ "settings, as well as be annoying.");
 
 int
-unrrdu_headDoit(const char *me, NrrdIoState *nio, char *inS, FILE *fout) {
+unrrdu_headDoit(char *me, NrrdIoState *nio, char *inS, FILE *fout) {
   airArray *mop;
   unsigned int len;
   FILE *fin;
 
   mop = airMopNew();
   if (!( fin = airFopen(inS, stdin, "rb") )) {
-    biffAddf(me, "%s: couldn't fopen(\"%s\",\"rb\"): %s\n",
+    biffAddf(me, "%s: couldn't fopen(\"%s\",\"rb\"): %s\n", 
              me, inS, strerror(errno));
     airMopError(mop); return 1;
   }
@@ -56,7 +54,7 @@ unrrdu_headDoit(const char *me, NrrdIoState *nio, char *inS, FILE *fout) {
     airMopError(mop); return 1;
   }
   if (!( nrrdFormatNRRD->contentStartsLike(nio) )) {
-    biffAddf(me, "%s: first line (\"%s\") isn't a nrrd magic\n",
+    biffAddf(me, "%s: first line (\"%s\") isn't a nrrd magic\n", 
              me, nio->line);
     airMopError(mop); return 1;
   }
@@ -64,7 +62,7 @@ unrrdu_headDoit(const char *me, NrrdIoState *nio, char *inS, FILE *fout) {
     fprintf(fout, "%s\n", nio->line);
     _nrrdOneLine(&len, nio, fin);
   };
-
+  
   /* experience has shown that on at least windows and darwin, the writing
      process's fwrite() to stdout will fail if we exit without consuming
      everything from stdin */
@@ -80,8 +78,7 @@ unrrdu_headDoit(const char *me, NrrdIoState *nio, char *inS, FILE *fout) {
 }
 
 int
-unrrdu_headMain(int argc, const char **argv, const char *me,
-                hestParm *hparm) {
+unrrdu_headMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *err, **inS;
   NrrdIoState *nio;

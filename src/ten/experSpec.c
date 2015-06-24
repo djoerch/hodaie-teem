@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -27,18 +26,18 @@
 static int
 _experAlloc(tenExperSpec* espec, unsigned int num) {
   static char me[]="_experAlloc";
-
-  airFree(espec->bval); espec->bval = NULL;
-  airFree(espec->grad); espec->grad = NULL;
+  
+  espec->bval = airFree(espec->bval);
+  espec->grad = airFree(espec->grad);
   /* espec->wght = airFree(espec->wght); */
   if (!num) {
     biffAddf(TEN, "%s: need a non-zero number of images", me);
     return 1;
   }
   espec->imgNum = num;
-  espec->bval = AIR_CALLOC(num, double);
-  espec->grad = AIR_CALLOC(3*num, double);
-  /* espec->wght = AIR_CALLOC(num, double); */
+  espec->bval = AIR_CAST(double *, calloc(num, sizeof(double)));
+  espec->grad = AIR_CAST(double *, calloc(3*num, sizeof(double)));
+  /* espec->wght = AIR_CAST(double *, calloc(num, sizeof(double))); */
   if (!( espec->bval && espec->grad /* && espec->wght */ )) {
     biffAddf(TEN, "%s: couldn't allocate for %u images", me, num);
     return 1;
@@ -50,7 +49,7 @@ tenExperSpec*
 tenExperSpecNew(void) {
   tenExperSpec* espec;
 
-  espec = AIR_CALLOC(1, tenExperSpec);
+  espec = AIR_CAST(tenExperSpec*, calloc(1, sizeof(tenExperSpec)));
   espec->set = AIR_FALSE;
   espec->imgNum = 0;
   espec->bval = NULL;
@@ -61,37 +60,23 @@ tenExperSpecNew(void) {
 
 int
 tenExperSpecGradSingleBValSet(tenExperSpec *espec,
-                              int insertB0,
+                              unsigned int imgNum,
                               double bval,
-                              const double *grad,
-                              unsigned int gradNum) {
+                              const double *grad) {
   static const char me[]="tenExperSpecGradSingleBValSet";
-  unsigned int ii, imgNum, ei;
+  unsigned int ii;
 
   if (!espec) {
     biffAddf(TEN, "%s: got NULL pointer", me);
     return 1;
   }
-  if (insertB0 && !ELL_3V_LEN(grad + 3*0)) {
-    biffAddf(TEN, "%s: wanted insertB0 but gradients "
-             "already start with (0,0,0)", me);
-    return 1;
-  }
-  imgNum = gradNum + !!insertB0;
   if (_experAlloc(espec, imgNum)) {
     biffAddf(TEN, "%s: couldn't allocate", me);
     return 1;
   }
-  if (insertB0) {
-    espec->bval[0] = 0;
-    ELL_3V_SET(espec->grad + 3*0, 1, 0, 0);
-    ei = 1;
-  } else {
-    ei = 0;
-  }
-  for (ii=0; ii<gradNum; ei++, ii++) {
-    espec->bval[ei] = bval;
-    ELL_3V_COPY(espec->grad + 3*ei, grad + 3*ii);
+  for (ii=0; ii<imgNum; ii++) {
+    espec->bval[ii] = bval;
+    ELL_3V_COPY(espec->grad + 3*ii, grad + 3*ii);
     /* espec->wght[ii] = 1.0; */
   }
 
@@ -100,37 +85,23 @@ tenExperSpecGradSingleBValSet(tenExperSpec *espec,
 
 int
 tenExperSpecGradBValSet(tenExperSpec *espec,
-                        int insertB0,
+                        unsigned int imgNum,
                         const double *bval,
-                        const double *grad,
-                        unsigned int bgNum) {
+                        const double *grad) {
   static const char me[]="tenExperSpecGradBValSet";
-  unsigned int ii, imgNum, ei;
+  unsigned int ii;
 
   if (!espec) {
     biffAddf(TEN, "%s: got NULL pointer", me);
     return 1;
   }
-  if (insertB0 && (!ELL_3V_LEN(grad + 3*0) || !bval[0])) {
-    biffAddf(TEN, "%s: wanted insertB0 but gradients "
-             "already start with (0,0,0) or bvals start with 0", me);
-    return 1;
-  }
-  imgNum = bgNum + !!insertB0;
   if (_experAlloc(espec, imgNum)) {
     biffAddf(TEN, "%s: couldn't allocate", me);
     return 1;
   }
-  if (insertB0) {
-    espec->bval[0] = 0;
-    ELL_3V_SET(espec->grad + 3*0, 0, 0, 0);
-    ei = 1;
-  } else {
-    ei = 0;
-  }
-  for (ii=0; ii<bgNum; ei++, ii++) {
-    espec->bval[ei] = bval[ii];
-    ELL_3V_COPY(espec->grad + 3*ei, grad + 3*ii);
+  for (ii=0; ii<imgNum; ii++) {
+    espec->bval[ii] = bval[ii];
+    ELL_3V_COPY(espec->grad + 3*ii, grad + 3*ii);
     /* espec->wght[ii] = 1.0; */
   }
 
@@ -146,7 +117,7 @@ tenExperSpecGradBValWghtSet(tenExperSpec *espec,
                             const double *wght) {
   static const char me[]="tenExperSpecGradBValWghtSet";
   unsigned int ii;
-
+  
   if (!espec) {
     biffAddf(TEN, "%s: got NULL pointer", me);
     return 1;
@@ -179,18 +150,11 @@ tenExperSpecFromKeyValueSet(tenExperSpec *espec, const Nrrd *ndwi) {
       break;
     }
   }
-  if (ndwi->dim == dwiax) {
-    biffAddf(TEN, "%s: need dwis to have a kind %s or %s axis", me,
+  if (0 != dwiax) {
+    biffAddf(TEN, "%s: need dwis (kind %s or %s) along axis 0, not %u", me,
              airEnumStr(nrrdKind, nrrdKindList),
-             airEnumStr(nrrdKind, nrrdKindVector));
+             airEnumStr(nrrdKind, nrrdKindVector), dwiax);
     return 1;
-  } else {
-    if (0 != dwiax) {
-      biffAddf(TEN, "%s: need dwis (kind %s or %s) along axis 0, not %u", me,
-               airEnumStr(nrrdKind, nrrdKindList),
-               airEnumStr(nrrdKind, nrrdKindVector), dwiax);
-      return 1;
-    }
   }
   for (ii=dwiax+1; ii<ndwi->dim; ii++) {
     if (nrrdKindList == ndwi->axis[ii].kind
@@ -231,7 +195,7 @@ tenExperSpecFromKeyValueSet(tenExperSpec *espec, const Nrrd *ndwi) {
   }
 
   imgNum = ngrad->axis[1].size;
-  bval = AIR_CALLOC(imgNum, double);
+  bval = AIR_CAST(double *, calloc(imgNum, sizeof(double)));
   airMopAdd(mop, bval, airFree, airMopAlways);
   grad = AIR_CAST(double *, ngrad->data);
   for (ii=0; ii<imgNum; ii++) {
@@ -243,7 +207,7 @@ tenExperSpecFromKeyValueSet(tenExperSpec *espec, const Nrrd *ndwi) {
       ELL_3V_SET(grad + 3*ii, 0, 0, -1);
     }
   }
-  if (tenExperSpecGradBValSet(espec, AIR_FALSE, bval, grad, imgNum)) {
+  if (tenExperSpecGradBValSet(espec, imgNum, bval, grad)) {
     biffAddf(TEN, "%s: trouble", me);
     airMopError(mop); return 1;
   }
@@ -255,8 +219,8 @@ tenExperSpec*
 tenExperSpecNix(tenExperSpec *espec) {
 
   if (espec) {
-    airFree(espec->bval);
-    airFree(espec->grad);
+    espec->bval = airFree(espec->bval);
+    espec->grad = airFree(espec->grad);
     /* espec->wght = airFree(espec->wght); */
     airFree(espec);
   }
@@ -325,7 +289,7 @@ _tenExperSpec_nll(const double *dwiMeas, const double *dwiSim,
 
 int
 tenDWMRIKeyValueFromExperSpecSet(Nrrd *ndwi, const tenExperSpec *espec) {
-  static char me[]="tenDWMRIKeyValueFromExperSpecSet";
+  static char me[]="tenDWMRIKeyValueFromExperSpecSet"; 
   char keystr[AIR_STRLEN_MED], valstr[AIR_STRLEN_MED];
   double maxb, bb;
   unsigned int ii;
@@ -337,35 +301,26 @@ tenDWMRIKeyValueFromExperSpecSet(Nrrd *ndwi, const tenExperSpec *espec) {
 
   nrrdKeyValueAdd(ndwi, tenDWMRIModalityKey, tenDWMRIModalityVal);
   maxb = tenExperSpecMaxBGet(espec);
-  sprintf(valstr, "%.17g", maxb);
+  sprintf(valstr, "%g", maxb);
   nrrdKeyValueAdd(ndwi, tenDWMRIBValueKey, valstr);
   for (ii=0; ii<espec->imgNum; ii++) {
     double vec[3];
     sprintf(keystr, tenDWMRIGradKeyFmt, ii);
     ELL_3V_COPY(vec, espec->grad + 3*ii);
     bb = espec->bval[ii];
-    /* Thu Dec 20 03:25:20 CST 2012 this rescaling is not, btw,
-       what is causing the small discrepency between ngrad before
-       and after saving to KVPs */
     ELL_3V_SCALE(vec, sqrt(bb/maxb), vec);
-    sprintf(valstr, "%.17g %.17g %.17g", vec[0], vec[1], vec[2]);
+    sprintf(valstr, "%g %g %g", vec[0], vec[1], vec[2]);
     nrrdKeyValueAdd(ndwi, keystr, valstr);
   }
-  /* HEY what if its a full B-matrix? */
 
   return 0;
 }
 
-/*
-** learns B0 from DWIs by simple averaging of all the dwi[ii]
-** without any diffusion weighting, as indicated by espec->bval[ii],
-** or, returns AIR_NAN when there are no such dwi[ii]
-*/
 double
 tenExperSpecKnownB0Get(const tenExperSpec *espec, const double *dwi) {
   unsigned int ii, nb;
-  double ret, b0;
-
+  double b0; 
+  
   if (!( dwi && espec )) {
     return AIR_NAN;
   }
@@ -378,19 +333,14 @@ tenExperSpecKnownB0Get(const tenExperSpec *espec, const double *dwi) {
       ++nb;
     }
   }
-  if (nb) {
-    ret = b0/nb;
-  } else {
-    ret = AIR_NAN;
-  }
-  return ret;
+  return b0/nb;
 }
 
 double
 tenExperSpecMaxBGet(const tenExperSpec *espec) {
   unsigned int ii;
   double bval;
-
+  
   if (!( espec )) {
     return AIR_NAN;
   }

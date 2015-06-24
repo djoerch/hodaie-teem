@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,15 +24,14 @@
 #include "privateTen.h"
 
 #define INFO "Modify shape by clamping eigenvalues in some range"
-static const char *_tend_evalclampInfoL =
+char *_tend_evalclampInfoL =
   (INFO
    ". The orientation of the tensor is unchanged.  Note that unlike "
    "\"tend anscale\", this operation can completely change the shape "
    "of the tensor.");
 
 int
-tend_evalclampMain(int argc, const char **argv, const char *me,
-                   hestParm *hparm) {
+tend_evalclampMain(int argc, char **argv, char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;
@@ -42,7 +40,7 @@ tend_evalclampMain(int argc, const char **argv, const char *me,
   Nrrd *nin, *nout;
   char *outS;
   float min, max;
-
+  
   hestOptAdd(&hopt, "min", "min", airTypeFloat, 1, 1, &min, NULL,
              "Eigenvalues are clamped from below by this (the minimum "
              "output eigenvalue).  Use \"nan\" to signify that no "

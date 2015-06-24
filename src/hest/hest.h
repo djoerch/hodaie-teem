@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -59,7 +58,7 @@ extern "C" {
 */
 typedef struct {
   size_t size;          /* sizeof() one thing */
-  const char *type;     /* used by hestGlossary() to describe the type */
+  char *type;           /* used by hestGlossary() to describe the type */
   int (*parse)(void *ptr, char *str, char err[AIR_STRLEN_HUGE]);
                         /* how to parse one thing from a string.  This will
                            be called multiple times for multiple parameter
@@ -106,7 +105,7 @@ typedef struct {
                               multiple fixed parameters
                            4: min == 0; max == 1;
                               single variable parameter
-                           5: max - min >= 1; max >= 2
+                           5: max - min >= 1; max >= 2 
                               multiple variable parameters */
     alloc;              /* information about whether flag is non-NULL, and what
                            parameters were used, that determines whether or
@@ -125,7 +124,7 @@ typedef struct {
 /*
 ******** hestParm struct
 **
-** parameters to control behavior of hest functions.
+** parameters to control behavior of hest functions. 
 **
 ** GK: Don't even think about storing per-parse state in here.
 */
@@ -146,20 +145,13 @@ typedef struct {
     elideSingleEmptyStringDefault, /* if default for a single string is empty
                                       (""), then don't display default */
     elideMultipleEmptyStringDefault,
-    noArgsIsNoProblem,  /* if non-zero, having no arguments to parse is not in
-                           and of itself a problem; this means that if all
-                           options have defaults, it would be *ok* to invoke
-                           the problem without any further command-line
-                           options. This is counter to pre-Teem-1.11
-                           behavior (for which no arguments *always* meant
-                           "show me usage info"). */
     greedySingleString, /* when parsing a single string, whether or not
                            to be greedy (as per airParseStrS) */
-    cleverPluralizeOtherY; /* when printing the type for airTypeOther, when
+    cleverPluralizeOtherY, /* when printing the type for airTypeOther, when
                               the min number of items is > 1, and the type
-                              string ends with "y", then pluralize with
+                              string ends with "y", then pluralize with 
                               "ies" instead of "ys" */
-  unsigned int columns; /* number of printable columns in output */
+    columns;            /* number of printable columns in output */
   char respFileFlag,    /* the character at the beginning of an argument
                            indicating that this is a response file name */
     respFileComment,    /* comment character for the repose files */
@@ -167,14 +159,12 @@ typedef struct {
                            the end of a flagged variable parameter option
                            (single or multiple) */
     multiFlagSep;       /* character in flag which signifies that there is
-                           a long and short version, and which separates
+                           a long and short version, and which seperates
                            the two.  Or, can be set to '\0' to disable this
                            behavior entirely. */
 } hestParm;
 
 /* defaultsHest.c */
-/* HEY: recent Teem conventions say these should all start with
-   "hestDef" not just "hest" */
 HEST_EXPORT int hestVerbosity;
 HEST_EXPORT int hestRespFileEnable;
 HEST_EXPORT int hestElideSingleEnumType;
@@ -184,21 +174,19 @@ HEST_EXPORT int hestElideSingleNonExistFloatDefault;
 HEST_EXPORT int hestElideMultipleNonExistFloatDefault;
 HEST_EXPORT int hestElideSingleEmptyStringDefault;
 HEST_EXPORT int hestElideMultipleEmptyStringDefault;
-HEST_EXPORT int hestNoArgsIsNoProblem;
 HEST_EXPORT int hestGreedySingleString;
 HEST_EXPORT int hestCleverPluralizeOtherY;
-HEST_EXPORT unsigned int hestColumns;
+HEST_EXPORT int hestColumns;
 HEST_EXPORT char hestRespFileFlag;
 HEST_EXPORT char hestRespFileComment;
 HEST_EXPORT char hestVarParamStopFlag;
 HEST_EXPORT char hestMultiFlagSep;
 
 /* methodsHest.c */
-HEST_EXPORT const int hestPresent;
 HEST_EXPORT hestParm *hestParmNew(void);
 HEST_EXPORT hestParm *hestParmFree(hestParm *parm);
-HEST_EXPORT void hestOptAdd(hestOpt **optP,
-                            const char *flag, const char *name,
+HEST_EXPORT void hestOptAdd(hestOpt **optP, 
+                            char *flag, char *name,
                             int type, int min, int max,
                             void *valueP, const char *dflt, const char *info,
                             ... /* int *sawP, airEnum *enm , hestCB *CB */);
@@ -206,17 +194,16 @@ HEST_EXPORT hestOpt *hestOptFree(hestOpt *opt);
 HEST_EXPORT int hestOptCheck(hestOpt *opt, char **errP);
 
 /* parseHest.c */
-HEST_EXPORT int hestParse(hestOpt *opt, int argc, const char **argv,
+HEST_EXPORT int hestParse(hestOpt *opt, int argc, char **argv,
                           char **errP, hestParm *parm);
 HEST_EXPORT void *hestParseFree(hestOpt *opt);
-HEST_EXPORT void hestParseOrDie(hestOpt *opt, int argc, const char **argv,
+HEST_EXPORT void hestParseOrDie(hestOpt *opt, int argc, char **argv,
                                 hestParm *parm,
-                                const char *me, const char *info,
+                                char *me, char *info,
                                 int doInfo, int doUsage, int doGlossary);
 
 /* usage.c */
-HEST_EXPORT void _hestPrintStr(FILE *f, unsigned int indent,
-                               unsigned int already, unsigned int width,
+HEST_EXPORT void _hestPrintStr(FILE *f, int indent, int already, int width,
                                const char *_str, int bslash);
 HEST_EXPORT int hestMinNumArgs(hestOpt *opt);
 HEST_EXPORT void hestUsage(FILE *file, hestOpt *opt, const char *argv0,

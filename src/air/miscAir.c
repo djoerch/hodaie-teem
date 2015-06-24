@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -22,7 +21,7 @@
 */
 
 #include "air.h"
-#include "privateAir.h"
+#include <teem32bit.h>
 /* timer functions */
 #ifdef _WIN32
 #include <io.h>
@@ -36,14 +35,14 @@
 ******** airTeemVersion
 ******** airTeemReleaseDate
 **
-** updated with each release to contain a string representation of
+** updated with each release to contain a string representation of 
 ** the Teem version number and release date.  Originated in version 1.5;
 ** use of TEEM_VERSION #defines started in 1.9
 */
 const char *
 airTeemVersion = TEEM_VERSION_STRING;
 const char *
-airTeemReleaseDate = "19 Dec 2012";
+airTeemReleaseDate = "late 2009 or early 2010";
 
 double
 _airSanityHelper(double val) {
@@ -68,7 +67,7 @@ airNull(void) {
 */
 void *
 airSetNull(void **ptrP) {
-
+  
   if (ptrP) {
     *ptrP = NULL;
   }
@@ -94,7 +93,7 @@ airFree(void *ptr) {
 ******** airFopen()
 **
 ** encapsulates that idea that "-" is either standard in or stardard
-** out, and does McRosopht stuff required to make piping work
+** out, and does McRosopht stuff required to make piping work 
 **
 ** Does not error checking.  If fopen fails, then C' errno and strerror are
 ** left untouched for the caller to access.
@@ -105,7 +104,7 @@ airFopen(const char *name, FILE *std, const char *mode) {
 
   if (!strcmp(name, "-")) {
     ret = std;
-#ifdef _WIN32
+#ifdef _MSC_VER
     if (strchr(mode, 'b')) {
       _setmode(_fileno(ret), _O_BINARY);
     }
@@ -151,7 +150,7 @@ airFclose(FILE *file) {
 ** To get fprintf behavior, pass "str" as NULL
 ** to get sprintf bahavior, pass "file" as NULL
 **
-** Finding a complete {f|s|}printf replacement is a priority for Teem 2.0
+** Someday I'll find/write a complete {f|s|}printf replacement ...
 */
 int
 airSinglePrintf(FILE *file, char *str, const char *_fmt, ...) {
@@ -160,7 +159,7 @@ airSinglePrintf(FILE *file, char *str, const char *_fmt, ...) {
   int ret, isF, isD, cls;
   char *conv=NULL, *p0, *p1, *p2, *p3, *p4, *p5;
   va_list ap;
-
+  
   va_start(ap, _fmt);
   fmt = airStrdup(_fmt);
 
@@ -173,9 +172,9 @@ airSinglePrintf(FILE *file, char *str, const char *_fmt, ...) {
   p5 = strstr(fmt, "%lg");
   isF = p0 || p1 || p2;
   isD = p3 || p4 || p5;
-  /* the code here says "isF" and "isD" as if it means "is float" or
-     "is double".  It really should be "is2" or "is3", as in,
-     "is 2-character conv. seq., or "is 3-character conv. seq." */
+  /* the code here says "isF" and "isD" as if it means "is float" or 
+     "is double".  It really should be "is2" or "is3", as in, 
+     "is 2-character conversion sequence, or "is 3-character..." */
   if (isF) {
     conv = p0 ? p0 : (p1 ? p1 : p2);
   }
@@ -237,127 +236,19 @@ airSinglePrintf(FILE *file, char *str, const char *_fmt, ...) {
     /* conversion sequence is neither for float nor double */
     ret = file ? vfprintf(file, fmt, ap) : vsprintf(str, fmt, ap);
   }
-
+  
   va_end(ap);
   free(fmt);
   return ret;
 }
 
-/*
-******** airSprintSize_t
-**
-** sprints a single size_t to a given string, side-stepping
-** non-standardized format specifier confusion with printf
-*/
-char *
-airSprintSize_t(char _str[AIR_STRLEN_SMALL], size_t val) {
-  char str[AIR_STRLEN_SMALL];
-  unsigned int si;
-
-  if (!_str) {
-    return NULL;
-  }
-  si = AIR_STRLEN_SMALL-1;
-  str[si] = '\0';
-  do {
-    str[--si] = AIR_CAST(char, (val % 10) + '0');
-    val /= 10;
-  } while (val);
-  strcpy(_str, str + si);
-  return _str;
-}
-
-/*
-******** airSprintPtrdiff_t
-**
-** sprints a single ptrdiff_t to a given string, side-stepping
-** non-standardized format specifier confusion with printf
-*/
-char *
-airSprintPtrdiff_t(char _str[AIR_STRLEN_SMALL], ptrdiff_t val) {
-  char str[AIR_STRLEN_SMALL];
-  unsigned int si;
-  int sign;
-
-  if (!_str) {
-    return NULL;
-  }
-  si = AIR_STRLEN_SMALL-1;
-  str[si] = '\0';
-  sign = (val < 0 ? -1 : 1);
-  do {
-    ptrdiff_t dig;
-    dig = val % 10;
-    str[--si] = AIR_CAST(char, dig > 0 ? dig + '0' : -dig + '0');
-    val /= 10;
-  } while (val);
-  if (-1 == sign) {
-    str[--si] = '-';
-  }
-  strcpy(_str, str + si);
-  return _str;
-}
+#if TEEM_32BIT == 1
+const int airMy32Bit = 1;
+#else
+const int airMy32Bit = 0;
+#endif
 
 /* ---- BEGIN non-NrrdIO */
-
-const int
-airPresent = 42;
-
-/*
-** sprints a length-"len" vector "vec" of size_t values into "dst", which is
-** simply assumed to be big enough to hold this.  Vector enclosed in "[]" and
-** values separated by ","
-*/
-char *
-airSprintVecSize_t(char *dst, const size_t *vec, unsigned int len) {
-  char stmp[AIR_STRLEN_SMALL];
-  unsigned int axi;
-
-  /* if we got NULL to sprint into, there's nothing to do but return it */
-  if (!dst) {
-    return dst;
-  }
-  strcpy(dst, "[");
-  for (axi=0; axi<len; axi++) {
-    if (axi) {
-      strcat(dst, ",");
-    }
-    airSprintSize_t(stmp, vec[axi]);
-    strcat(dst, stmp);
-  }
-  strcat(dst, "]");
-  return dst;
-}
-
-/*
-******** airPrettySprintSize_t
-**
-** sprints a single size_t in a way that is human readable as
-** bytes, kilobytes (KB), etc
-*/
-char *
-airPrettySprintSize_t(char str[AIR_STRLEN_SMALL], size_t val) {
-  static const char suff[][7] = {"bytes", "KB", "MB", "GB", "TB", "PB", "EB"};
-  unsigned int suffIdx, suffNum;
-  double dval;
-
-  if (!str) {
-    return NULL;
-  }
-  suffIdx = 0;
-  dval = AIR_CAST(double, val);
-  suffNum = AIR_UINT(sizeof(suff)/sizeof(suff[0]));
-  while (suffIdx < suffNum-1) {  /* while we can go to a bigger suffix */
-    if (dval > 1024) {
-      dval /= 1024;
-      suffIdx++;
-    } else {
-      break;
-    }
-  }
-  sprintf(str, "%g %s", dval, suff[suffIdx]);
-  return str;
-}
 
 /*
 ******** airStderr, airStdout, airStdin
@@ -379,6 +270,12 @@ FILE *
 airStdin(void) {
   return stdin;
 }
+
+#if TEEM_32BIT == 1
+const char airMyFmt_size_t[] = "%u";
+#else
+const char airMyFmt_size_t[] = "%lu";
+#endif
 
 /*
 ******** AIR_INDEX(i,x,I,L,t)
@@ -439,34 +336,22 @@ airStdin(void) {
 unsigned int
 airIndex(double min, double val, double max, unsigned int N) {
   unsigned int idx;
-  double mnm;
 
-  mnm = max - min;
-  if (mnm) {
-    idx = AIR_UINT(N*(val - min)/mnm);
-    idx -= (idx == N);
-  } else {
-    idx = 0;
-  }
+  idx = AIR_CAST(unsigned int, N*(val - min)/(max - min));
+  idx -= (idx == N);
   return idx;
 }
 
 unsigned int
 airIndexClamp(double min, double val, double max, unsigned int N) {
   unsigned int idx;
-  double mnm;
 
   /* NOTE: now that unsigned types are used more widely in Teem, the
      clamping that used to happen after index generation now must
      happen prior to index generation */
-  mnm = max - min;
-  if (mnm) {
-    val = AIR_MAX(min, val);
-    idx = AIR_UINT(N*(val - min)/mnm);
-    idx = AIR_MIN(idx, N-1);
-  } else {
-    idx = 0;
-  }
+  val = AIR_MAX(min, val);
+  idx = AIR_CAST(unsigned int, N*(val - min)/(max - min));
+  idx = AIR_MIN(idx, N-1);
   return idx;
 }
 
@@ -475,12 +360,12 @@ airIndexULL(double min, double val, double max, airULLong N) {
   airULLong idx;
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(__MINGW32__)
   /* compile error on Win32-vs60: "error C2520: conversion from
-     unsigned __int64 to double not implemented, use signed __int64 */
+     unsigned __int64 to double not implemented, use signed __int64 ... */
   airLLong sidx;
-  sidx = AIR_CAST(airLLong, AIR_CAST(double, N)*(val - min)/(max - min));
+  sidx = AIR_CAST(airLLong, N*(val - min)/(max - min));
   idx = AIR_CAST(airULLong, sidx);
 #else
-  idx = AIR_CAST(airULLong, AIR_CAST(double, N)*(val - min)/(max - min));
+  idx = AIR_CAST(airULLong, N*(val - min)/(max - min));
 #endif
   idx -= (idx == N);
   return idx;
@@ -492,11 +377,11 @@ airIndexClampULL(double min, double val, double max, airULLong N) {
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(__MINGW32__)
   airLLong sidx;
   val = AIR_MAX(min, val); /* see note in airIndexClamp */
-  sidx = AIR_CAST(airLLong, AIR_CAST(double, N)*(val - min)/(max - min));
+  sidx = AIR_CAST(airLLong, N*(val - min)/(max - min));
   idx = AIR_CAST(airULLong, sidx);
 #else
   val = AIR_MAX(min, val); /* see note in airIndexClamp */
-  idx = AIR_CAST(airULLong, AIR_CAST(double, N)*(val - min)/(max - min));
+  idx = AIR_CAST(airULLong, N*(val - min)/(max - min));
 #endif
   idx = AIR_MIN(idx, N-1);
   return idx;
@@ -536,31 +421,48 @@ airDoneStr(double start, double here, double end, char *str) {
     }
   }
 
-  return str;
+  /* what the heck was all this for ? 
+  static int len = -1;
+
+  if (-1 == len) {
+    len = strlen(str);
+  }
+  else {
+    if (len != strlen(str)) {
+      printf("len(\\b\\b\\b\\b\\b\\b% 3d.%d%%) != %d\n", 
+              perc/10, perc%10, len);
+      exit(1);
+    }
+  }
+  */
+  return(str);
 }
 
 /*
 ******** airTime()
 **
-** returns current time in seconds (with millisecond resolution only
-** when not on Windows) as a double.  From "man gettimeofday": The
-** time is expressed in seconds and microseconds since midnight (0
-** hour), January 1, 1970.
+** returns current time in seconds (with millisecond resolution) as a double
 */
 double
 airTime() {
 #ifdef _WIN32
-  /* HEY: this has crummy precision */
   return (double)clock()/CLOCKS_PER_SEC;
 #else
-  double sec, usec;
   struct timeval tv;
 
   gettimeofday(&tv, NULL);
-  sec = AIR_CAST(double, tv.tv_sec);
-  usec = AIR_CAST(double, tv.tv_usec);
-  return sec + usec*1.0e-6;
+  return((double)(tv.tv_sec + tv.tv_usec/1000000.0));
 #endif
+}
+
+void
+airBinaryPrintUInt(FILE *file, int digits, unsigned int N) {
+
+  digits = AIR_CLAMP(1, digits, 32);
+  for (digits=digits; digits>=1; digits--) {
+    fprintf(file, "%c", ((1<<(digits-1)) & N
+                         ? '1' : '0'));
+  }
 }
 
 const char
@@ -570,7 +472,6 @@ airTypeStr[AIR_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
   "int",
   "unsigned int",
   "long int",
-  "unsigned long int",
   "size_t",
   "float",
   "double",
@@ -587,7 +488,6 @@ airTypeSize[AIR_TYPE_MAX+1] = {
   sizeof(int),
   sizeof(unsigned int),
   sizeof(long int),
-  sizeof(unsigned long int),
   sizeof(size_t),
   sizeof(float),
   sizeof(double),
@@ -596,6 +496,120 @@ airTypeSize[AIR_TYPE_MAX+1] = {
   sizeof(int),
   0   /* we don't know anything about type "other" */
 };
+
+int
+airILoad(void *v, int t) {
+
+  switch(t) {
+  case airTypeBool:   return *((int*)v); break;
+  case airTypeInt:    return *((int*)v); break;
+  case airTypeUInt:   return (int)*((unsigned int*)v); break;
+  case airTypeLongInt:return (int)*((long int*)v); break;
+  case airTypeSize_t: return (int)*((size_t*)v); break;
+  case airTypeFloat:  return (int)*((float*)v); break;
+  case airTypeDouble: return (int)*((double*)v); break;
+  case airTypeChar:   return *((char*)v); break;
+  default: return 0; break;
+  }
+}
+
+int
+airIStore(void *v, int t, int i) {
+
+  switch(t) {
+  case airTypeBool:   return (*((int*)v) = !!i); break;
+  case airTypeInt:    return (*((int*)v) = i); break;
+  case airTypeUInt:   return (int)(*((unsigned int*)v) = i); break;
+  case airTypeLongInt:return (int)(*((long int*)v) = i); break;
+  case airTypeSize_t: return (int)(*((size_t*)v) = i); break;
+  case airTypeFloat:  return (int)(*((float*)v) = (float)(i)); break;
+  case airTypeDouble: return (int)(*((double*)v) = (double)(i)); break;
+  case airTypeChar:   return (*((char*)v) = (char)(i)); break;
+  default: return 0; break;
+  }
+}
+
+float
+airFLoad(void *v, int t) {
+
+  switch(t) {
+  case airTypeBool:   return AIR_CAST(float, *((int*)v)); break;
+  case airTypeInt:    return AIR_CAST(float, *((int*)v)); break;
+  case airTypeUInt:   return AIR_CAST(float, *((unsigned int*)v)); break;
+  case airTypeLongInt:return AIR_CAST(float, *((long int*)v)); break;
+  case airTypeSize_t: return AIR_CAST(float, *((size_t*)v)); break;
+  case airTypeFloat:  return *((float*)v); break;
+  case airTypeDouble: return AIR_CAST(float, *((double*)v)); break;
+  case airTypeChar:   return *((char*)v); break;
+  default: return 0; break;
+  }
+}
+
+float
+airFStore(void *v, int t, float f) {
+
+  switch(t) {
+  case airTypeBool:
+    return AIR_CAST(float, *((int*)v) = (int)f);
+    break;
+  case airTypeInt:
+    return AIR_CAST(float, *((int*)v) = (int)f);
+    break;
+  case airTypeUInt:
+    return AIR_CAST(float, *((unsigned int*)v) = (unsigned int)f);
+    break;
+  case airTypeLongInt:
+    return AIR_CAST(float, *((long int*)v) = (long int)f);
+    break;
+  case airTypeSize_t:
+    return AIR_CAST(float, *((size_t*)v) = (size_t)f);
+    break;
+  case airTypeFloat: 
+    return (*((float*)v) = f);
+    break;
+  case airTypeDouble:
+    return AIR_CAST(float, (*((double*)v) = (double)f));
+    break;
+  case airTypeChar:
+    return (*((char*)v) = (char)f);
+    break;
+  default:
+    return 0;
+    break;
+  }
+}
+
+double
+airDLoad(void *v, int t) {
+
+  switch(t) {
+  case airTypeBool:   return AIR_CAST(double,*((int*)v)); break;
+  case airTypeInt:    return AIR_CAST(double,*((int*)v)); break;
+  case airTypeUInt:   return AIR_CAST(double,*((unsigned int*)v)); break;
+  case airTypeLongInt:return AIR_CAST(double,*((long int*)v)); break;
+  case airTypeSize_t: return AIR_CAST(double, *((size_t*)v)); break;
+  case airTypeFloat:  return AIR_CAST(double,*((float*)v)); break;
+  case airTypeDouble: return *((double*)v); break;
+  case airTypeChar:   return AIR_CAST(double,*((char*)v)); break;
+  default: return 0; break;
+  }
+}
+
+double
+airDStore(void *v, int t, double d) {
+
+  switch(t) {
+  case airTypeBool:   return AIR_CAST(double,(*((int*)v) = (int)d)); break;
+  case airTypeInt:    return AIR_CAST(double,(*((int*)v) = (int)d)); break;
+  case airTypeUInt:   return AIR_CAST(double,(*((unsigned int*)v) = (unsigned int)d)); break;
+  case airTypeLongInt:return AIR_CAST(double,(*((long int*)v) = (long int)d)); break;
+  case airTypeSize_t: return AIR_CAST(double,(*((size_t*)v) = (size_t)d)); break;
+  case airTypeFloat:  return AIR_CAST(double,(*((float*)v) = (float)d)); break;
+  case airTypeDouble: return (*((double*)v) = d); break;
+  case airTypeChar:   return AIR_CAST(double,(*((char*)v) = (char)d)); break;
+  default: return 0; break;
+  }
+}
 
 /*
 ******** airEqvSettle()
@@ -614,7 +628,7 @@ airTypeSize[AIR_TYPE_MAX+1] = {
 unsigned int
 airEqvSettle(unsigned int *map, unsigned int len) {
   unsigned int i, j, count, max, *hit;
-
+  
   max = 0;
   for (i=0; i<len; i++) {
     max = AIR_MAX(max, map[i]);
@@ -640,14 +654,14 @@ airEqvSettle(unsigned int *map, unsigned int len) {
 /*
 ******** airEqvMap
 **
-** takes the equivalence pairs in eqvArr, and an array of uints map of
+** takes the equivalence pairs in eqvArr, and an array of uints map of 
 ** length len, and puts in map[i] the uint that class i's value should
-** be changed to.
-**
+** be changed to.  
+** 
 ** based on numerical recipes, C edition, pg. 346
-** modifications:
+** modifications: 
 **  - when resolving ancestors, map to the one with the lower index.
-**  - applies settling to resulting map
+**  - applies settling to resulting map 
 **
 ** returns the number of different class IDs
 */

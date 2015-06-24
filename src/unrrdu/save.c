@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,19 +24,17 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Write nrrd with specific format, encoding, or endianness"
-static const char *_unrrdu_saveInfoL =
+char *_unrrdu_saveInfoL =
 (INFO
  ". Use \"unu\tsave\t-f\tpnm\t|\txv\t-\" to view PPM- or "
  "PGM-compatible nrrds on unix.  EPS output is a EPSF-3.0 file with "
  "BoundingBox and HiResBoundingBox DSC comments, and is suitable for "
  "inclusion into other PostScript documents.  As a stand-alone file, the "
  "image is conveniently centered on an 8.5x11 inch page, with 0.5 "
- "inch margins.\n "
- "* Uses various fields in the NrrdIOState passed to nrrdSave");
+ "inch margins.");
 
 int
-unrrdu_saveMain(int argc, const char **argv, const char *me,
-                hestParm *hparm) {
+unrrdu_saveMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err, *outData,
     encInfo[AIR_STRLEN_HUGE], fmtInfo[AIR_STRLEN_HUGE];
@@ -71,11 +68,11 @@ unrrdu_saveMain(int argc, const char **argv, const char *me,
          "\n \b\bo \"ascii\": print data in ascii"
          "\n \b\bo \"hex\": two hex digits per byte");
   if (nrrdEncodingGzip->available()) {
-    strcat(encInfo,
+    strcat(encInfo, 
            "\n \b\bo \"gzip\", \"gz\": gzip compressed raw data");
   }
   if (nrrdEncodingBzip2->available()) {
-    strcat(encInfo,
+    strcat(encInfo, 
            "\n \b\bo \"bzip2\", \"bz2\": bzip2 compressed raw data");
   }
   if (nrrdEncodingGzip->available() || nrrdEncodingBzip2->available()) {
@@ -92,7 +89,7 @@ unrrdu_saveMain(int argc, const char **argv, const char *me,
   hestOptAdd(&opt, "e,encoding", "enc", airTypeOther, 1, 1, enc, "raw",
              encInfo, NULL, NULL, &unrrduHestEncodingCB);
   hestOptAdd(&opt, "en,endian", "end", airTypeEnum, 1, 1, &(nio->endian),
-             airEnumStr(airEndian, airMyEndian()),
+             airEnumStr(airEndian, airMyEndian),
              "Endianness to save data out as; \"little\" for Intel and "
              "friends; \"big\" for everyone else. "
              "Defaults to endianness of this machine",
@@ -114,7 +111,7 @@ unrrdu_saveMain(int argc, const char **argv, const char *me,
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
   nrrdCopy(nout, nin);
-
+  
   nio->encoding = nrrdEncodingArray[enc[0]];
   nio->format = nrrdFormatArray[formatType];
   if (nrrdEncodingTypeGzip == enc[0]) {
@@ -123,10 +120,9 @@ unrrdu_saveMain(int argc, const char **argv, const char *me,
   } else if (nrrdEncodingTypeBzip2 == enc[0]) {
     nio->bzip2BlockSize = enc[1];
   }
-  if (airMyEndian() != nio->endian) {
+  if (AIR_ENDIAN != nio->endian) {
     nrrdSwapEndian(nout);
   }
-
   if (airEndsWith(out, NRRD_EXT_NHDR)) {
     if (nio->format != nrrdFormatNRRD) {
       fprintf(stderr, "%s: WARNING: will use %s format\n", me,

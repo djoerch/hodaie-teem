@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,19 +24,17 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Remove one or more singleton axes from a nrrd"
-static const char *_unrrdu_axdeleteInfoL =
+char *_unrrdu_axdeleteInfoL =
 (INFO
  ". Singleton axes have only a single sample along them. "
  "The underlying linear ordering of the samples is "
  "unchanged, and the information about the other axes is "
  "shifted downwards as needed.  As a total hack, if you give "
  "-1 as the axis, this will do a matlab-style \"squeeze\", in which "
- "any and all singleton axes are removed.\n "
- "* Uses nrrdAxesDelete");
+ "any and all singleton axes are removed.");
 
 int
-unrrdu_axdeleteMain(int argc, const char **argv, const char *me,
-                    hestParm *hparm) {
+unrrdu_axdeleteMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout, *ntmp;
@@ -45,7 +42,7 @@ unrrdu_axdeleteMain(int argc, const char **argv, const char *me,
   unsigned axis;
   airArray *mop;
 
-  hestOptAdd(&opt, "a,axis", "axis", airTypeInt, 1, 1, &_axis, NULL,
+  hestOptAdd(&opt, "a,axis", "axis", airTypeInt, 1, 1, &_axis, NULL, 
              "dimension (axis index) of the axis to remove");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
@@ -70,8 +67,7 @@ unrrdu_axdeleteMain(int argc, const char **argv, const char *me,
     }
     for (axis=0;
          axis<nout->dim && nout->axis[axis].size > 1;
-         axis++)
-      ;
+         axis++);
     while (axis<nout->dim) {
       if (nrrdAxesDelete(ntmp, nout, axis)
           || nrrdCopy(nout, ntmp)) {
@@ -81,8 +77,7 @@ unrrdu_axdeleteMain(int argc, const char **argv, const char *me,
       }
       for (axis=0;
            axis<nout->dim && nout->axis[axis].size > 1;
-           axis++)
-        ;
+           axis++);
     }
   } else {
     if (nrrdAxesDelete(nout, nin, _axis)) {

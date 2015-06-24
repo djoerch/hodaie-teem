@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,7 +24,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Euclidean distance transform"
-static const char *_unrrdu_distInfoL =
+char *_unrrdu_distInfoL = 
 (INFO
  ". Based on \"Distance Transforms of Sampled Functions\" by "
  "Pedro F. Felzenszwalb and Daniel P. Huttenlocher, "
@@ -33,12 +32,10 @@ static const char *_unrrdu_distInfoL =
  "This function first thresholds at the specified value and then "
  "does the distance transform of the resulting binary image. "
  "The signed distance (negative values inside object) is also available. "
- "Distances between non-isotropic samples are handled correctly.\n "
- "* Uses nrrdDistanceL2 or nrrdDistanceL2Signed");
+ "Distances between non-isotropic samples are handled correctly.");
 
 int
-unrrdu_distMain(int argc, const char **argv, const char *me,
-                hestParm *hparm) {
+unrrdu_distMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;

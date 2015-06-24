@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -26,8 +25,8 @@
 
 #include <teem/air.h>
 #include <teem/biff.h>
-#include <teem/nrrd.h>
 #include <teem/ell.h>
+#include <teem/nrrd.h>
 #include <teem/gage.h>
 #include <teem/limn.h>
 #include <teem/hoover.h>
@@ -60,16 +59,16 @@ extern "C" {
 
 #if 0
 typedef float mite_t;
-#  define mite_nt nrrdTypeFloat
-#  define mite_at airTypeFloat
-#  define limnVTOQN limnVtoQN_f
-#  define MITE_T_DOUBLE 0
+#define mite_nt nrrdTypeFloat
+#define mite_at airTypeFloat
+#define limnVTOQN limnVtoQN_f
+#define MITE_T_DOUBLE 0
 #else
 typedef double mite_t;
-#  define mite_nt nrrdTypeDouble
-#  define mite_at airTypeDouble
-#  define limnVTOQN limnVtoQN_d
-#  define MITE_T_DOUBLE 1
+#define mite_nt nrrdTypeDouble
+#define mite_at airTypeDouble
+#define limnVTOQN limnVtoQN_d
+#define MITE_T_DOUBLE 1
 #endif
 
 enum {
@@ -90,17 +89,17 @@ enum {
 /*
 ** There are some constraints on how the nrrd as transfer function is
 ** stored and used:
-** 1) all transfer functions are lookup tables: there is no
+** 1) all transfer functions are lookup tables: there is no 
 ** interpolation other than nearest neighbor (actually, someday linear
 ** interpolation may be supported, but that's it)
 ** 2) regardless of the centerings of the axes of nxtf, the lookup table
-** axes will be treated as though they were cell centered (linear
+** axes will be treated as though they were cell centered (linear 
 ** interpolation will always use node centering)
 ** 3) the logical dimension of the transfer function is always one less
 ** ntxf->dim, with axis 0 always for the range of the function, and axes
 ** 1 and onwards for the domain.  For instance, a univariate opacity map
 ** is 2D, with ntxf->axis[0].size == 1.
-**
+** 
 ** So, ntxf->dim-1 is the number of variables in the domain of the transfer
 ** function, and ntxf->axis[0].size is the number of variables in the range.
 */
@@ -111,7 +110,7 @@ enum {
 ** all the input parameters for mite specified by the user, as well as
 ** a mop for cleaning up memory used during rendering.  Currently,
 ** unlike gage, there is no API for setting these- you go in the
-** struct and set them yourself.
+** struct and set them yourself. 
 **
 ** Mite can currently handle scalar, 3-vector, and (symmetric) tensor
 ** volumes, one (at most) of each.  All these volumes must have the
@@ -140,15 +139,15 @@ typedef struct {
   /* the issue of regular shading, txf-based shading, and surface normals:
      phong and lit-tensor shading ("regular shading") methods need to specify
      one or more vectors that are used for shading calculations.  These will
-     be parsed from muu->shadeStr into mrr->shadeSpec, which in turn will
+     be parsed from muu->shadeStr into mrr->shadeSpec, which in turn will 
      determine the pointer values of mtt->shade{Vec,Scl}{0,1}.
-     ENTIRELY SEPARATE FROM THIS, a "surface normal" can be specified in
+     ENTIRELY SEPERATE FROM THIS, a "surface normal" can be specified in
      muu->normalStr, which (if non-empty), will be parsed into mrr->normalSpec,
      which in turn will determine the pointer values of mtt->normal.  This
-     normal is used for the miteVal quantities involving "N".
+     normal is used for the miteVal quantities involving "N".  
      Both shading and normal specifications can be given, since they are
-     used in separate computations.  If the user wants to do miteVal-based
-     stuff with the same quantity specified in (say) a phong shading
+     used in seperate computations.  If the user wants to do miteVal-based
+     stuff with the same quantity specified in (say) a phong shading 
      specification, its up to them to verify that the normalStr and the
      shadeStr refer to the same vector.
   */
@@ -157,7 +156,7 @@ typedef struct {
   /* for each possible element of the txf range, what value should it
      start at prior to rendering. Mainly needed to store non-unity values
      for the quantities not covered by a transfer function */
-  mite_t rangeInit[MITE_RANGE_NUM];
+  mite_t rangeInit[MITE_RANGE_NUM]; 
   double refStep,        /* length of "unity" for doing opacity correction */
     rayStep,             /* distance between sampling planes */
     opacMatters,         /* minimal significant opacity, currently used to
@@ -177,18 +176,18 @@ typedef struct {
   gageContext *gctx0;    /* context and input for all gage-related things,
                             including all kernels.  This is gageContextCopy'd
                             for multi-threaded use (hence the 0) */
-  limnLight *lit;        /* a struct for all lighting info, although
+  limnLight *lit;        /* a struct for all lighting info, although 
                             currently only the ambient and *first* directional
                             light are used */
   int normalSide,        /* determines direction of gradient that is used
                             as normal for shading:
                             1: the standard way: normal points to lower values
-                               (higher values are more "inside");
+                               (higher values are more "inside"); 
                             0: "two-sided": dot-products are abs()'d
                             -1: normal points to higher values
                                (lower values more "inside")
                             Setting up the values this way allows for idioms
-                            like "if (muu->normalSide) . . .", meaning, if the
+                            like "if (muu->normalSide) ...", meaning, if the
                             lighting is one-sided */
     verbUi, verbVi;      /* pixel coordinate for which to turn on verbosity */
   airArray *umop;        /* for things allocated which are used across
@@ -224,7 +223,7 @@ enum {
 ** expressions that are evaluated for transfer function application,
 ** there is less need for this "shading" per se (phong shading can be
 ** expressed with multiplicative and additive transfer functions).
-** But its here for the time being . . .
+** But its here for the time being...
 */
 typedef struct {
   int method;                 /* from miteShadeMethod* enum */
@@ -242,24 +241,24 @@ typedef struct {
 ** rendering-parameter-set-specific (but non-thread-specific) state,
 ** used internally by mite.  The primary role here is to store information
 ** derived from the miteUser, in a form which is more immediately useful
-** for rendering.
+** for rendering.  
 */
 typedef struct {
-  Nrrd **ntxf;                /* array of transfer function nrrds.  The
-                                 difference from those in miteUser is that
-                                 opacity correction (based on rayStep and
+  Nrrd **ntxf;                /* array of transfer function nrrds.  The 
+                                 difference from those in miteUser is that 
+                                 opacity correction (based on rayStep and 
                                  refStep) has been applied to these, and
                                  these have been converted/unquantized to
                                  type mite_t */
   int ntxfNum;                /* allocated and valid length of ntxf[] */
   int sclPvlIdx, vecPvlIdx,
-    tenPvlIdx;                /* indices of the different gageKinds of
+    tenPvlIdx;                /* indices of the different gageKinds of 
                                  volumes in the gageContext's array of
                                  gagePerVolumes.  Probably a hack */
   miteShadeSpec *shadeSpec;   /* information based on muu->shadeStr */
   gageItemSpec *normalSpec;   /* information based on muu->normalStr */
   double time0;               /* rendering start time */
-  gageQuery queryMite;        /* record of the miteVal quantities which
+  gageQuery queryMite;        /* record of the miteVal quantities which 
                                  we'll need to compute per-sample */
   int queryMiteNonzero;       /* shortcut miteVal computation if possible */
 
@@ -267,8 +266,8 @@ typedef struct {
      airMopAdded to the miteUser's mop, these have to be _allocated_ in
      mrendRenderBegin, instead of mrendThreadBegin, which still has the
      role of initializing them */
-  struct miteThread_t *tt[HOOVER_THREAD_MAX];
-  airArray *rmop;             /* for things allocated which are rendering
+  struct miteThread_t *tt[HOOVER_THREAD_MAX];  
+  airArray *rmop;             /* for things allocated which are rendering 
                                  (or rendering parameter) specific and which
                                  are not thread-specific */
 } miteRender;
@@ -277,14 +276,14 @@ typedef struct {
 ******** miteStageOp* enum
 **
 ** the kinds of things we can do per txf to modify the range
-** variables.  previously mite only supported separable transfer
+** variables.  previously mite only supported seperable transfer
 ** functions (i.e., multiplication only).  It is tempting to use all
 ** the operations available as nrrdBinaryOps, but that would lead to
 ** goofy ones like Mod and GreaterThan, which either require or create
 ** integral values which aren't of much use in transfer functions.
 ** More generality in how opacities and colors are assigned will
 ** likely be supported by some simple programmability, supported by
-** the likes of the funk library, which will be entirely separate from
+** the likes of the funk library, which will be entirely seperate from
 ** the miteStageOp mechanism.
 */
 enum {
@@ -299,21 +298,20 @@ enum {
 
 typedef struct {
   double *val;                  /* the txf axis variable, computed either by
-                                   gage or by mite.  This points into the
+                                   gage or by mite.  This points into the 
                                    answer vector in one of the thread's
                                    pervolumes, or into ansMiteVal in the
                                    miteThread.  It can be either a scalar
                                    or a vector */
   int size,                     /* number of entries along this txf axis */
-    op;                         /* from miteStageOp* enum.  Note that this
+    op,                         /* from miteStageOp* enum.  Note that this
                                    operation applies to ALL the range variables
                                    adjusted by this txf (can't add color while
                                    multiplying opacity) */
-  unsigned int
-  (*qn)(const double *);        /* if non-NULL: callback for doing vector
+    (*qn)(double *);            /* if non-NULL: callback for doing vector
                                    quantization of vector-valued txf domain
                                    variables */
-  double min, max;              /* quantization range of values which is
+  double min, max;              /* quantization range of values which is 
                                    covered by this axis of the txf; copied
                                    from corresponding axis of the nrrd */
   mite_t *data;                 /* pointer to txf data.  If non-NULL, the
@@ -328,11 +326,11 @@ typedef struct {
 
 /*
 ******** miteVal* enum
-**
+** 
 ** the quantities not measured by gage (but often reliant on gage-based
 ** measurements) which can appear in the transfer function domain.
 ** In many respects, these behave like gage queries, and these are
-** associated with a gageKind (miteValGageKind), but it is hardly a
+** associated with a gageKind (miteValGageKind), but it is hardly a 
 ** real, bona fide, gageKind. The answers for these are stored in
 ** the miteThread, in lieu of a gagePerVolume
 */
@@ -392,15 +390,15 @@ typedef struct miteThread_t {
                                    (NOT ansMiteVal); this will determine the
                                    value of miteValNormal according to the
                                    semantics of muu->normalSide */
-    *shadeVec0, *shadeVec1,
+    *shadeVec0, *shadeVec1, 
     *shadeScl0, *shadeScl1;     /* pointers into the ans* arrays above,
                                    used for shading */
-  int verbose,                  /* non-zero if
-                                   (ui,vi) = (muu->verbUi,muu->verbVi)
-                                   Because of the actions associated with
+  int verbose,                  /* non-zero if 
+                                   (ui,vi) = (muu->verbUi,muu->verbVi) 
+                                   Because of the actions associated with 
                                    recording values in muu->ndebug, it is
                                    currently reasonable for verbose to be
-                                   non-zero for at most *ONE* pixel: it has
+                                   non-zero for at most *ONE* pixel: it has 
                                    to be one pixel because only one thread
                                    should be creating and storing this per-
                                    pixel information in the miteUser */
@@ -422,13 +420,12 @@ typedef struct miteThread_t {
     RR, GG, BB, TT,             /* per-ray composited values */
     ZZ;                         /* for storing ray-depth when opacity passed
                                    muu->opacMatters */
-  airArray *rmop;             /* for things allocated which are rendering
+  airArray *rmop;             /* for things allocated which are rendering 
                                  (or rendering parameter) specific and which
                                  are thread-specific */
 } miteThread;
 
 /* defaultsMite.c */
-MITE_EXPORT const int mitePresent;
 MITE_EXPORT const char *miteBiffKey;
 MITE_EXPORT double miteDefRefStep;
 MITE_EXPORT int miteDefRenorm;
@@ -446,20 +443,20 @@ MITE_EXPORT char miteRangeChar[MITE_RANGE_NUM+1];
 MITE_EXPORT int miteVariableParse(gageItemSpec *isp, const char *label);
 MITE_EXPORT void miteVariablePrint(char *buff, const gageItemSpec *isp);
 MITE_EXPORT int miteNtxfCheck(const Nrrd *ntxf);
-MITE_EXPORT void miteQueryAdd(gageQuery queryScl, gageQuery queryVec,
+MITE_EXPORT void miteQueryAdd(gageQuery queryScl, gageQuery queryVec, 
                               gageQuery queryTen, gageQuery queryMite,
                               gageItemSpec *isp);
 
 /* user.c */
-MITE_EXPORT miteUser *miteUserNew(void);
+MITE_EXPORT miteUser *miteUserNew();
 MITE_EXPORT miteUser *miteUserNix(miteUser *muu);
 
 /* shade.c */
-MITE_EXPORT miteShadeSpec *miteShadeSpecNew(void);
+MITE_EXPORT miteShadeSpec *miteShadeSpecNew();
 MITE_EXPORT miteShadeSpec *miteShadeSpecNix(miteShadeSpec *);
 MITE_EXPORT int miteShadeSpecParse(miteShadeSpec *shpec, char *shadeStr);
 MITE_EXPORT void miteShadeSpecPrint(char *buff, const miteShadeSpec *shpec);
-MITE_EXPORT void miteShadeSpecQueryAdd(gageQuery queryScl, gageQuery queryVec,
+MITE_EXPORT void miteShadeSpecQueryAdd(gageQuery queryScl, gageQuery queryVec, 
                                        gageQuery queryTen, gageQuery queryMite,
                                        miteShadeSpec *shpec);
 
@@ -468,7 +465,7 @@ MITE_EXPORT int miteRenderBegin(miteRender **mrrP, miteUser *muu);
 MITE_EXPORT int miteRenderEnd(miteRender *mrr, miteUser *muu);
 
 /* thread.c */
-MITE_EXPORT miteThread *miteThreadNew(void);
+MITE_EXPORT miteThread *miteThreadNew();
 MITE_EXPORT miteThread *miteThreadNix(miteThread *mtt);
 MITE_EXPORT int miteThreadBegin(miteThread **mttP, miteRender *mrr,
                                 miteUser *muu, int whichThread);
@@ -476,7 +473,7 @@ MITE_EXPORT int miteThreadEnd(miteThread *mtt, miteRender *mrr, miteUser *muu);
 
 /* ray.c */
 MITE_EXPORT int miteRayBegin(miteThread *mtt, miteRender *mrr, miteUser *muu,
-                             int uIndex, int vIndex,
+                             int uIndex, int vIndex, 
                              double rayLen,
                              double rayStartWorld[3], double rayStartIndex[3],
                              double rayDirWorld[3], double rayDirIndex[3]);

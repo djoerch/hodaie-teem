@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,7 +24,7 @@
 #include "privateNrrd.h"
 #include "float.h"
 
-/*
+/* 
 ** making these typedefs here allows us to used one token for both
 ** constructing function names, and for specifying argument types
 */
@@ -58,13 +57,13 @@ F(A, UL) \
 F(A, FL) \
 F(A, DB)
 
-/*
+/* 
 ** _nrrdLoad<TA><TB>(<TB> *v)
 **
 ** Dereferences v as TB*, casts it to TA, returns it.
 */
 #define LOAD_DEF(TA, TB)                    \
-static TA                                   \
+TA                                          \
 _nrrdLoad##TA##TB(TB *v) {                  \
   return (TA)(*v);                          \
 }
@@ -102,7 +101,7 @@ nrrdDLoad[NRRD_TYPE_MAX+1])(const void*) = {
 ** the value that was passed in.
 */
 #define STORE_DEF(TA, TB)                   \
-static TA                                   \
+TA                                          \
 _nrrdStore##TA##TB(TB *v, TA j) {           \
   return (TA)(*v = (TB)j);                  \
 }
@@ -138,7 +137,7 @@ nrrdDStore[NRRD_TYPE_MAX+1])(void *, double) = {
 ** Looks up element I of TB array v, and returns it cast to a TA.
 */
 #define LOOKUP_DEF(TA, TB)                    \
-static TA                                     \
+TA                                            \
 _nrrdLookup##TA##TB(TB *v, size_t I) {        \
   return (TA)v[I];                            \
 }
@@ -176,7 +175,7 @@ nrrdDLookup[NRRD_TYPE_MAX+1])(const void *, size_t) = {
 ** the value that was passed in.
 */
 #define INSERT_DEF(TA, TB)                         \
-static TA                                          \
+TA                                                 \
 _nrrdInsert##TA##TB(TB *v, size_t I, TA j) {       \
   return (TA)(v[I] = (TB)j);                       \
 }
@@ -220,14 +219,14 @@ static int _nrrdSprintSH(char *s, const SH *v) { return sprintf(s, "%d", *v); }
 static int _nrrdSprintUS(char *s, const US *v) { return sprintf(s, "%u", *v); }
 static int _nrrdSprintIN(char *s, const JN *v) { return sprintf(s, "%d", *v); }
 static int _nrrdSprintUI(char *s, const UI *v) { return sprintf(s, "%u", *v); }
-static int _nrrdSprintLL(char *s, const LL *v) {
-  return sprintf(s, AIR_LLONG_FMT, *v);
+static int _nrrdSprintLL(char *s, const LL *v) { 
+  return sprintf(s, AIR_LLONG_FMT, *v); 
 }
-static int _nrrdSprintUL(char *s, const UL *v) {
-  return sprintf(s, AIR_ULLONG_FMT, *v);
+static int _nrrdSprintUL(char *s, const UL *v) { 
+  return sprintf(s, AIR_ULLONG_FMT, *v); 
 }
-/* HEY: sizeof(float) and sizeof(double) assumed here, since we're
-   basing "8" and "17" on 6 == FLT_DIG and 15 == DBL_DIG, which are
+/* HEY: sizeof(float) and sizeof(double) assumed here, since we're 
+   basing "8" and "17" on 6 == FLT_DIG and 15 == DBL_DIG, which are 
    digits of precision for floats and doubles, respectively */
 static int _nrrdSprintFL(char *s, const FL *v) {
   return airSinglePrintf(NULL, s, "%.8g", (double)(*v)); }
@@ -262,11 +261,11 @@ static int _nrrdFprintSH(FILE *f, const SH *v) { return fprintf(f, "%d", *v); }
 static int _nrrdFprintUS(FILE *f, const US *v) { return fprintf(f, "%u", *v); }
 static int _nrrdFprintIN(FILE *f, const JN *v) { return fprintf(f, "%d", *v); }
 static int _nrrdFprintUI(FILE *f, const UI *v) { return fprintf(f, "%u", *v); }
-static int _nrrdFprintLL(FILE *f, const LL *v) {
-  return fprintf(f, AIR_LLONG_FMT, *v);
+static int _nrrdFprintLL(FILE *f, const LL *v) { 
+  return fprintf(f, AIR_LLONG_FMT, *v); 
 }
-static int _nrrdFprintUL(FILE *f, const UL *v) {
-  return fprintf(f, AIR_ULLONG_FMT, *v);
+static int _nrrdFprintUL(FILE *f, const UL *v) { 
+  return fprintf(f, AIR_ULLONG_FMT, *v); 
 }
 static int _nrrdFprintFL(FILE *f, const FL *v) {
   return airSinglePrintf(f, NULL, "%.8g", (double)(*v)); }
@@ -434,8 +433,8 @@ nrrdMinMaxExactFind[NRRD_TYPE_MAX+1])(void *minP, void *maxP,
 ** dictate that all non-existent values are smaller than all existent
 ** values, regardless of their actual values (so +infinity < -42).  This
 ** is to make sure that we have comparison that won't confuse qsort(),
-** which underlies _nrrdMeasureMedian(), and to make it easier to separate
-** existent from non-existent values.
+** which underlies _nrrdMeasureMedian(), and to make it easier to seperate
+** existant from non-existant values.
 */
 #define _VC_ARGS(type) const type *A, const type *B
 #define _VC_FIXED (*A < *B ? -1 : (*A > *B ? 1 : 0))
@@ -503,96 +502,5 @@ nrrdValCompareInv[NRRD_TYPE_MAX+1])(const void *, const void *) = {
   (int (*)(const void *, const void *))_nrrdValCompareInvDB,
   NULL
 };
-
-/*
-** nrrdArrayCompare
-**
-** something like strcmp() for arrays of numeric values, except
-** that the arrays have to be equal length, and it has to do
-** error checking.
-**
-** See comment about logic of return value above nrrdCompare()
-**
-** This is a very rare kind of nrrd function that operates on
-** a bare array and not a Nrrd itself
-*/
-int nrrdArrayCompare(int type, const void *_valA, const void *_valB,
-                     size_t valNum, double epsilon, int *differ,
-                     char explain[AIR_STRLEN_LARGE]) {
-  static const char me[]="nrrdArrayCompare";
-  const unsigned char *valA, *valB;
-  int (*compare)(const void *, const void *);
-  size_t ii, sze;
-  char stmp[AIR_STRLEN_SMALL];
-
-  if (!(_valA && _valB && differ)) {
-    biffAddf(NRRD, "%s: got NULL pointer (%p, %p, or %p)", me,
-             _valA, _valB, AIR_VOIDP(differ));
-    return 1;
-  }
-  if (!valNum) {
-    biffAddf(NRRD, "%s: can't work with 0-length arrays", me);
-    return 1;
-  }
-  if (!AIR_EXISTS(epsilon)) {
-    biffAddf(NRRD, "%s: non-existent epsilon %g", me, epsilon);
-    return 1;
-  }
-  if (airEnumValCheck(nrrdType, type)) {
-    biffAddf(NRRD, "%s: invalid nrrd type %d", me, type);
-    return 1;
-  }
-  if (nrrdTypeBlock == type) {
-    biffAddf(NRRD, "%s: can't use type %s", me, airEnumStr(nrrdType, type));
-    return 1;
-  }
-
-  if (explain) {
-    strcpy(explain, "");
-  }
-  if (type == nrrdTypeLLong || type == nrrdTypeULLong) {
-    fprintf(stderr, "%s: WARNING: possible erroneous comparison of "
-            "%s values with %s-based comparison\n", me,
-            airEnumStr(nrrdType, type),
-            airEnumStr(nrrdType, nrrdTypeDouble));
-  }
-  sze = nrrdTypeSize[type];
-  compare = nrrdValCompare[type];
-  valA = AIR_CAST(const unsigned char *, _valA);
-  valB = AIR_CAST(const unsigned char *, _valB);
-  for (ii=0; ii<valNum; ii++) {
-    *differ = compare(valA + ii*sze, valB + ii*sze);
-    if (*differ) {
-      double aa, bb;
-      /* same loss of precision as warned about above */
-      aa = nrrdDLookup[type](valA, ii);
-      bb = nrrdDLookup[type](valB, ii);
-      if (0 == epsilon
-          || fabs(aa - bb) > epsilon) {
-        if (explain) {
-          airSprintSize_t(stmp, ii);
-          if (0 == epsilon) {
-            sprintf(explain, "valA[%s]=%.17g %s valB[%s]=%.17g "
-                    "by %g",
-                    stmp, aa, *differ < 0 ? "<" : ">", stmp, bb,
-                    fabs(aa - bb));
-          } else {
-            sprintf(explain, "valA[%s]=%.17g %s valB[%s]=%.17g "
-                    "by %g, more than eps %g",
-                    stmp, aa, *differ < 0 ? "<" : ">", stmp, bb,
-                    fabs(aa - bb), epsilon);
-          }
-        }
-        break;
-      } else {
-        /* we did detect a difference, but it was not in excess of
-           epsilon, so we reset *differ to 0 */
-        *differ = 0;
-      }
-    }
-  }
-
-  return 0;
-}
 
 /* ---- END non-NrrdIO */

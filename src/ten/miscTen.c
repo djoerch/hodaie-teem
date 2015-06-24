@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -35,10 +34,10 @@ tenEvecRGB(Nrrd *nout, const Nrrd *nin,
   size_t II, NN;
   unsigned char *odataUC;
   unsigned short *odataUS;
-
+  
   if (!(nout && nin)) {
     biffAddf(TEN, "%s: got NULL pointer (%p,%p)",
-             me, AIR_CAST(void *, nout), AIR_CVOIDP(nin));
+            me, AIR_CAST(void *, nout), AIR_CAST(void *, nin));
     return 1;
   }
   if (tenEvecRGBParmCheck(rgbp)) {
@@ -46,17 +45,15 @@ tenEvecRGB(Nrrd *nout, const Nrrd *nin,
     return 1;
   }
   if (!(2 <= nin->dim && 7 == nin->axis[0].size)) {
-    char stmp[AIR_STRLEN_SMALL];
-    biffAddf(TEN, "%s: need nin->dim >= 2 (not %u), axis[0].size == 7 "
-             "(not %s)", me, nin->dim,
-             airSprintSize_t(stmp, nin->axis[0].size));
+    biffAddf(TEN, "%s: need nin->dim >= 2 (not %u), axis[0].size == 7 (not "
+            _AIR_SIZE_T_CNV ")", me, nin->dim, nin->axis[0].size);
     return 1;
   }
 
   nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, size);
   size[0] = rgbp->genAlpha ? 4 : 3;
   if (nrrdMaybeAlloc_nva(nout, (nrrdTypeDefault == rgbp->typeOut
-                                ? nin->type
+                                ? nin->type 
                                 : rgbp->typeOut), nin->dim, size)) {
     biffMovef(TEN, NRRD, "%s: couldn't alloc output", me);
     return 1;
@@ -111,7 +108,7 @@ tenEvecRGB(Nrrd *nout, const Nrrd *nin,
     biffAddf(TEN, "%s:", me);
     return 1;
   }
-
+  
   return 0;
 }
 
@@ -211,7 +208,7 @@ tenEvqVolume(Nrrd *nout,
     biffAddf(TEN, "%s:", me);
     return 1;
   }
-
+  
   return 0;
 }
 
@@ -224,9 +221,9 @@ tenBMatrixCheck(const Nrrd *nbmat, int type, unsigned int minnum) {
     return 1;
   }
   if (!( 6 == nbmat->axis[0].size && 2 == nbmat->dim )) {
-    char stmp[AIR_STRLEN_SMALL];
-    biffAddf(TEN, "%s: need a 6xN 2-D array (not a %s x? %d-D array)", me,
-             airSprintSize_t(stmp, nbmat->axis[0].size), nbmat->dim);
+    biffAddf(TEN, "%s: need a 6xN 2-D array (not a " _AIR_SIZE_T_CNV 
+             "x? %d-D array)",
+             me, nbmat->axis[0].size, nbmat->dim);
     return 1;
   }
   if (nrrdTypeDefault != type && type != nbmat->type) {
@@ -235,14 +232,14 @@ tenBMatrixCheck(const Nrrd *nbmat, int type, unsigned int minnum) {
     return 1;
   }
   if (nrrdTypeBlock == nbmat->type) {
-    biffAddf(TEN, "%s: sorry, can't use %s type", me,
+    biffAddf(TEN, "%s: sorry, can't use %s type", me, 
              airEnumStr(nrrdType, nrrdTypeBlock));
     return 1;
   }
   if (!( minnum <= nbmat->axis[1].size )) {
-    char stmp[AIR_STRLEN_SMALL];
-    biffAddf(TEN, "%s: have only %s B-matrices, need at least %d", me,
-             airSprintSize_t(stmp, nbmat->axis[1].size), minnum);
+    biffAddf(TEN, "%s: have only " _AIR_SIZE_T_CNV " B-matrices, "
+             "need at least %d",
+             me, nbmat->axis[1].size, minnum);
     return 1;
   }
 
@@ -275,7 +272,7 @@ _tenFindValley(double *valP, const Nrrd *nhist, double tweak, int save) {
   tenEMBimodal(biparm, nhist);
   biparm = tenEMBimodalParmNix(biparm);
   */
-
+  
   mop = airMopNew();
   airMopAdd(mop, ntmpA=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, ntmpB=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);

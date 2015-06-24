@@ -1,6 +1,5 @@
 #
-# Teem: Tools to process and visualize scientific data and images             .
-# Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+# Teem: Tools to process and visualize scientific data and images              
 # Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
 # Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 #
@@ -41,7 +40,6 @@ CREATE_EXEC(miter miter.c)
 CREATE_EXEC(vprobe vprobe.c)
 CREATE_EXEC(gprobe gprobe.c)
 CREATE_EXEC(unu unu.c)
-CREATE_EXEC(puller puller.c)
 CREATE_EXEC(tend tend.c)
 
 # NOTE: The BUILD_EXPERIMENTAL_LIBS-dependent inclusion of binaries has to be
@@ -49,8 +47,11 @@ CREATE_EXEC(tend tend.c)
 # CMakeLists.txt file
 IF(BUILD_EXPERIMENTAL_APPS)
   CREATE_EXEC(airSanity airSanity.c)
+  CREATE_EXEC(affine affine.c)
   CREATE_EXEC(cubic cubic.c)
   CREATE_EXEC(undos undos.c)
+  CREATE_EXEC(idx2pos idx2pos.c)
+  CREATE_EXEC(pos2idx pos2idx.c)
   CREATE_EXEC(qbert qbert.c)
   CREATE_EXEC(emap emap.c)
   CREATE_EXEC(talkweb talkweb.c)

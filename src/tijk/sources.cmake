@@ -4,15 +4,10 @@ SET(TIJK_SOURCES
   2dTijk.c
   3dTijk.c
   approxTijk.c
-  enumsTijk.c
-  fsTijk.c
   miscTijk.c
-  nrrdTijk.c
   shTijk.c
+  fsTijk.c
   privateTijk.h
-  convertQuietPush.h
-  convertQuietPop.h
-  shtables.h
   tijk.h
   )
 

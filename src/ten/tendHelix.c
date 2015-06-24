@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,7 +24,7 @@
 #include "privateTen.h"
 
 #define INFO "Generate twisting helical tensor field"
-static const char *_tend_helixInfoL =
+char *_tend_helixInfoL =
   (INFO
    ". The main utility of such a field is to debug handling of coordinate "
    "systems in tensor field visualization.  The \"space directions\" and "
@@ -48,7 +47,7 @@ void
 tend_helixDoit(Nrrd *nout, double bnd,
                double orig[3], double i2w[9], double mf[9],
                double r, double R, double S, double angle, int incrtwist,
-               double ev[3], double bgEval, int verbose) {
+               double ev[3], double bgEval) {
   int sx, sy, sz, xi, yi, zi;
   double th, t0, t1, t2, t3, v1, v2,
     wpos[3], vpos[3], mfT[9],
@@ -62,9 +61,7 @@ tend_helixDoit(Nrrd *nout, double bnd,
   out = (float*)nout->data;
   ELL_3M_TRANSPOSE(mfT, mf);
   for (zi=0; zi<sz; zi++) {
-    if (verbose) {
-      fprintf(stderr, "zi = %d/%d\n", zi, sz);
-    }
+    fprintf(stderr, "zi = %d/%d\n", zi, sz);
     for (yi=0; yi<sy; yi++) {
       for (xi=0; xi<sx; xi++) {
         ELL_3V_SET(tmp, xi, yi, zi);
@@ -77,7 +74,7 @@ tend_helixDoit(Nrrd *nout, double bnd,
 #define CC (1.0-RR)
 #define SHIFT3(a,b,c,d) (a)=(b); (b)=(c); (c)=(d)
 #define SHIFT2(a,b,c)   (a)=(b); (b)=(c)
-
+        
         th = atan2(vpos[1], vpos[0]);
         th += 2*AIR_PI*floor(0.5 + vpos[2]/S - th/(2*AIR_PI));
         if (S*th/(2*AIR_PI) > vpos[2]) {
@@ -110,7 +107,7 @@ tend_helixDoit(Nrrd *nout, double bnd,
         len = ELL_3V_DOT(rv, fv);
         ELL_3V_SCALE(tmp, -len, fv);
         ELL_3V_ADD2(rv, rv, tmp);
-        ELL_3V_NORM(rv, rv, len);  /* rv now normal to helix, closest to
+        ELL_3V_NORM(rv, rv, len);  /* rv now normal to helix, closest to 
                                       pointing to vpos */
         ELL_3V_CROSS(uv, rv, fv);
         ELL_3V_NORM(uv, uv, len);  /* (rv,fv,uv) now right-handed frame */
@@ -136,7 +133,7 @@ tend_helixDoit(Nrrd *nout, double bnd,
         ELL_3M_MUL(mA, C2H, mB);
         ELL_3M_MUL(mB, H2W, mA);
         ELL_3M_MUL(mA, mfT, mB);
-
+        
         TEN_M2T_TT(out, float, mA);
         out[0] = 1.0;
         out += 7;
@@ -147,20 +144,19 @@ tend_helixDoit(Nrrd *nout, double bnd,
 }
 
 int
-tend_helixMain(int argc, const char **argv, const char *me,
-               hestParm *hparm) {
+tend_helixMain(int argc, char **argv, char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;
   airArray *mop;
 
-  int size[3], nit, verbose;
+  int size[3], nit;
   Nrrd *nout;
   double R, r, S, bnd, angle, ev[3], ip[3], iq[4], mp[3], mq[4], tmp[9],
     orig[3], i2w[9], rot[9], mf[9], spd[4][3], bge;
   char *outS;
 
-  hestOptAdd(&hopt, "s", "size", airTypeInt, 3, 3, size, NULL,
+  hestOptAdd(&hopt, "s", "size", airTypeInt, 3, 3, size, NULL, 
              "sizes along fast, medium, and slow axes of the sampled volume, "
              "often called \"X\", \"Y\", and \"Z\".  It is best to use "
              "slightly different sizes here, to expose errors in interpreting "
@@ -196,8 +192,6 @@ tend_helixMain(int argc, const char **argv, const char *me,
              "circumferential around coil, and radial around coil. ");
   hestOptAdd(&hopt, "bg", "background", airTypeDouble, 1, 1, &bge, "0.5",
              "eigenvalue of isotropic background");
-  hestOptAdd(&hopt, "v", "verbose", airTypeInt, 1, 1, &verbose, "1",
-             "verbose output");
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
              "output file");
 
@@ -235,8 +229,7 @@ tend_helixMain(int argc, const char **argv, const char *me,
   ell_q_to_3m_d(mf, mq);
   tend_helixDoit(nout, bnd,
                  orig, i2w, mf,
-                 r, R, S, angle*AIR_PI/180, !nit, ev, bge,
-                 verbose);
+                 r, R, S, angle*AIR_PI/180, !nit, ev, bge);
   nrrdSpaceSet(nout, nrrdSpaceRightAnteriorSuperior);
   nrrdSpaceOriginSet(nout, orig);
   ELL_3V_SET(spd[0], AIR_NAN, AIR_NAN, AIR_NAN);

@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -30,7 +29,7 @@ int airStrtokQuoting = AIR_FALSE;
 /*
 ******** airStrdup()
 **
-** because they didn't put strdup() in ANSI.
+** because they didn't put strdup() in ANSI ...
 ** This will return NULL if given NULL.
 */
 char *
@@ -57,7 +56,7 @@ airStrdup(const char *s) {
 size_t
 airStrlen(const char *s) {
   size_t ret;
-
+  
   if (!s) {
     ret = 0;
   }
@@ -67,25 +66,6 @@ airStrlen(const char *s) {
   return ret;
 }
 
-/* ---- BEGIN non-NrrdIO */
-/*
-******** airStrcmp
-**
-** just like strcmp, but safe to call with NULL strings
-*/
-int
-airStrcmp(const char *s1, const char *s2) {
-  int ret;
-
-  if (!( s1 && s2 )) {
-    ret = !!s1 - !!s2;
-  } else {
-    ret = strcmp(s1, s2);
-  }
-  return ret;
-}
-
-/* ---- END non-NrrdIO */
 /*
 ******** airStrtok()
 **
@@ -99,7 +79,7 @@ airStrcmp(const char *s1, const char *s2) {
 char *
 airStrtok(char *s, const char *ct, char **last) {
   char *h, *e, *q;
-
+  
   if (!(ct && last)) {
     /* can't do any work, bail */
     return NULL;
@@ -162,54 +142,14 @@ airStrntok(const char *_s, const char *ct) {
 char *
 airStrtrans(char *s, char from, char to) {
   size_t i, l;
-
+  
   if (s) {
     l = strlen(s);
     for (i=0; i<l; i++) {
-      if (s[i] == from) {
-        s[i] = to;
-      }
+      s[i] = (s[i] == from ? to : s[i]);
     }
   }
   return s;
-}
-
-/*
-******** airStrcpy
-**
-** Like strncpy but logic is different (and perhaps more useful), being:
-** "dst is allocated for dstSize chars. Copy as much of src as can
-** "fit in dst, and always 0-terminate the resulting dst.",
-** instead of strncpy's "Copy at most n characters, blah blah blah,
-** and you still have to 0-terminate the rest yourself".
-**
-** E.g. with declaration buff[AIR_STRLEN_SMALL], you call
-** airStrcpy(buff, AIR_STRLEN_SMALL, src), and know that then
-** strlen(buff) <= AIR_STRLEN_SMALL-1. (see note in air.h about
-** the meaning of the STRLEN #defines).
-**
-** Returns NULL if there was a problem (NULL dst or dstSize zero),
-** otherwise returns dst
-*/
-char *
-airStrcpy(char *dst, size_t dstSize, const char *src) {
-  size_t ii, copyLen, srcLen;
-
-  if (!(dst && dstSize > 0)) {
-    return NULL;
-  }
-  srcLen = airStrlen(src);
-  if (1 == dstSize || !srcLen) {
-    dst[0] = '\0';
-    return dst;
-  }
-  /* else dstSize > 1  AND src is a non-empy string */
-  copyLen = AIR_MIN(dstSize-1, srcLen);
-  for (ii=0; ii<copyLen; ii++) {
-    dst[ii] = src[ii];
-  }
-  dst[copyLen] = '\0';
-  return dst;
 }
 
 /*
@@ -219,7 +159,7 @@ airStrcpy(char *dst, size_t dstSize, const char *src) {
 */
 int
 airEndsWith(const char *s, const char *suff) {
-
+  
   if (!(s && suff))
     return 0;
   if (!(strlen(s) >= strlen(suff)))
@@ -234,7 +174,7 @@ airEndsWith(const char *s, const char *suff) {
 ******** airUnescape()
 **
 ** unescapes \\ and \n in place in a given string.
-** Always returns the same pointer as given
+**
 */
 char *
 airUnescape(char *s) {
@@ -242,7 +182,7 @@ airUnescape(char *s) {
   int found=0;
 
   len = airStrlen(s);
-  if (!len)
+  if (!len) 
     return s;
 
   for (i=1, j=0; i<len; i++, j++) {
@@ -270,16 +210,14 @@ airUnescape(char *s) {
 ** to "".
 **
 ** Useful for cleaning up lines of text to be saved as strings in
-** fields of other structs.
-**
-** Whatever happens, this returns the pointer passed to it
+** fields of other structs
 */
 char *
 airOneLinify(char *s) {
   size_t i, j, len;
 
   len = airStrlen(s);
-  if (!len)
+  if (!len) 
     return s;
 
   /* convert white space to space (' '), and delete unprintables */
@@ -329,7 +267,7 @@ airToLower(char *str) {
   if (str) {
     c = str;
     while (*c) {
-      *c = AIR_CAST(char, tolower(AIR_INT(*c)));
+      *c = tolower(*c);
       c++;
     }
   }
@@ -349,7 +287,7 @@ airToUpper(char *str) {
   if (str) {
     c = str;
     while (*c) {
-      *c = AIR_CAST(char, toupper(AIR_INT(*c)));
+      *c = toupper(*c);
       c++;
     }
   }
@@ -358,7 +296,7 @@ airToUpper(char *str) {
 
 /*
 ******** airOneLine()
-**
+** 
 ** gets one line from "file", putting it into an array if given size.
 ** "size" must be the size of line buffer "line": the size which
 ** "line" was allocated for, not the number of non-null characters it
@@ -380,67 +318,51 @@ airToUpper(char *str) {
 ** comprising the line are counted.  However, there is no pretension
 ** that on those platforms, "\n" by itself does not actually count as
 ** a newline.
-**
-** Finally, for those trafficking in legacy Mac text files (for which
-** the line termination is only "\r", the same applies- these are also
-** effectively treated the same as a newline.
 */
 unsigned int
-airOneLine(FILE *file, char *line, unsigned int size) {
-  int cc=0;
-  unsigned int ii;
-
+airOneLine(FILE *file, char *line, int size) {
+  int c=0, i;
+  
   if (!(size >= 3  /* need room for a character and a Windows newline */
         && line && file)) {
     return 0;
   }
   /* c is always set at least once, but not so for any char in line[]  */
-  for (ii=0;
-       (ii <= size-2              /* room for line[ii] and \0 after that */
-        && EOF != (cc=getc(file)) /* didn't hit EOF trying to read char */
-        && cc != '\n'             /* char isn't newline */
-        && cc != '\r');           /* char isn't carriage return */
-       ++ii) {
-    line[ii] = AIR_CAST(char, cc);
+  for (i=0;
+       (i <= size-2              /* room for line[i] and \0 after that */
+        && EOF != (c=getc(file)) /* didn't hit EOF trying to read char */
+        && c != '\n');           /* char isn't newline */
+       ++i) {
+    line[i] = c;
   }
 
-  if (EOF == cc) {
+  if (EOF == c) {
     /* for-loop terminated because we hit EOF */
     line[0] = '\0';
     return 0;
-  } else if ('\r' == cc || '\n' == cc) {
-    /* for-loop terminated because we hit '\n' or '\r' */
-    /* if it was '\r', see if next character is '\n' */
-    if ('\r' == cc) {
-      cc = getc(file);
-      if (EOF != cc && '\n' != cc) {
-        /* oops, we got something, and it was not a '\n'; put it back */
-        ungetc(cc, file);
-      }
+  } else if ('\n' == c) {
+    /* for-loop terminated because we hit '\n' */
+    if (i >= 1 && '\r' == line[i-1]) {
+      /* newline was "\r\n" */
+      i--;
     }
-    line[ii] = '\0';
-    return ii+1;
+    line[i] = '\0';
+    return i+1;
   } else {
-    /* for-loop terminated because we got to end of buffer (ii == size-1) */
-    cc = getc(file);
-    /* but see if we were about to get '\r', "\r\n", or '\n' */
-    if ('\r' == cc) {
-      int dd;
-      dd = getc(file);
-      if (EOF != dd && '\n' != dd) {
-        /* oops, put it back */
-        ungetc(dd, file);
-      }
-      line[ii] = '\0';
-      return ii+1;
-    } else if ('\n' == cc) {
-      line[ii] = '\0';
-      return ii+1;
+    /* for-loop terminated because we got to end of buffer (i == size-1) */
+    c = getc(file);
+    /* but see if we were about to get a "\n" */
+    if ('\n' == c) {
+      if ('\r' == line[i-1]) {
+        /* newline was "\r\n" */
+        i--;
+      } 
+      line[i] = '\0';
+      return i+1;
     } else {
-      /* weren't about to get a line termination,
-         we really did run out of buffer */
-      if (EOF != cc) {
-        ungetc(cc, file);  /* we're allowed one ungetc on ANY stream */
+      /* weren't about to get a "\n", we really did run out of buffer */
+      if (EOF != c) {
+        ungetc(c, file);  /* we're allowed one ungetc on ANY stream */
       }
       line[size-1] = '\0';
       return size+1;

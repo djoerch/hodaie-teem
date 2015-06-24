@@ -19,7 +19,6 @@ SET(PULL_SOURCES
   popcntl.c
   ccPull.c
   enumsPull.c
-  trace.c
   )
 
 ADD_TEEM_LIBRARY(pull ${PULL_SOURCES})

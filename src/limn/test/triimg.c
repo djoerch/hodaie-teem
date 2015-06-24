@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -28,14 +28,14 @@ char *info = ("Save a triangular piece of an image to an EPS file. "
               "-0 u:0,1 -b pad -bg 0 before you use this. ");
 
 int
-main(int argc, const char *argv[]) {
-  const char *me;
+main(int argc, char *argv[]) {
+  char *me;
   hestOpt *hopt=NULL;
   airArray *mop;
 
   NrrdIoState *nio;
   FILE *file;
-  char *outS;
+  char *outS;  
   Nrrd *nin;
   float width, scale, hack, minX, maxX, minY, maxY;
   int gray, sx, sy, labels;
@@ -56,7 +56,7 @@ main(int argc, const char *argv[]) {
                  me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
-
+  
   if (!( 2 == nin->dim || 3 == nin->dim )) {
     fprintf(stderr, "%s: input nrrd must be 2-D or 3-D (not %d-D)\n", me,
             nin->dim);
@@ -101,7 +101,7 @@ main(int argc, const char *argv[]) {
   fprintf(file, "%%%%BoundingBox: %d %d %d %d\n",
           (int)floor(minX), (int)floor(minY),
           (int)ceil(maxX), (int)ceil(maxY));
-  fprintf(file, "%%%%HiResBoundingBox: %g %g %g %g\n",
+  fprintf(file, "%%%%HiResBoundingBox: %g %g %g %g\n", 
           minX, minY, maxX, maxY);
   fprintf(file, "%%%%EndComments\n");
   fprintf(file, "%%%%BeginProlog\n");
@@ -152,7 +152,7 @@ main(int argc, const char *argv[]) {
   }
 
   fprintf(file, "grestore\n");
-
+  
   airMopOkay(mop);
   return 0;
 }

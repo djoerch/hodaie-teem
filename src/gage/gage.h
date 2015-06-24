@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -31,8 +30,8 @@
 
 #include <teem/air.h>
 #include <teem/biff.h>
-#include <teem/nrrd.h>
 #include <teem/ell.h>
+#include <teem/nrrd.h>
 
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(TEEM_STATIC)
 #  if defined(TEEM_BUILD) || defined(gage_EXPORTS) || defined(teem_EXPORTS)
@@ -51,43 +50,11 @@ extern "C" {
 #define GAGE gageBiffKey
 
 /*
-** GAGE_DERIV_MAX is the maximum derivative that gage knows how to
-** work with. The 0th derivative is the reonstructed value (no
-** derivative).  Many short arrays are allocated to 1 + this value
-**
-** MUST KEEP IN SYNC with GAGE_DV_* macros below
-*/
-#define GAGE_DERIV_MAX 2
-
-/*
-** Convenience macros for arrays declared like blah[GAGE_DERIV_MAX+1]
-** (so these need to be kept in sync with GAGE_DERIV_MAX above).  Note
-** that "DV" is short for "derivative vector".  With consistent use of
-** these, changes to GAGE_DERIV_MAX will either obviously break code
-** (in an easy to fix way) or there will be no change needed at all.
-**
-*/
-#define GAGE_DV_SET(v, d0, d1, d2) \
-  ((v)[0] = (d0),                  \
-   (v)[1] = (d1),                  \
-   (v)[2] = (d2))
-
-#define GAGE_DV_EQUAL(a, b)        \
-  ((a)[0] == (b)[0] &&             \
-   (a)[1] == (b)[1] &&             \
-   (a)[2] == (b)[2])
-
-#define GAGE_DV_COPY(a, b)         \
-  ((a)[0] = (b)[0],                \
-   (a)[1] = (b)[1],                \
-   (a)[2] = (b)[2])
-
-/*
 ** the only extent to which gage treats different axes differently is
 ** the spacing between samples along the axis.  To have different
 ** filters for the same function, but along different axes, would be
 ** too messy.  [Sun Mar 9 13:32:22 EDT 2008: Actually, doing per-axis
-** kernels is looking more and more sensible all the time. . .] Thus,
+** kernels is looking more and more sensible all the time...] Thus,
 ** gage is not very useful as the engine for downsampling: it can't
 ** tell that along one axis samples should be blurred while they
 ** should be interpolated along another.  Rather, it assumes that the
@@ -99,7 +66,7 @@ extern "C" {
 ** terminology: gage is intended to measure multiple things at one
 ** point in a volume.  The SET of ALL the things that you want
 ** gage to measure is called the "QUERY".  Each of the many quantities
-** comprising the query are called "ITEM"s.
+** comprising the query are called "ITEM"s.  
 */
 
 /*
@@ -127,14 +94,12 @@ enum {
   gageParmDefaultCenter,           /* int */
   gageParmStackUse,                /* int */
   gageParmStackNormalizeDeriv,     /* int; does NOT imply gageParmStackUse */
-  gageParmStackNormalizeDerivBias, /* double; does NOT imply      "        */
-  gageParmStackNormalizeRecon,     /* int; does NOT imply         "        */
+  gageParmStackNormalizeDerivBias, /* double; does NOT imply ... */
+  gageParmStackNormalizeRecon,     /* int; does NOT imply gageParmStackUse */
   gageParmOrientationFromSpacing,  /* int */
-  gageParmGenerateErrStr,          /* int */
   gageParmLast
 };
 
-/* keep in synch with gageErr airEnum */
 enum {
   gageErrUnknown,            /* 0: nobody knows */
   gageErrNone,               /* 1: no error, actually, all's well */
@@ -144,10 +109,9 @@ enum {
                                    normalize them */
   gageErrStackSearch,        /* 5: for some reason couldn't find the index
                                    position of the probed stack location */
-  gageErrStackUnused,        /* 6: can't probe stack without parm.stackUse */
   gageErrLast
 };
-#define GAGE_ERR_MAX            6
+#define GAGE_ERR_MAX            5
 
 /*
 ******** gage{Ctx,Pvl}Flag.. enum
@@ -179,14 +143,13 @@ enum {
   gagePvlFlagLast
 };
 #define GAGE_PVL_FLAG_MAX    3
-
+  
 
 /*
 ******** gageKernel.. enum
 **
 ** these are the different kernels that might be used in gage, regardless
 ** of what kind of volume is being probed.
-** (synch with miscGage.c:gageKernel airEnum)
 */
 enum {
   gageKernelUnknown,    /*  0: nobody knows */
@@ -201,15 +164,15 @@ enum {
 };
 #define GAGE_KERNEL_MAX     7
 
-/*
+/* 
 ******** GAGE_ITEM_PREREQ_MAXNUM
 **
 ** Max number of prerequisites for any item in *any* kind.
 **
 ** This value has gotten bumped periodically, which used to mean
 ** that *all* item tables had to be updated, when "-1" was used
-** represent the unknown item.  But now that 0 represents the
-** unknown item, and because struct elements are implicitly
+** represent the unknown item.  But now that 0 represents the 
+** unknown item, and because struct elements are implicitly 
 ** initialized to zero, this is no longer the case.
 **
 ** Wed Nov  8 14:12:44 EST 2006 pre-emptively upping this from 6
@@ -219,7 +182,7 @@ enum {
 /*
 ******** gageItemEntry struct
 **
-** necessary information about each item supported by the kind, which
+** necessary information about each item supported by the kind, which 
 ** is defined at compile-time in a per-kind table (at least it is for
 ** the scalar, vector, and tensor kinds)
 **
@@ -229,9 +192,9 @@ enum {
 */
 typedef struct {
   int enumVal;          /* the item's enum value */
-  unsigned int
+  unsigned int 
     answerLength;       /* how many double's are needed to store the answer,
-                           or (for non-zero items), 0 to represent
+                           or (for non-zero items), 0 to represent 
                            "the length will be learned later at runtime" */
   int needDeriv,        /* what kind of derivative info is immediately needed
                            for this item (not recursively expanded). This is
@@ -247,18 +210,19 @@ typedef struct {
                            containing the smaller value for which we are
                            merely an alias
                            _OR_ 0 if there's no parent */
-    parentIndex,        /* where our value starts in parents value
+    parentIndex,        /* where our value starts in parents value 
                            _OR_ 0 if there's no parent */
     needData;           /* whether non-NULL gagePerVolume->data is needed
                            for answering this item */
 } gageItemEntry;
-
+  
 /*
 ** modifying the enums below (scalar, vector, etc query quantities)
 ** necesitates modifying:
-** - the central item table in scl.c, vecGage.c
-** - the associated arrays in scl.c, vecGage.c
-** - the "answer" method itself in sclanswer.c, vecGage.c
+** - the central item table 
+** - the associated arrays in arrays.c
+** - the arrays in enums.c, 
+** - the "answer" method itself.
 */
 
 /*
@@ -280,44 +244,43 @@ enum {
   gageSclGradVec,      /*  2: "grad", gradient vector, un-normalized: [3] */
   gageSclGradMag,      /*  3: "gm", gradient magnitude: [1] */
   gageSclNormal,       /*  4: "n", gradient vector, normalized: [3] */
-  gageSclNProj,        /*  5: "nproj", projection onto normal: [9] */
-  gageSclNPerp,        /*  6: "np", projection onto tangent plane: [9] */
-  gageSclHessian,      /*  7: "h", Hessian: [9] (column-order) */
-  gageSclHessianTen,   /*  8: "ht", Hessian as 7-component tensor: [7]
+  gageSclNPerp,        /*  5: "np", projection onto tangent plane: [9] */
+  gageSclHessian,      /*  6: "h", Hessian: [9] (column-order) */
+  gageSclHessianTen,   /*  7: "ht", Hessian as 7-component tensor: [7]
                            In principle this is a dependency inversion
                            since gage doesn't know about the ten library,
                            where the 7-element tensor is based. */
-  gageSclLaplacian,    /*  9: "l", Laplacian: Dxx + Dyy + Dzz: [1] */
-  gageSclHessFrob,     /* 10: "hf", Frobenius norm of Hessian: [1] */
-  gageSclHessEval,     /* 11: "heval", Hessian's eigenvalues: [3] */
-  gageSclHessEval0,    /* 12: "heval0", Hessian's 1st eigenvalue: [1] */
-  gageSclHessEval1,    /* 13: "heval1", Hessian's 2nd eigenvalue: [1] */
-  gageSclHessEval2,    /* 14: "heval2", Hessian's 3rd eigenvalue: [1] */
-  gageSclHessEvec,     /* 15: "hevec", Hessian's eigenvectors: [9] */
-  gageSclHessEvec0,    /* 16: "hevec0", Hessian's 1st eigenvector: [3] */
-  gageSclHessEvec1,    /* 17: "hevec1", Hessian's 2nd eigenvector: [3] */
-  gageSclHessEvec2,    /* 18: "hevec2", Hessian's 3rd eigenvector: [3] */
-  gageScl2ndDD,        /* 19: "2d", 2nd dir.deriv. along gradient: [1] */
-  gageSclGeomTens,     /* 20: "gten", sym. matx w/ evals {0, K1, K2} and
+  gageSclLaplacian,    /*  8: "l", Laplacian: Dxx + Dyy + Dzz: [1] */
+  gageSclHessFrob,     /*  9: "hf", Frobenius normal of Hessian: [1] */
+  gageSclHessEval,     /* 10: "heval", Hessian's eigenvalues: [3] */
+  gageSclHessEval0,    /* 11: "heval0", Hessian's 1st eigenvalue: [1] */
+  gageSclHessEval1,    /* 12: "heval1", Hessian's 2nd eigenvalue: [1] */
+  gageSclHessEval2,    /* 13: "heval2", Hessian's 3rd eigenvalue: [1] */
+  gageSclHessEvec,     /* 14: "hevec", Hessian's eigenvectors: [9] */
+  gageSclHessEvec0,    /* 15: "hevec0", Hessian's 1st eigenvector: [3] */
+  gageSclHessEvec1,    /* 16: "hevec1", Hessian's 2nd eigenvector: [3] */
+  gageSclHessEvec2,    /* 17: "hevec2", Hessian's 3rd eigenvector: [3] */
+  gageScl2ndDD,        /* 18: "2d", 2nd dir.deriv. along gradient: [1] */
+  gageSclGeomTens,     /* 19: "gten", sym. matx w/ evals {0, K1, K2} and
                               evecs {grad, cdir0, cdir1}: [9] */
-  gageSclGeomTensTen,  /* 21: "gtenten", 7-element geometry tensor [7] */
-  gageSclK1,           /* 22: "k1", 1st principle curvature: [1] */
-  gageSclK2,           /* 23: "k2", 2nd principle curvature (k2 <= k1): [1] */
-  gageSclTotalCurv,    /* 24: "tc", L2 norm(K1,K2) (not Koen.'s "C"): [1] */
-  gageSclShapeTrace,   /* 25, "st", (K1+K2)/Curvedness: [1] */
-  gageSclShapeIndex,   /* 26: "si", Koen.'s shape index, ("S"): [1] */
-  gageSclMeanCurv,     /* 27: "mc", mean curvature (K1 + K2)/2: [1] */
-  gageSclGaussCurv,    /* 28: "gc", gaussian curvature K1*K2: [1] */
-  gageSclCurvDir1,     /* 29: "cdir1", 1st principle curv direction: [3] */
-  gageSclCurvDir2,     /* 30: "cdir2", 2nd principle curv direction: [3] */
-  gageSclFlowlineCurv, /* 31: "fc", curvature of normal streamline: [1] */
-  gageSclMedian,       /* 32: "med", median filter */
-  gageSclHessValleyness,   /* 33: "hvalley", vallyness measure: [1] */
-  gageSclHessRidgeness,    /* 34: "hridge", ridgeness measure: [1] */
-  gageSclHessMode,     /* 35: "hmode", Hessian's mode: [1] */
+  gageSclGeomTensTen,  /* 20: "gtenten", 7-element geometry tensor [7] */
+  gageSclK1,           /* 21: "k1", 1st principle curvature: [1] */
+  gageSclK2,           /* 22: "k2", 2nd principle curvature (k2 <= k1): [1] */
+  gageSclTotalCurv,    /* 23: "tc", L2 norm(K1,K2) (not Koen.'s "C"): [1] */
+  gageSclShapeTrace,   /* 24, "st", (K1+K2)/Curvedness: [1] */
+  gageSclShapeIndex,   /* 25: "si", Koen.'s shape index, ("S"): [1] */
+  gageSclMeanCurv,     /* 26: "mc", mean curvature (K1 + K2)/2: [1] */
+  gageSclGaussCurv,    /* 27: "gc", gaussian curvature K1*K2: [1] */
+  gageSclCurvDir1,     /* 28: "cdir1", 1st principle curv direction: [3] */
+  gageSclCurvDir2,     /* 29: "cdir2", 2nd principle curv direction: [3] */
+  gageSclFlowlineCurv, /* 30: "fc", curvature of normal streamline: [1] */
+  gageSclMedian,       /* 31: "med", median filter */
+  gageSclHessValleyness,   /* 32: "hvalley", vallyness measure: [1] */
+  gageSclHessRidgeness,    /* 33: "hridge", ridgeness measure: [1] */
+  gageSclHessMode,     /* 34: "hmode", Hessian's mode: [1] */
   gageSclLast
 };
-#define GAGE_SCL_ITEM_MAX 35
+#define GAGE_SCL_ITEM_MAX 34
 
 /*
 ******** gageVec* enum
@@ -329,7 +292,7 @@ enum {
 */
 enum {
   gageVecUnknown,         /*  0: nobody knows */
-  gageVecVector,          /*  1: "v", component-wise-interpolated
+  gageVecVector,          /*  1: "v", component-wise-intrpolated
                                  (CWI) vec: [3] */
   gageVecVector0,         /*  2: "v0", vector[0]: [1] */
   gageVecVector1,         /*  3: "v1", vector[0]: [1] */
@@ -340,17 +303,17 @@ enum {
                                 0:dv_x/dx  1:dv_x/dy  2:dv_x/dz
                                 3:dv_y/dx  4:dv_y/dy  5:dv_y/dz
                                 6:dv_z/dx  7:dv_z/dy  8:dv_z/dz */
-  gageVecStrain,          /*  8: "S", rate-of-strain tensor: [9] */
+  gageVecStrain,	  /*  8: "S", rate-of-strain tensor: [9] */
   gageVecDivergence,      /*  9: "d", divergence (based on Jacobian): [1] */
   gageVecCurl,            /* 10: "c", curl (based on Jacobian): [3] */
   gageVecCurlNorm,        /* 11: "cm", curl magnitude: [1] */
   gageVecHelicity,        /* 12: "h", helicity: vec . curl: [1] */
   gageVecNormHelicity,    /* 13: "nh", normalized helicity: [1] */
-  gageVecSOmega,          /* 14: "somega", S squared + Omega squared: [9] */
+  gageVecSOmega,	  /* 14: "somega", S squared + Omega squared: [9] */
   gageVecLambda2,         /* 15: "lambda2", lambda2 criterion: [1] */
   gageVecImaginaryPart,   /* 16: "imag", imag. part of jacobian's
                                   complex-conjugate eigenvalues: [1] */
-  gageVecHessian,         /* 17: "vh", second-order derivative: [27]
+  gageVecHessian,         /* 17: "vh", second-order derivative: [27] 
                                  HEY: indices here need to be double checked
                                  0:d2v_x/dxdx   1:d2v_x/dxdy   2:d2v_x/dxdz
                                  3:d2v_x/dydx   4:d2v_x/dydy   5:d2v_x/dydz
@@ -364,7 +327,7 @@ enum {
   gageVecNCurlNormGrad,   /* 21: "ncng", normalized curl norm gradient: [3] */
   gageVecHelGradient,     /* 22: "hg", helicity gradient: [3] */
   gageVecDirHelDeriv,     /* 23: "dhd", directional derivative
-                                 of helicity: [1] */
+                                 of helicity: [1] */ 
   gageVecProjHelGradient, /* 24: "phg", projected helicity gradient: [3] */
   gageVecGradient0,       /* 25: "g0", gradient of 1st coeff of vector: [3] */
   gageVecGradient1,       /* 26: "g1", gradient of 2nd coeff of vector: [3] */
@@ -379,28 +342,6 @@ enum {
 
 struct gageKind_t;       /* dumb forward declaraction, ignore */
 struct gagePerVolume_t;  /* dumb forward declaraction, ignore */
-
-/*
-******** gageItemPackPart* enum
-**
-** the different ways that some items can be related for a gagePack
-*/
-enum {
-  gageItemPackPartUnknown,     /*  0 */
-  gageItemPackPartScalar,      /*  1 */
-  gageItemPackPartGradVec,     /*  2 */
-  gageItemPackPartGradMag,     /*  3 */
-  gageItemPackPartNormal,      /*  4 */
-  gageItemPackPartHessian,     /*  5 */
-  gageItemPackPartHessEval0,   /*  6 */
-  gageItemPackPartHessEval1,   /*  7 */
-  gageItemPackPartHessEval2,   /*  8 */
-  gageItemPackPartHessEvec0,   /*  9 */
-  gageItemPackPartHessEvec1,   /* 10 */
-  gageItemPackPartHessEvec2,   /* 11 */
-  gageItemPackPartLast
-};
-#define GAGE_ITEM_PACK_PART_MAX   11
 
 /*
 ******** gageShape struct
@@ -431,7 +372,7 @@ typedef struct gageShape_t {
                                  that may be probed */
     fromOrientation;          /* non-zero iff the spaceDirections and
                                  spaceOrigin information was used */
-  unsigned int size[3];       /* raster dimensions of volume
+  unsigned int size[3];       /* raster dimensions of volume 
                                  HEY: shouldn't this be size_t? */
   double spacing[3];          /* spacings for each axis */
   /* fwScale[GAGE_KERNEL_MAX+1][3] has been superceded by the cleaner and
@@ -463,15 +404,13 @@ typedef struct gageParm_t {
                                  appropriate for the task for which
                                  the kernel is being set:
                                  reconstruction: 1.0, derivatives: 0.0 */
-  int k3pack;                 /* non-zero (true) iff we do not use kernels
-                                 gageKernelIJ with I != J. So, we use the
-                                 value reconstruction kernel (gageKernel00)
-                                 for 1st and 2nd derivative reconstruction,
-                                 and so on. This is faster because we can
-                                 re-use results from low-order convolutions.
-                                 The name "3pack" will likely persist even
-                                 with 3rd dervatives, for which "4pack" would
-                                 make more sense (for 00, 11, 22, 33) */
+  int k3pack;                 /* non-zero (true) iff we do not use
+                                 kernels for gageKernelIJ with I != J.
+                                 So, we use the value reconstruction
+                                 kernel (gageKernel00) for 1st and 2nd
+                                 derivative reconstruction, and so on.
+                                 This is faster because we can re-use
+                                 results from low-order convolutions. */
   double gradMagCurvMin,      /* punt on computing curvature information if
                                  gradient magnitude is less than this. Yes,
                                  this is scalar-kind-specific, but there's
@@ -479,7 +418,7 @@ typedef struct gageParm_t {
     kernelIntegralNearZero,   /* tolerance with checkIntegrals on derivative
                                  kernels */
     stackNormalizeDerivBias;  /* when using stackNormalizeDeriv, a bias
-                                 on the effective scale, used for the
+                                 on the effective scale, used for the 
                                  normalization */
   int curvNormalSide,         /* determines direction of gradient that is used
                                  as normal in curvature calculations, exactly
@@ -506,16 +445,13 @@ typedef struct gageParm_t {
                                  derivatives at filter stage (before answer
                                  stage) are renormalized based on the stack
                                  position */
-    orientationFromSpacing,   /* only meaningful if nrrd has per-axis spacing,
+    orientationFromSpacing;   /* only meaningful if nrrd has per-axis spacing,
                                  but not full orientation info. If zero, the
                                  volume is crammed into the bi-unit cube.
                                  If non-zero, gage treats the volume as if it
                                  had axis-aligned spaceDirection vectors, with
                                  the non-zero values determined by the given
                                  per-axis spacing. */
-    generateErrStr;           /* when errors happen, biff is never used, but
-                                 a descriptive error is sprintf into
-                                 gctx->errStr as long as this is non-zero. */
 } gageParm;
 
 /*
@@ -543,7 +479,7 @@ typedef struct gagePoint_t {
 
 /*
 ******** gageQuery typedef
-**
+** 
 ** this short, fixed-length array is used as a bit-vector to store
 ** all the items that comprise a query.  Its length sets an upper
 ** bound on the maximum item value that a gageKind may use.
@@ -554,9 +490,9 @@ typedef struct gagePoint_t {
 **
 ** gageKindCheck currently has the role of verifying that a gageKind's
 ** maximum item value is within the bounds set here. Using
-** GAGE_QUERY_BYTES_NUM == 8 gives a max item value of 63, which is
+** GAGE_QUERY_BYTES_NUM == 8 gives a max item value of 63, which is 
 ** far above anything being used now.
-**
+** 
 ** Sat Jan 21 18:12:01 EST 2006: ha! second derivatives of tensors blew
 ** past old GAGE_QUERY_BYTES_NUM, now GAGE_QUERY_BYTES_NUM == 16
 **
@@ -638,7 +574,7 @@ typedef unsigned char gageQuery[GAGE_QUERY_BYTES_NUM];
 /* increment for ctx->pvlArr airArray */
 #define GAGE_PERVOLUME_ARR_INCR 32
 
-/* extents of known information about optimal sigma samples for
+/* extents of known information about optimal sigma samples for 
    Hermite-spline-based scale-space reconstruction */
 #define GAGE_OPTIMSIG_SIGMA_MAX 11
 #define GAGE_OPTIMSIG_SAMPLES_MAXNUM 11
@@ -691,11 +627,11 @@ typedef struct gageContext_t {
 
   /* all the flags used by gageUpdate() used to describe what changed
      in this context */
-  int flag[GAGE_CTX_FLAG_MAX+1];
+  int flag[GAGE_CTX_FLAG_MAX+1]; 
 
   /* which value/derivatives need to be calculated for all pervolumes
      (doV, doD1, doD2) */
-  int needD[GAGE_DERIV_MAX+1];
+  int needD[3];
 
   /* which kernels are needed for all pvls.  needK[gageKernelStack]
      is currently not set by the update function that sets needK[] */
@@ -703,17 +639,15 @@ typedef struct gageContext_t {
 
   /* radius of support of samples needed to satisfy query, given the
      set of kernels.  The "filter diameter" fd == 2*radius.  This is
-     incremented by one when filtering across the stack with
-     nrrdKernelHermiteScaleSpaceFlag */
+     incremented by one if filtering across the stack with
+     nrrdKernelHermiteFlag. */
   unsigned int radius;
 
-  /* filter sample locations (all axes): logically a fd x 3 array
-     (and its 3 because gage works on 3D fields, not because of
-     the number of derivatives supported) */
+  /* filter sample locations (all axes): logically a fd x 3 array */
   double *fsl;
 
   /* filter weights (all axes, all kernels): logically a
-     fd x 3 x GAGE_KERNEL_MAX+1 (fast-to-slow) array */
+     fdx3xGAGE_KERNEL_MAX+1 array */
   double *fw;
 
   /* offsets to other fd^3 samples needed to fill 3D intermediate
@@ -729,13 +663,11 @@ typedef struct gageContext_t {
 
   /* errStr and errNum are for describing errors that happen in gageProbe():
      using biff is too heavy-weight for this, and the idea is that no ill
-     should occur if the error is repeatedly ignored. Whether or not
-     something is actually sprintf'ed into errStr is controlled by
-     parm.generateErrStr.
+     should occur if the error is repeatedly ignored.
      NOTE: these variables used to be globals "gageErrStr" and "gageErrNum" */
   char errStr[AIR_STRLEN_LARGE];
   int errNum;                 /* takes values from the gageErr enum */
-
+  
   /* what fraction of the values in the kernel support had to be invented
      (by bleeding out the margin) in order to satisfy a probe that was near
      the edge (any axis, either high or low) of the volume */
@@ -752,20 +684,20 @@ typedef struct gagePerVolume_t {
   int verbose;                /* verbosity */
   const struct gageKind_t *kind;  /* what kind of volume is this for */
   gageQuery query;            /* the query, recursively expanded */
-  int needD[GAGE_DERIV_MAX+1];/* which derivatives need to be calculated for
+  int needD[3];               /* which derivatives need to be calculated for
                                  the query (above) in this volume */
   const Nrrd *nin;            /* the volume to sample within */
   int flag[GAGE_PVL_FLAG_MAX+1];/* for the kind-specific flags .. */
   double *iv3, *iv2, *iv1;    /* 3D, 2D, 1D, value caches.  These are cubical,
                                  square, and linear arrays, all length fd on
                                  each edge.  Currently gageIv3Fill() fills
-                                 the iv3 (at a latter point this will be
+                                 the iv3 (at a latter point this will be 
                                  delegated back to the gageKind to facilitate
                                  bricking), and currently the tuple axis (with
                                  length valLen) always slowest.  However, use
                                  of iv2 and iv1 is entirely up the kind's
                                  filter method. */
-  double (*lup)(const void *ptr, size_t I);
+  double (*lup)(const void *ptr, size_t I); 
                               /* nrrd{F,D}Lookup[] element, according to
                                  nin->type and double */
   double *answer;             /* main buffer to hold all the answers */
@@ -806,7 +738,7 @@ typedef struct gageKind_t {
                                        dynamically allocated */
   char name[AIR_STRLEN_SMALL];      /* short identifying string for kind */
   const airEnum *enm;               /* such as gageScl.  NB: the "unknown"
-                                       value in the enum *must* be 0. */
+                                       value in the enum should be 0. */
   unsigned int baseDim,             /* dimension that x,y,z axes start on
                                        (e.g. 0 for scalars, 1 for vectors) */
     valLen;                         /* number of scalars per data point,
@@ -832,23 +764,23 @@ typedef struct gageKind_t {
        --> they must use GAGE key (and not callback's library's key), and
        --> pvlDataNix can not use biff */
     *(*pvlDataNew)(const struct gageKind_t *kind),
-    *(*pvlDataCopy)(const struct gageKind_t *kind, const void *pvlDataOld),
-    *(*pvlDataNix)(const struct gageKind_t *kind, void *pvlData);
+    *(*pvlDataCopy)(const struct gageKind_t *kind, const void *data),
+    *(*pvlDataNix)(const struct gageKind_t *kind, void *data);
   int (*pvlDataUpdate)(const struct gageKind_t *kind,
                        const gageContext *ctx,
                        const gagePerVolume *pvl,
                        const void *data);
-  void *data;                       /* extra information about the kind of
-                                       volume that's being probed.  Likely
-                                       used by filter, answer, and the
-                                       pvlData functions */
+  void *data;                       /* extra information about the kind of 
+                                       volume that's being probed.  This
+                                       is passed as "data" to pvlDataNew,
+                                       pvlDataCopy, and pvlDataNix */
 } gageKind;
 
 /*
 ******** gageItemSpec struct
 **
 ** dumb little way to store a kind/item pair.  Formerly known
-** as a gageQuerySpec.
+** as a gageQuerySpec.  
 */
 typedef struct {
   const gageKind *kind;       /* the kind of the volume to measure */
@@ -856,47 +788,16 @@ typedef struct {
 } gageItemSpec;
 
 /*
-******** gageItemPack struct
-**
-** A way of coherently representing a related set of gageItems. This
-** kind of inter-item relationship may eventually be part of the
-** definition of a gageKind.
-**
-** These are intended to be set up at compile-time, just like nearly all
-** the gageKinds.
-**
-** This is not to be confused with the gageMultiItem, which is (or
-** will be) a list of items, set at run-time, to learn from a given
-** volume.
-*/
-typedef struct {
-  const gageKind *kind;
-  int item[GAGE_ITEM_PACK_PART_MAX+1];
-} gageItemPack;
-
-/*
 ******** gageStackBlurParm struct
 **
 ** all parameters associated with blurring one volume to form a "stack"
 */
 typedef struct {
-  unsigned int num;      /* # of blurring scales == # volumes */
-  double *scale;         /* scale parameter for each blurred volume */
-  double sigmaMax,       /* nrrdKernelDiscreteGaussian is implemented with
-                            airBesselInExpScaled, which has numerical issues
-                            for very large kernel sizes.  Instead of doing
-                            the blurring in one step, the diffusion is done
-                            iteratively, with steps in diffusion time
-                            of sigmaMax^2 */
-    padValue;            /* padding value for nrrdBoundaryPad */
-  NrrdKernelSpec *kspec; /* NOTE: parm[0] will get over-written as part
-                            of running the resampler at each scale */
-  int dataCheck,         /* when checking given stack to see if its the
-                            blurring of a volume, actually go in and look at
-                            values of first (probably the least blurred)
-                            volume */
-    boundary,            /* passed to nrrdResampleBoundarySet */
-    renormalize,         /* passed to nrrdResampleRenormalizeSet */
+  unsigned int num;            /* # of blurring scales == # volumes */
+  double *scale;
+  NrrdKernelSpec *kspec;       /* parm[0] will get over-written */
+  int boundary,
+    renormalize,
     verbose;
 } gageStackBlurParm;
 
@@ -953,6 +854,53 @@ typedef struct {
   double finalErr;             /* error of converged points */
 } gageOptimSigParm;
 
+/*
+******** gageMultiItem
+**
+** used (along with gageMultiQuery) to represent a list of items that
+** we want to learn from a single pervolume, at every point given in a
+** Nrrd of probe positions.  The answers for those items are
+** concatenated along axis 0 of the single output Nrrd "nans", which
+** for simplicity of access is stored within here as well.
+*/
+typedef struct {
+  const gageKind *kind;    /* the kind of volume for these items */
+  unsigned int itemNum;    /* number of items we want to learn, allocated
+                              length of item[], ansDirect[], and ansLen[] */
+  int *item;               /* all items for this pervolume */
+  /* ======== INTERNAL ==== */
+  double *ansDir;          /* ansDir[i] points to answer i */
+  unsigned int *ansLen;    /* ansLen[i] length of answer i */
+  /* ========= OUTPUT ======*/
+  Nrrd *nans;              /* output Nrrd */
+} gageMultiItem;
+
+/*
+******** gageMultiQuery
+**
+** used to represent queries, and the organization of those queries
+** that should be probed at a given Nrrd of probe positions.  The
+** basic idea is that we need to be able to represent *1* the goal of
+** having two or more answers concatenated together (along axis 0),
+** in a single Nrrd (of the sort that one might pass to nrrdApply2DLut)
+** AND *2* the goal of having different answers stored in different Nrrds.
+** This is handled by having, for each pervolume, an array (possibly
+** length 1) of queries, and generating one Nrrd per query.
+*/
+typedef struct {
+  unsigned int pvlNum,    /* number of perVolumes in the context for which
+                             we represent the queries; this is also the
+                             allocated length of queryNum[ii] and query[ii] */
+    *queryNum;            /* queryNum[ii] is the number of queries for pvl[ii];
+                             which is also (due to use of gageMultiItem)
+                             the number of answer Nrrds for pvl[ii] */
+  gageMultiItem ***query; /* query[ii] is array of gageMultiItem*s for pvl[ii],
+                             each is query[ii][nn]; nn = 0..queryNum[ii]-1 */
+  /* ======== OUTPUT ======*/
+  Nrrd *nidx;             /* nidx->data[ii] is the index into given npos
+                             to document which queries were inside */
+} gageMultiQuery;
+
 /* defaultsGage.c */
 GAGE_EXPORT const char *gageBiffKey;
 GAGE_EXPORT int gageDefVerbose;
@@ -967,16 +915,12 @@ GAGE_EXPORT int gageDefStackUse;
 GAGE_EXPORT int gageDefStackNormalizeRecon;
 GAGE_EXPORT int gageDefStackNormalizeDeriv;
 GAGE_EXPORT double gageDefStackNormalizeDerivBias;
-GAGE_EXPORT double gageDefStackBlurSigmaMax;
 GAGE_EXPORT int gageDefOrientationFromSpacing;
-GAGE_EXPORT int gageDefGenerateErrStr;
 
 /* miscGage.c */
-GAGE_EXPORT const int gagePresent;
 GAGE_EXPORT double gageZeroNormal[3];
 GAGE_EXPORT const airEnum *const gageErr;
 GAGE_EXPORT const airEnum *const gageKernel;
-GAGE_EXPORT const airEnum *const gageItemPackPart;
 GAGE_EXPORT void gageParmReset(gageParm *parm);
 GAGE_EXPORT void gagePointReset(gagePoint *point);
 GAGE_EXPORT gageItemSpec *gageItemSpecNew(void);
@@ -999,7 +943,7 @@ typedef void (gageScl3PFilter_t)(gageShape *shape,
                                  double *iv3, double *iv2, double *iv1,
                                  double *fw00, double *fw11, double *fw22,
                                  double *val, double *gvec, double *hess,
-                                 const int *needD);
+                                 int doV, int doD1, int doD2);
 GAGE_EXPORT gageScl3PFilter_t gageScl3PFilter2;
 GAGE_EXPORT gageScl3PFilter_t gageScl3PFilter4;
 GAGE_EXPORT gageScl3PFilter_t gageScl3PFilter6;
@@ -1008,16 +952,15 @@ GAGE_EXPORT void gageScl3PFilterN(gageShape *shape, int fd,
                                   double *iv3, double *iv2, double *iv1,
                                   double *fw00, double *fw11, double *fw22,
                                   double *val, double *gvec, double *hess,
-                                  const int *needD);
+                                  int doV, int doD1, int doD2);
 
 /* scl.c */
 GAGE_EXPORT const airEnum *const gageScl;
 /* HEY: this should perhaps be a "const gageKind", but pointers for
-   general kinds may want to point to this, or to the return of
+   general kinds may want to point to this, or to the return of 
    a dynamic kind generator like tenDwiGageKindNew(), which is
    most certainly not "const gageKind". */
 GAGE_EXPORT gageKind *const gageKindScl;
-GAGE_EXPORT const gageItemPack *const gageItemPackSclValue;
 
 /* vecGage.c (together with vecprint.c, these contain everything to
    implement the "vec" kind, and could be used as examples of what it
@@ -1027,7 +970,7 @@ GAGE_EXPORT gageKind *const gageKindVec;
 
 /* shape.c */
 GAGE_EXPORT void gageShapeReset(gageShape *shp);
-GAGE_EXPORT gageShape *gageShapeNew(void);
+GAGE_EXPORT gageShape *gageShapeNew();
 GAGE_EXPORT gageShape *gageShapeCopy(const gageShape *shp);
 GAGE_EXPORT gageShape *gageShapeNix(gageShape *shape);
 GAGE_EXPORT int gageShapeSet(gageShape *shp, const Nrrd *nin, int baseDim);
@@ -1050,7 +993,7 @@ GAGE_EXPORT gagePerVolume *gagePerVolumeNew(gageContext *ctx,
                                             const Nrrd *nin,
                                             const gageKind *kind);
 GAGE_EXPORT gagePerVolume *gagePerVolumeNix(gagePerVolume *pvl);
-GAGE_EXPORT const double *gageAnswerPointer(const gageContext *ctx,
+GAGE_EXPORT const double *gageAnswerPointer(const gageContext *ctx, 
                                             const gagePerVolume *pvl,
                                             int item);
 GAGE_EXPORT unsigned int gageAnswerLength(const gageContext *ctx,
@@ -1116,11 +1059,8 @@ GAGE_EXPORT int gageStackBlurParmScaleSet(gageStackBlurParm *sbp,
                                           int uniform, int optim);
 GAGE_EXPORT int gageStackBlurParmKernelSet(gageStackBlurParm *sbp,
                                            const NrrdKernelSpec *kspec,
-                                           int renormalize);
-GAGE_EXPORT int gageStackBlurParmBoundarySet(gageStackBlurParm *sbp,
-                                             int boundary, double padValue);
-GAGE_EXPORT int gageStackBlurParmVerboseSet(gageStackBlurParm *sbp,
-                                            int verbose);
+                                           int boundary, int renormalize,
+                                           int verbose);
 GAGE_EXPORT int gageStackBlurParmCheck(gageStackBlurParm *sbp);
 GAGE_EXPORT int gageStackBlur(Nrrd *const nblur[], gageStackBlurParm *sbp,
                               const Nrrd *nin, const gageKind *kind);
@@ -1138,7 +1078,7 @@ GAGE_EXPORT int gageStackBlurManage(Nrrd ***nblurP, int *recomputedP,
                                     const Nrrd *nin, const gageKind *kind);
 
 /* ctx.c */
-GAGE_EXPORT gageContext *gageContextNew(void);
+GAGE_EXPORT gageContext *gageContextNew();
 GAGE_EXPORT gageContext *gageContextCopy(gageContext *ctx);
 GAGE_EXPORT gageContext *gageContextNix(gageContext *ctx);
 GAGE_EXPORT void gageParmSet(gageContext *ctx, int which, double val);
@@ -1155,6 +1095,24 @@ GAGE_EXPORT int gageProbeSpace(gageContext *ctx, double x, double y, double z,
 
 /* update.c */
 GAGE_EXPORT int gageUpdate(gageContext *ctx);
+
+/* multiGage.c */
+gageMultiItem *gageMultiItemNew(const gageKind *kind);
+int gageMultiItemSet_va(gageMultiItem *gmi, unsigned int itemNum,
+                        ... /* itemNum items */);
+gageMultiItem *gageMultiItemNix(gageMultiItem *gmi);
+gageMultiItem *gageMultiItemNuke(gageMultiItem *gmi);
+
+gageMultiQuery *gageMultiQueryNew(gageContext *gctx);
+int gageMultiQueryAdd_va(gageMultiQuery *gmq, unsigned int pvlIdx,
+                        unsigned int queryNum,
+                        ... /* queryNum gageMultiItem* */);
+int gageMultiProbe(gageMultiQuery *gmq, gageContext *gctx,
+                  const Nrrd *npos);
+int gageMultiProbeSpace(gageMultiQuery *gmq, gageContext *gctx,
+                       const Nrrd *npos, int indexSpace, int clamp);
+gageMultiQuery *gageMultiQueryNix(gageMultiQuery *gmq);
+gageMultiQuery *gageMultiQueryNuke(gageMultiQuery *gmq);
 
 /* st.c */
 GAGE_EXPORT int gageStructureTensor(Nrrd *nout, const Nrrd *nin,

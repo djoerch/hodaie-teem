@@ -58,9 +58,7 @@ def volLoad(vlist, cachePath, kssBlurStr, verbose):
             E += teem.meetPullVolParse(vol[i], vlist[i])
     if (not E): 
         E += teem.meetPullVolLoadMulti(vol, len(vol),
-                                       cachePath, kSSblur,
-                                       teem.nrrdBoundaryWrap, 0.0,
-                                       verbose)
+                                       cachePath, kSSblur, verbose)
     if (E):
         estr = teem.biffGetDone('meet')
         print "problem with volumes:\n%s" % estr
@@ -70,7 +68,7 @@ def volLoad(vlist, cachePath, kssBlurStr, verbose):
 
 def volFree(vol):
     for i in range(len(vol)):
-        vol[i] = teem.meetPullVolNix(vol[i])
+        vol[i] = teem.meetPullVolNuke(vol[i])
 
 ##
 ## especParse: returns a length-4 list of the arguments to pass 

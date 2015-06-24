@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,17 +24,15 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Superficially change dimension and/or axes sizes"
-static const char *_unrrdu_reshapeInfoL =
+char *_unrrdu_reshapeInfoL =
 (INFO
  ". The underlying linear ordering of the samples is "
  "unchanged, but the reported dimension or axes sizes "
  "are changed.  Identical in concept to Matlab's "
- "\"reshape\" command.\n "
- "* Uses nrrdReshape_nva");
+ "\"reshape\" command.");
 
 int
-unrrdu_reshapeMain(int argc, const char **argv, const char *me,
-                   hestParm *hparm) {
+unrrdu_reshapeMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;

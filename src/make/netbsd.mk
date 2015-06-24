@@ -27,17 +27,21 @@ SHARED_CFLAG = -Wl,-Bdynamic
 SHARED_LDFLAG = -shared
 SHARED_RPATH = -Wl,-rpath -Wl,
 
+TEEM_ENDIAN = 1234
 TEEM_QNANHIBIT = 1
 TEEM_DIO = 0
 ifeq ($(SUBARCH),ia64)
+  TEEM_32BIT = 0
   ARCH_CFLAG = -fPIC -W -Wall
   ARCH_LDFLAG =
 else
   ifeq ($(SUBARCH),64)
+    TEEM_32BIT = 0
     ARCH_CFLAG = -fPIC -W -Wall
     ARCH_LDFLAG =
   else
     ifeq ($(SUBARCH),32)
+      TEEM_32BIT = 1
       ARCH_CFLAG = -W -Wall
       ARCH_LDFLAG = 
     else

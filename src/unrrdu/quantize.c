@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,27 +24,22 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Quantize values to 8, 16, or 32 bits"
-static const char *_unrrdu_quantizeInfoL =
+char *_unrrdu_quantizeInfoL = 
 (INFO ". Input values can be fixed point (e.g. quantizing ushorts down to "
  "uchars) or floating point.  Values are clamped to the min and max before "
  "they are quantized, so there is no risk of getting 255 where you expect 0 "
- "(with unsigned char output, for example).  The min and max can be specified "
- "explicitly (as a regular number), or in terms of percentiles (a number "
- "suffixed with \"" NRRD_MINMAX_PERC_SUFF "\", no space in between). "
- "This does only linear quantization. "
- "See also \"unu convert\", \"unu 2op x\", "
- "and \"unu 3op clamp\".\n "
- "* Uses nrrdQuantize");
+ "(with unsigned char output, for example).  This does not do any non-linear "
+ "quantization.  See also \"unu convert\", \"unu 2op x\", and \"unu 3op "
+ "clamp\".");
 
 int
-unrrdu_quantizeMain(int argc, const char **argv, const char *me,
-                    hestParm *hparm) {
+unrrdu_quantizeMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  char *minStr, *maxStr;
   int pret, blind8BitRange;
-  unsigned int bits, hbins;
+  unsigned int bits;
+  double min, max;
   NrrdRange *range;
   airArray *mop;
 
@@ -56,36 +50,12 @@ unrrdu_quantizeMain(int argc, const char **argv, const char *me,
              "\b\bo \"16\": unsigned short\n "
              "\b\bo \"32\": unsigned int",
              NULL, NULL, &unrrduHestBitsCB);
-  hestOptAdd(&opt, "min,minimum", "value", airTypeString, 1, 1,
-             &minStr, "nan",
-             "The value to map to zero, given explicitly as a regular number, "
-             "*or*, if the number is given with a \"" NRRD_MINMAX_PERC_SUFF
-             "\" suffix, this "
-             "minimum is specified in terms of the percentage of samples in "
-             "input that are lower. "
-             "\"0" NRRD_MINMAX_PERC_SUFF "\" means the "
-             "lowest input value is used, "
-             "\"1" NRRD_MINMAX_PERC_SUFF "\" means that the "
-             "1% of the lowest values are all mapped to zero. "
-             "By default (not using this option), the lowest input value is "
-             "used.");
-  hestOptAdd(&opt, "max,maximum", "value", airTypeString, 1, 1,
-             &maxStr, "nan",
-             "The value to map to the highest unsigned integral value, given "
-             "explicitly as a regular number, "
-             "*or*, if the number is given with "
-             "a \"" NRRD_MINMAX_PERC_SUFF "\" suffix, "
-             "this maximum is specified "
-             "in terms of the percentage of samples in input that are higher. "
-             "\"0" NRRD_MINMAX_PERC_SUFF "\" means the highest input value is "
-             "used, which is also the default "
-             "behavior (same as not using this option).");
-  hestOptAdd(&opt, "hb,bins", "bins", airTypeUInt, 1, 1, &hbins, "5000",
-             "number of bins in histogram of values, for determining min "
-             "or max by percentiles.  This has to be large enough so that "
-             "any errant very high or very low values do not compress the "
-             "interesting part of the histogram to an inscrutably small "
-             "number of bins.");
+  hestOptAdd(&opt, "min,minimum", "value", airTypeDouble, 1, 1, &min, "nan",
+             "Value to map to zero. Defaults to lowest value found in "
+             "input nrrd.");
+  hestOptAdd(&opt, "max,maximum", "value", airTypeDouble, 1, 1, &max, "nan",
+             "Value to map to highest unsigned integral value. "
+             "Defaults to highest value found in input nrrd.");
   hestOptAdd(&opt, "blind8", "bool", airTypeBool, 1, 1, &blind8BitRange,
              nrrdStateBlind8BitRange ? "true" : "false",
              "if not using \"-min\" or \"-max\", whether to know "
@@ -101,15 +71,18 @@ unrrdu_quantizeMain(int argc, const char **argv, const char *me,
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
-  range = nrrdRangeNew(AIR_NAN, AIR_NAN);
-  airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-  if (nrrdRangePercentileFromStringSet(range, nin, minStr, maxStr,
-                                       hbins, blind8BitRange)
-      || nrrdQuantize(nout, nin, range, bits)) {
+
+  /* If the input nrrd never specified min and max, then they'll be
+     AIR_NAN, and nrrdRangeSafeSet will find them, and will do so
+     according to blind8BitRange */
+  range = nrrdRangeNew(min, max);
+  airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
+  nrrdRangeSafeSet(range, nin, blind8BitRange);
+  if (nrrdQuantize(nout, nin, range, bits)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-    fprintf(stderr, "%s: error with range or quantizing:\n%s", me, err);
+    fprintf(stderr, "%s: error quantizing nrrd:\n%s", me, err);
     airMopError(mop);
     return 1;
   }

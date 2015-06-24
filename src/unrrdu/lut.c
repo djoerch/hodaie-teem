@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,19 +24,17 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Map nrrd through one univariate lookup table"
-static const char *_unrrdu_lutInfoL =
+char *_unrrdu_lutInfoL =
 (INFO
  " (itself represented as a nrrd). The lookup table "
  "can be 1D, in which case the output "
  "has the same dimension as the input, or 2D, in which case "
  "the output has one more dimension than the input, and each "
  "value is mapped to a scanline (along axis 0) from the "
- "lookup table.\n "
- "* Uses nrrdApply1DLut");
+ "lookup table.");
 
 int
-unrrdu_lutMain(int argc, const char **argv, const char *me,
-               hestParm *hparm) {
+unrrdu_lutMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nlut, *nout;
@@ -88,7 +85,7 @@ unrrdu_lutMain(int argc, const char **argv, const char *me,
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
   /* see comment rmap.c */
-  if (!( AIR_EXISTS(nlut->axis[nlut->dim - 1].min) &&
+  if (!( AIR_EXISTS(nlut->axis[nlut->dim - 1].min) && 
          AIR_EXISTS(nlut->axis[nlut->dim - 1].max) )) {
     rescale = AIR_TRUE;
   }

@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -24,21 +23,13 @@
 #include "air.h"
 
 /*
-** Until Teem has its own printf implementation, this will have to do;
-** it is imperfect because these are not functionally identical.
-*/
-#if defined(WIN32) || defined(_WIN32)
-#  define snprintf _snprintf
-#endif
-
-/*
 ******** airEnumUnknown
 **
 ** return the value representing "unknown" in an enum
 */
 int
 airEnumUnknown(const airEnum *enm) {
-
+  
   if (enm && enm->val) {
     return enm->val[0];
   } else {
@@ -47,13 +38,28 @@ airEnumUnknown(const airEnum *enm) {
 }
 
 /*
+******** airEnumLast
+**
+** return the highest value representing a known value
+*/
+int
+airEnumLast(const airEnum *enm) {
+  
+  if (enm && enm->val) {
+    return enm->val[enm->M];
+  } else {
+    return enm->M;
+  }
+}
+
+/*
 ** _airEnumIndex()
 **
-** given an enum "enm" and value "val", return the index into enm->str[]
+** given an enum "enm" and value "val", return the index into enm->str[] 
 ** and enm->desc[] which correspond to that value.  To be safe, when
 ** given an invalid enum value, we return zero.
 */
-static unsigned int
+unsigned int
 _airEnumIndex(const airEnum *enm, int val) {
   unsigned int ii, ret;
 
@@ -66,15 +72,13 @@ _airEnumIndex(const airEnum *enm, int val) {
       }
     }
   } else {
-    unsigned int uval;
-    uval = AIR_UINT(val);
-    ret = (0 <= val && uval <= enm->M) ? uval : 0;
+    ret = AIR_IN_CL(0, val, (int)(enm->M)) ? val : 0; /* HEY scrutinize cast */
   }
   return ret;
 }
 
 /*
-** returns non-zero if there is an error: given "val" is *not*
+** returns non-zero if there is an error: given "val" is *not* 
 ** a valid value of the airEnum "enm"
 */
 int
@@ -85,7 +89,7 @@ airEnumValCheck(const airEnum *enm, int val) {
 
 const char *
 airEnumStr(const airEnum *enm, int val) {
-  unsigned int idx;
+  int idx;
 
   idx = _airEnumIndex(enm, val);
   return enm->str[idx];
@@ -93,13 +97,13 @@ airEnumStr(const airEnum *enm, int val) {
 
 const char *
 airEnumDesc(const airEnum *enm, int val) {
-  unsigned int idx;
+  int idx;
 
   idx = _airEnumIndex(enm, val);
   return enm->desc[idx];
 }
 
-int
+int 
 airEnumVal(const airEnum *enm, const char *str) {
   char *strCpy, test[AIR_STRLEN_SMALL];
   unsigned int ii;
@@ -107,7 +111,7 @@ airEnumVal(const airEnum *enm, const char *str) {
   if (!str) {
     return airEnumUnknown(enm);
   }
-
+  
   strCpy = airStrdup(str);
   if (!enm->sense) {
     airToLower(strCpy);
@@ -117,7 +121,8 @@ airEnumVal(const airEnum *enm, const char *str) {
     /* want strlen and not airStrlen here because the strEqv array
        should be terminated by a non-null empty string */
     for (ii=0; strlen(enm->strEqv[ii]); ii++) {
-      airStrcpy(test, AIR_STRLEN_SMALL, enm->strEqv[ii]);
+      strncpy(test, enm->strEqv[ii], AIR_STRLEN_SMALL);
+      test[AIR_STRLEN_SMALL-1] = '\0';
       if (!enm->sense) {
         airToLower(test);
       }
@@ -129,14 +134,15 @@ airEnumVal(const airEnum *enm, const char *str) {
   } else {
     /* enm->strEqv NULL */
     for (ii=1; ii<=enm->M; ii++) {
-      airStrcpy(test, AIR_STRLEN_SMALL, enm->str[ii]);
+      strncpy(test, enm->str[ii], AIR_STRLEN_SMALL);
+      test[AIR_STRLEN_SMALL-1] = '\0';
       if (!enm->sense) {
         airToLower(test);
       }
       if (!strcmp(test, strCpy)) {
         free(strCpy);
         return enm->val ? enm->val[ii] : (int)ii; /* HEY scrutinize cast */
-      }
+      }      
     }
   }
 
@@ -187,7 +193,8 @@ airEnumFmtDesc(const airEnum *enm, int val, int canon, const char *fmt) {
       }
     }
   }
-  airStrcpy(ident, AIR_STRLEN_SMALL, _ident);
+  strncpy(ident, _ident, AIR_STRLEN_SMALL);
+  ident[AIR_STRLEN_SMALL-1] = '\0';
   if (!enm->sense) {
     airToLower(ident);
   }
@@ -224,7 +231,7 @@ _enumPrintVal(FILE *file, const airEnum *enm, int ii) {
 
 void
 airEnumPrint(FILE *file, const airEnum *enm) {
-  int ii; /* this should arguable be unsigned int, but
+  int ii; /* this should arguable be unsigned int, but 
              airEnum values were kept as "int", even after
              the great unsigned conversion */
 
@@ -259,214 +266,3 @@ airEnumPrint(FILE *file, const airEnum *enm) {
   }
   return;
 }
-
-/* ---- BEGIN non-NrrdIO */
-/*
-******** airEnumCheck
-**
-** tries various things to check on the construction and internal
-** consistency of an airEnum; returns 1 if there is a problem, and 0
-** if all is well.  we're in air, so there's no biff, but we sprintf a
-** description of the error into "err", if given
-**
-** The requirement that the strings have strlen <= AIR_STRLEN_SMALL-1
-** is a reflection of the cheap implementation of the airEnum
-** functions in this file, rather than an actual restriction on what an
-** airEnum could be.
-*/
-int
-airEnumCheck(char err[AIR_STRLEN_LARGE], const airEnum *enm) {
-  static const char me[]="airEnumCheck";
-  unsigned int ii, jj;
-  size_t slen, ASL;
-
-  ASL = AIR_STRLEN_LARGE;
-  if (!enm) {
-    if (err) {
-      snprintf(err, ASL, "%s: got NULL enm", me);
-    }
-    return 1;
-  }
-  if (!enm->name) {
-    if (err) {
-      snprintf(err, ASL, "%s: enm->name NULL", me);
-    }
-    return 1;
-  }
-  if (0 == enm->M) {
-    if (err) {
-      snprintf(err, ASL, "%s(%s): enm->M zero; no values in enum",
-               me, enm->name);
-    }
-    return 1;
-  }
-  for (ii=0; ii<=enm->M; ii++) {
-    if (!enm->str[ii]) {
-      if (err) {
-        snprintf(err, ASL, "%s(%s): enm->str[%u] NULL", me, enm->name, ii);
-      }
-      return 1;
-    }
-    slen = airStrlen(enm->str[ii]);
-    if (!( slen >= 1 && slen <= AIR_STRLEN_SMALL-1 )) {
-      if (err) {
-        char stmp[AIR_STRLEN_SMALL];
-        snprintf(err, ASL, "%s(%s): strlen(enm->str[%u] \"%s\") "
-                 "%s not in range [1,%u]", me,
-                 enm->name, ii, enm->str[ii],
-                 airSprintSize_t(stmp, slen), AIR_STRLEN_SMALL-1);
-      }
-      return 1;
-    }
-    /* make sure there are no duplicates among the strings,
-       including remapping the case in case of case insensitivity */
-    for (jj=ii+1; jj<=enm->M; jj++) {
-      if (!strcmp(enm->str[ii], enm->str[jj])) {
-        if (err) {
-          snprintf(err, ASL, "%s(%s): str[%d] and [%u] both \"%s\"",
-                   me, enm->name, ii, jj, enm->str[jj]);
-        }
-        return 1;
-      }
-      if (!enm->sense) {
-        char bb1[AIR_STRLEN_SMALL], bb2[AIR_STRLEN_SMALL];
-        strcpy(bb1, enm->str[ii]);
-        airToLower(bb1);
-        strcpy(bb2, enm->str[jj]);
-        airToLower(bb2);
-        if (!strcmp(bb1, bb2)) {
-          if (err) {
-            snprintf(err, ASL, "%s(%s): after case-lowering, "
-                     "str[%d] and [%u] both \"%s\"",
-                     me, enm->name, ii, jj, bb1);
-          }
-          return 1;
-        }
-      }
-    }
-  }
-  if (enm->val) {
-    for (ii=1; ii<=enm->M; ii++) {
-      if (enm->val[0] == enm->val[ii]) {
-        if (err) {
-          snprintf(err, ASL, "%s(%s): val[%u] %u same as "
-                   "unknown/invalid val[0] %u",
-                   me, enm->name, ii, enm->val[ii], enm->val[0]);
-        }
-        return 1;
-      }
-      for (jj=ii+1; jj<=enm->M; jj++) {
-        if (enm->val[jj] == enm->val[ii]) {
-          if (err) {
-            snprintf(err, ASL, "%s(%s): val[%u] %u same as val[%u] %u", me,
-                     enm->name, ii, enm->val[ii], jj, enm->val[jj]);
-          }
-          return 1;
-        }
-      }
-    }
-  }
-  if (enm->desc) {
-    for (ii=0; ii<=enm->M; ii++) {
-      if (!enm->desc[ii]) {
-        if (err) {
-          snprintf(err, ASL, "%s(%s): enm->desc[%u] NULL", me, enm->name, ii);
-        }
-        return 1;
-      }
-      /* we don't really care about slen, but learning it will
-         hopefully produce some memory error if the array is not valid */
-      slen = airStrlen(enm->desc[ii]);
-      if (!( slen > 0 )) {
-        if (err) {
-          snprintf(err, ASL, "%s(%s): enm->desc[%u] empty", me, enm->name, ii);
-        }
-        return 1;
-      }
-    }
-  }
-  if (enm->strEqv) {
-    /* the strEqv array is one of the easiest ways to mess up an
-       airEnum definition; it deserves these tests and maybe more */
-    if (!enm->valEqv) {
-      if (err) {
-        snprintf(err, ASL, "%s(%s): non-NULL strEqv but NULL valEqv",
-                 me, enm->name);
-      }
-      return 1;
-    }
-    if (!( airStrlen(enm->strEqv[0]) )) {
-      if (err) {
-        snprintf(err, ASL, "%s(%s): strEqv[0] is NULL or empty",
-                 me, enm->name);
-      }
-      return 1;
-    }
-    /* check length and see if any string maps to an invalid value */
-    for (ii=0; (slen = strlen(enm->strEqv[ii])); ii++) {
-      if (!( slen <= AIR_STRLEN_SMALL-1 )) {
-        if (err) {
-          char stmp[AIR_STRLEN_SMALL];
-          snprintf(err, ASL, "%s(%s): strlen(enm->strEqv[%u] \"%s\") "
-                   "%s not <= %u", me, enm->name, ii, enm->strEqv[ii],
-                   airSprintSize_t(stmp, slen), AIR_STRLEN_SMALL-1);
-        }
-        return 1;
-      }
-      /* see if a string maps to an invalid value */
-      if (airEnumValCheck(enm, enm->valEqv[ii])) {
-        if (err) {
-          snprintf(err, ASL, "%s(%s): valEqv[%u] %u (with strEqv[%u] \"%s\")"
-                   " not valid",
-                   me, enm->name, ii, enm->valEqv[ii], ii, enm->strEqv[ii]);
-        }
-        return 1;
-      }
-    }
-    /* make sure eqv strings contain the canonical string */
-    for (ii=1; ii<=enm->M; ii++) {
-      int eval, rval;
-      eval = (enm->val ? enm->val[ii] : AIR_CAST(int, ii));
-      rval = airEnumVal(enm, enm->str[ii]);
-      if (eval != rval) {
-        if (err) {
-          snprintf(err, ASL, "%s(%s): ii=%u->eval=%d->str=\"%s\"->%d != %d "
-                   "(i.e. canonical string didn't map to its own value)",
-                   me, enm->name, ii, eval, enm->str[ii], rval, eval);
-        }
-        return 1;
-      }
-    }
-    /* make sure there are no duplicates among the strEqv,
-       including remapping the case in case of case insensitivity */
-    for (ii=0; strlen(enm->strEqv[ii]); ii++) {
-      for (jj=ii+1; strlen(enm->strEqv[jj]); jj++) {
-        if (!strcmp(enm->strEqv[ii], enm->strEqv[jj])) {
-          if (err) {
-            snprintf(err, ASL, "%s(%s): strEqv[%d] and [%u] both \"%s\"",
-                     me, enm->name, ii, jj, enm->strEqv[jj]);
-          }
-          return 1;
-        }
-        if (!enm->sense) {
-          char bb1[AIR_STRLEN_SMALL], bb2[AIR_STRLEN_SMALL];
-          strcpy(bb1, enm->strEqv[ii]);
-          airToLower(bb1);
-          strcpy(bb2, enm->strEqv[jj]);
-          airToLower(bb2);
-          if (!strcmp(bb1, bb2)) {
-            if (err) {
-              snprintf(err, ASL, "%s(%s): after case-lowering, "
-                       "strEqv[%d] and [%u] both \"%s\"",
-                       me, enm->name, ii, jj, bb1);
-            }
-            return 1;
-          }
-        }
-      }
-    }
-  }
-  return 0;
-}
-/* ---- END non-NrrdIO */
-/* this is the end */

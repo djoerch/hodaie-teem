@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -26,14 +25,12 @@
 
 #include <ctype.h>
 
-const int
-unrrduPresent = 42;
 
 const char *
 unrrduBiffKey = "unrrdu";
 
 /* number of columns that hest will used */
-unsigned int
+int
 unrrduDefNumColumns = 78;
 
 /*
@@ -48,109 +45,40 @@ unrrduCmdList[] = {
 };
 
 /*
-******** unrrduUsageSpecial
+******** unrrduUsage
 **
 ** prints out a little banner, and a listing of all available commands
 ** with their one-line descriptions
 */
 void
-unrrduUsageUnu(const char *me, hestParm *hparm) {
+unrrduUsage(const char *me, hestParm *hparm) {
+  int i, maxlen, len, c;
   char buff[AIR_STRLEN_LARGE], fmt[AIR_STRLEN_LARGE];
-  unsigned int cmdi, chi, len, maxlen;
 
   maxlen = 0;
-  for (cmdi=0; unrrduCmdList[cmdi]; cmdi++) {
-    maxlen = AIR_MAX(maxlen, AIR_UINT(strlen(unrrduCmdList[cmdi]->name)));
+  for (i=0; unrrduCmdList[i]; i++) {
+    maxlen = AIR_MAX(maxlen, (int)strlen(unrrduCmdList[i]->name));
   }
 
   sprintf(buff, "--- unu: Utah Nrrd Utilities command-line interface ---");
-  len = AIR_UINT(strlen(buff));
-  sprintf(fmt, "%%%us\n", (hparm->columns > len
-                           ? hparm->columns-len
-                           : 0)/2 + len - 1);
+  sprintf(fmt, "%%%ds\n",
+          (int)((hparm->columns-strlen(buff))/2 + strlen(buff) - 1));
   fprintf(stdout, fmt, buff);
-  for (cmdi=0; unrrduCmdList[cmdi]; cmdi++) {
-    int nofft;
-    if (unrrduCmdList[cmdi]->hidden) {
-      /* nothing to see here! */
-      continue;
-    }
-    nofft = !strcmp(unrrduCmdList[cmdi]->name, "fft") && !nrrdFFTWEnabled;
-    len = AIR_UINT(strlen(unrrduCmdList[cmdi]->name));
-    len += !!nofft;
+  
+  for (i=0; unrrduCmdList[i]; i++) {
+    len = strlen(unrrduCmdList[i]->name);
     strcpy(buff, "");
-    for (chi=len; chi<maxlen; chi++)
-      strcat(buff, " ");
-    if (nofft) {
-      strcat(buff, "(");
-    }
-    strcat(buff, me);
-    strcat(buff, " ");
-    strcat(buff, unrrduCmdList[cmdi]->name);
-    strcat(buff, " ... ");
-    len = AIR_UINT(strlen(buff));
-    fprintf(stdout, "%s", buff);
-    if (nofft) {
-      char *infop;
-      /* luckily, still fits within 80 columns */
-      fprintf(stdout, "Not Enabled: ");
-      infop = AIR_CALLOC(strlen(unrrduCmdList[cmdi]->info) + 2, char);
-      sprintf(infop, "%s)", unrrduCmdList[cmdi]->info);
-      _hestPrintStr(stdout, len, len, hparm->columns,
-                    infop, AIR_FALSE);
-      free(infop);
-    } else {
-      _hestPrintStr(stdout, len, len, hparm->columns,
-                    unrrduCmdList[cmdi]->info, AIR_FALSE);
-    }
-  }
-  return;
-}
-
-/*
-******** unrrduUsage
-**
-** A generic version of the usage command, which can be used by other
-** programs that are leveraging the unrrduCmd infrastructure.
-**
-** does not use biff
-*/
-int
-unrrduUsage(const char *me, hestParm *hparm,
-            const char *title, unrrduCmd **cmdList) {
-  char buff[AIR_STRLEN_LARGE], fmt[AIR_STRLEN_LARGE];
-  unsigned int cmdi, chi, len, maxlen;
-
-  if (!(title && cmdList)) {
-    /* got NULL pointer */
-    return 1;
-  }
-  maxlen = 0;
-  for (cmdi=0; cmdList[cmdi]; cmdi++) {
-    maxlen = AIR_MAX(maxlen, AIR_UINT(strlen(cmdList[cmdi]->name)));
-  }
-
-  sprintf(buff, "--- %s ---", title);
-  len = AIR_UINT(strlen(buff));
-  sprintf(fmt, "%%%us\n", (hparm->columns > len
-                           ? hparm->columns-len
-                           : 0)/2 + len - 1);
-  fprintf(stdout, fmt, buff);
-  for (cmdi=0; cmdList[cmdi]; cmdi++) {
-    len = AIR_UINT(strlen(cmdList[cmdi]->name));
-    strcpy(buff, "");
-    for (chi=len; chi<maxlen; chi++)
+    for (c=len; c<maxlen; c++)
       strcat(buff, " ");
     strcat(buff, me);
     strcat(buff, " ");
-    strcat(buff, cmdList[cmdi]->name);
+    strcat(buff, unrrduCmdList[i]->name);
     strcat(buff, " ... ");
-    len = AIR_UINT(strlen(buff));
+    len = strlen(buff);
     fprintf(stdout, "%s", buff);
     _hestPrintStr(stdout, len, len, hparm->columns,
-                  cmdList[cmdi]->info, AIR_FALSE);
+                  unrrduCmdList[i]->info, AIR_FALSE);
   }
-  return 0;
 }
 
 /* --------------------------------------------------------- */
@@ -166,7 +94,7 @@ unrrduUsage(const char *me, hestParm *hparm,
 **
 ** It can also be m+<int> to signify some position relative to some
 ** "minimum", assuming that a minimum position is being specified
-** at the same time as this one.  Obviously, there has to be some
+** at the same time as this one.  Obviously, there has to be some 
 ** error handling to make sure that no one is trying to define a
 ** minimum position with respect to itself.  And, the ability to
 ** specify a position as "m+<int>" shouldn't be advertised in situations
@@ -254,7 +182,7 @@ hestCB unrrduHestPosCB = {
 ** 18 July 03: with new nrrdTypeDefault, this function becomes
 ** less of a hack, and more necessary, because the notion of an
 ** unknown but valid type (as a default type is) falls squarely
-** outside the nrrdType airEnum framework.  Added a separate test
+** outside the nrrdType airEnum framework.  Added a seperate test
 ** for "default", even though currently nrrdTypeUnknown is the same
 ** value as nrrdTypeDefault.
 */
@@ -297,7 +225,7 @@ hestCB unrrduHestMaybeTypeCB = {
 
 /*
 ******** unrrduHestBitsCB
-**
+** 
 ** for parsing an int that can be 8, 16, or 32
 */
 int
@@ -335,81 +263,47 @@ hestCB unrrduHestBitsCB = {
 /*
 ******** unrrduParseScale
 **
-** parse the strings used with "unu resample -s" to indicate
-** the new number of samples.
-** =         : unrrduScaleNothing
-** a         : unrrduScaleAspectRatio
-** x<float>  : unrrduScaleMultiply
-** x=<float> : unrrduScaleMultiply
-** /<float>  : unrrduScaleDivide
-** /=<float> : unrrduScaleDivide
-** +=<uint>  : unrrduScaleAdd
-** -=<uint>  : unrrduScaleSubstract
-** <uint>    : unrrduScaleExact
+** parse "=", "x<float>", and "<int>".  These possibilities are represented
+** for axis i by setting scale[0 + 2*i] to 0, 1, or 2, respectively.
 */
 int
 unrrduParseScale(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   char me[]="unrrduParseScale";
-  double *scale;
-  unsigned int num;
-
+  float *scale;
+  int num;
+  
   if (!(ptr && str)) {
     sprintf(err, "%s: got NULL pointer", me);
     return 1;
   }
-  scale = AIR_CAST(double *, ptr);
+  scale = (float *)ptr;
   if (!strcmp("=", str)) {
-    scale[0] = AIR_CAST(double, unrrduScaleNothing);
-    scale[1] = 0.0;
-  } else if (!strcmp("a", str)) {
-    scale[0] = AIR_CAST(double, unrrduScaleAspectRatio);
-    scale[1] = 0.0;
-  } else if (strlen(str) > 2
-      && ('x' == str[0] || '/' == str[0])
-      && '=' == str[1]) {
-    if (1 != sscanf(str+2, "%lf", scale+1)) {
-      sprintf(err, "%s: can't parse \"%s\" as x=<float> or /=<float>",
-              me, str);
+    scale[0] = 0.0f;
+    scale[1] = 0.0f;
+    return 0;
+  }
+
+  /* else */
+  if ('x' == str[0]) {
+    if (1 != sscanf(str+1, "%f", scale+1)) {
+      sprintf(err, "%s: can't parse \"%s\" as x<float>", me, str);
       return 1;
     }
-    scale[0] = AIR_CAST(double, ('x' == str[0]
-                                 ? unrrduScaleMultiply
-                                 : unrrduScaleDivide));
-  } else if (strlen(str) > 1
-             && ('x' == str[0] || '/' == str[0])) {
-    if (1 != sscanf(str+1, "%lf", scale+1)) {
-      sprintf(err, "%s: can't parse \"%s\" as x<float> or /<float>",
-              me, str);
+    scale[0] = 1.0f;
+  }
+  else {
+    if (1 != sscanf(str, "%d", &num)) {
+      sprintf(err, "%s: can't parse \"%s\" as int", me, str);
       return 1;
     }
-    scale[0] = AIR_CAST(double, ('x' == str[0]
-                                 ? unrrduScaleMultiply
-                                 : unrrduScaleDivide));
-  } else if (strlen(str) > 2
-             && ('+' == str[0] || '-' == str[0])
-             && '=' == str[1]) {
-    if (1 != sscanf(str+2, "%u", &num)) {
-      sprintf(err, "%s: can't parse \"%s\" as +=<uint> or -=<uint>",
-              me, str);
-      return 1;
-    }
-    scale[0] = AIR_CAST(double, ('+' == str[0]
-                                 ? unrrduScaleAdd
-                                 : unrrduScaleSubtract));
-    scale[1] = AIR_CAST(double, num);
-  } else {
-    if (1 != sscanf(str, "%u", &num)) {
-      sprintf(err, "%s: can't parse \"%s\" as uint", me, str);
-      return 1;
-    }
-    scale[0] = AIR_CAST(double, unrrduScaleExact);
-    scale[1] = AIR_CAST(double, num);
+    scale[0] = 2.0f;
+    scale[1] = AIR_CAST(float, num);
   }
   return 0;
 }
 
 hestCB unrrduHestScaleCB = {
-  2*sizeof(double),
+  2*sizeof(float),
   "sampling specification",
   unrrduParseScale,
   NULL
@@ -429,7 +323,7 @@ hestCB unrrduHestScaleCB = {
 void *
 unrrduMaybeFclose(void *_file) {
   FILE *file;
-
+  
   file = (FILE *)_file;
   if (stdin != file) {
     file = airFclose(file);
@@ -468,7 +362,7 @@ hestCB unrrduHestFileCB = {
 
 /*
 ******** unrrduHestEncodingCB
-**
+** 
 ** for parsing output encoding, including compression flags
 ** enc[0]: which encoding, from nrrdEncodingType* enum
 ** enc[1]: for compressions: zlib "level" and bzip2 "blocksize"
@@ -515,14 +409,13 @@ unrrduParseEncoding(void *ptr, char *_str, char err[AIR_STRLEN_HUGE]) {
       airMopError(mop); return 1;
     }
     while (*opt) {
-      int opti = AIR_INT(*opt);
-      if (isdigit(opti)) {
+      if (isdigit(*opt)) {
         enc[1] = *opt - '0';
-      } else if ('d' == tolower(opti)) {
+      } else if ('d' == tolower(*opt)) {
         enc[2] = nrrdZlibStrategyDefault;
-      } else if ('h' == tolower(opti)) {
+      } else if ('h' == tolower(*opt)) {
         enc[2] = nrrdZlibStrategyHuffman;
-      } else if ('f' == tolower(opti)) {
+      } else if ('f' == tolower(*opt)) {
         enc[2] = nrrdZlibStrategyFiltered;
       } else {
         sprintf(err, "%s: parameter char \"%c\" not a digit or 'd','h','f'",

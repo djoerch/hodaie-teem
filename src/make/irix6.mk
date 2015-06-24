@@ -34,17 +34,22 @@ SHARED_LDFLAG = -shared
 ifeq ($(SUBARCH),n32)
   ARCH_CFLAG = -n32
   ARCH_LDFLAG = -n32
+  TEEM_32BIT = 1
 else
   ifeq ($(SUBARCH),64)
     ARCH_CFLAG = -64
     ARCH_LDFLAG = -64
+    TEEM_32BIT = 0
   else 
     $(error irix6 sub-architecture "$(SUBARCH)" not recognized) 
   endif
 endif
 
+TEEM_ENDIAN = 4321
 TEEM_QNANHIBIT = 0
 TEEM_DIO = 1
+
+TEEM_PURIFY_CMD = purify
 
 TEEM_ZLIB.IPATH ?=
 TEEM_ZLIB.LPATH ?=

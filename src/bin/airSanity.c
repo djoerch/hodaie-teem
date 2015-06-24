@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -22,6 +21,7 @@
 */
 
 #include <teem/air.h>
+#include <teem32bit.h>
 
 int
 main(int argc, char *argv[]) {
@@ -32,16 +32,16 @@ main(int argc, char *argv[]) {
   me = argv[0];
   aret = airSanity();
   if (airInsane_not == aret) {
-    char stmp[AIR_STRLEN_SMALL];
     fprintf(stderr, "%s: air sanity check passed.\n", me);
     fprintf(stderr, "\n");
-    fprintf(stderr, "airMyEndian() == %d\n", airMyEndian());
+    fprintf(stderr, "AIR_ENDIAN == %d\n", AIR_ENDIAN);
     fprintf(stderr, "AIR_QNANHIBIT == %d\n", AIR_QNANHIBIT);
     fprintf(stderr, "AIR_DIO == %d\n", AIR_DIO);
-    fprintf(stderr, "sizeof(size_t) = %s\n",
-            airSprintSize_t(stmp, sizeof(size_t)));
-    fprintf(stderr, "sizeof(void*) = %s\n",
-            airSprintSize_t(stmp, sizeof(void*)));
+    fprintf(stderr, "AIR_32BIT == %d\n", AIR_32BIT);
+    fprintf(stderr, "sizeof(size_t) = " _AIR_SIZE_T_CNV 
+            "; sizeof(void*) = " _AIR_SIZE_T_CNV "\n",
+            sizeof(size_t), sizeof(void*));
+    fprintf(stderr, "_AIR_SIZE_T_CNV = \"%s\"\n", _AIR_SIZE_T_CNV);
     return 0;
   }
   /* else */

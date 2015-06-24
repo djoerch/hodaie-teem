@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -31,16 +30,10 @@ gageStackBlurParm *
 gageStackBlurParmNew() {
   gageStackBlurParm *parm;
 
-  parm = AIR_CALLOC(1, gageStackBlurParm);
+  parm = AIR_CAST(gageStackBlurParm *, calloc(1, sizeof(gageStackBlurParm)));
   if (parm) {
     parm->scale = NULL;
-    parm->sigmaMax = gageDefStackBlurSigmaMax;
-    parm->padValue = AIR_NAN;
     parm->kspec = NULL;
-    parm->dataCheck = AIR_TRUE;
-    parm->boundary = nrrdBoundaryUnknown;
-    parm->renormalize = AIR_FALSE;
-    parm->verbose = 0;
   }
   return parm;
 }
@@ -51,9 +44,8 @@ gageStackBlurParmNix(gageStackBlurParm *sbp) {
   if (sbp) {
     airFree(sbp->scale);
     nrrdKernelSpecNix(sbp->kspec);
-    free(sbp);
   }
-  return NULL;
+  return sbp;
 }
 
 int
@@ -67,8 +59,7 @@ gageStackBlurParmScaleSet(gageStackBlurParm *sbp, unsigned int num,
     biffAddf(GAGE, "%s: got NULL pointer", me);
     return 1;
   }
-  airFree(sbp->scale);
-  sbp->scale = NULL;
+  sbp->scale = airFree(sbp->scale);
   if (!( scaleMin < scaleMax )) {
     biffAddf(GAGE, "%s: scaleMin %g not < scaleMax %g", me,
              scaleMin, scaleMax);
@@ -106,58 +97,29 @@ gageStackBlurParmScaleSet(gageStackBlurParm *sbp, unsigned int num,
       return 1;
     }
   }
-
+  
   return 0;
 }
-
+                          
 int
 gageStackBlurParmKernelSet(gageStackBlurParm *sbp,
                            const NrrdKernelSpec *kspec,
-                           int renormalize) {
+                           int boundary, int renormalize, int verbose) {
   static const char me[]="gageStackBlurParmKernelSet";
 
   if (!( sbp && kspec )) {
     biffAddf(GAGE, "%s: got NULL pointer", me);
     return 1;
   }
-  nrrdKernelSpecNix(sbp->kspec);
-  sbp->kspec = nrrdKernelSpecCopy(kspec);
-  sbp->renormalize = renormalize;
-  return 0;
-}
-
-int
-gageStackBlurParmBoundarySet(gageStackBlurParm *sbp,
-                             int boundary, double padValue) {
-  static const char me[]="gageStackBlurParmBoundarySet";
-
-  if (!sbp) {
-    biffAddf(GAGE, "%s: got NULL pointer", me);
-    return 1;
-  }
   if (airEnumValCheck(nrrdBoundary, boundary)) {
-    biffAddf(GAGE, "%s: %d not a known %s", me,
+    biffAddf(GAGE, "%s: %d not a known %s", me, 
              boundary, nrrdBoundary->name);
     return 1;
   }
-  if (nrrdBoundaryPad == boundary && !AIR_EXISTS(padValue)) {
-    biffAddf(GAGE, "%s: want boundary %s but padValue %g doesn't exist", me,
-             airEnumStr(nrrdBoundary, boundary), padValue);
-    return 1;
-  }
+  nrrdKernelSpecNix(sbp->kspec);
+  sbp->kspec = nrrdKernelSpecCopy(kspec);
   sbp->boundary = boundary;
-  sbp->padValue = padValue;
-  return 0;
-}
-
-int
-gageStackBlurParmVerboseSet(gageStackBlurParm *sbp, int verbose) {
-  static const char me[]="gageStackBlurParmVerboseSet";
-
-  if (!sbp) {
-    biffAddf(GAGE, "%s: got NULL pointer", me);
-    return 1;
-  }
+  sbp->renormalize = renormalize;
   sbp->verbose = verbose;
   return 0;
 }
@@ -263,12 +225,12 @@ _blurValAlloc(airArray *mop, gageStackBlurParm *sbp) {
 }
 
 /*
-** little helper function to do pre-blurring of a given nrrd
+** little helper function to do pre-blurring of a given nrrd 
 ** of the sort that might be useful for scale-space gage use
 **
 ** nblur has to already be allocated for "blNum" Nrrd*s, AND, they all
 ** have to point to valid (possibly empty) Nrrds, so they can hold the
-** results of blurring
+** results of blurring. 
 */
 int
 gageStackBlur(Nrrd *const nblur[], gageStackBlurParm *sbp,
@@ -279,7 +241,6 @@ gageStackBlur(Nrrd *const nblur[], gageStackBlurParm *sbp,
   blurVal_t *blurVal;
   airArray *mop;
   int E;
-  Nrrd *ntmp;
 
   if (!(nblur && sbp && nin && kind)) {
     biffAddf(GAGE, "%s: got NULL pointer", me);
@@ -294,13 +255,10 @@ gageStackBlur(Nrrd *const nblur[], gageStackBlurParm *sbp,
   }
   rsmc = nrrdResampleContextNew();
   airMopAdd(mop, rsmc, (airMopper)nrrdResampleContextNix, airMopAlways);
-  /* may or may not be needed for iterative diffusion */
-  ntmp = nrrdNew();
-  airMopAdd(mop, ntmp, (airMopper)nrrdNuke, airMopAlways);
 
   E = 0;
   if (!E) E |= nrrdResampleDefaultCenterSet(rsmc, nrrdDefaultCenter);
-  if (!E) E |= nrrdResampleInputSet(rsmc, nin);
+  if (!E) E |= nrrdResampleNrrdSet(rsmc, nin);
   if (kind->baseDim) {
     unsigned int bai;
     for (bai=0; bai<kind->baseDim; bai++) {
@@ -323,60 +281,17 @@ gageStackBlur(Nrrd *const nblur[], gageStackBlurParm *sbp,
   for (blIdx=0; blIdx<sbp->num; blIdx++) {
     unsigned int kvpIdx;
     if (sbp->verbose) {
-      fprintf(stderr, "%s: blurring %u / %u (scale %g) ... ", me, blIdx,
+      fprintf(stderr, "%s: resampling %u of %u (scale %g) ... ", me, blIdx,
               sbp->num, sbp->scale[blIdx]);
       fflush(stderr);
     }
-    if (nrrdKernelDiscreteGaussian == sbp->kspec->kernel
-        && sbp->scale[blIdx] > sbp->sigmaMax) {
-      double timeLeft, /* amount of diffusion time left to do */
-        timeStep,      /* length of diffusion time per blur */
-        timeDo;        /* amount of diffusion time just applied */
-      unsigned int passIdx = 0;
-      timeLeft = sbp->scale[blIdx]*sbp->scale[blIdx];
-      timeStep = (sbp->sigmaMax)*(sbp->sigmaMax);
-      if (sbp->verbose) {
-        fprintf(stderr, "\n");
-        fprintf(stderr, "%s: scale %g > sigmaMax %g\n", me,
-                sbp->scale[blIdx], sbp->sigmaMax);
-        fprintf(stderr, "%s: diffusing for time %g in steps of %g\n", me,
-                timeLeft, timeStep);
-        fflush(stderr);
-      }
-      do {
-        if (!passIdx) {
-          if (!E) E |= nrrdResampleInputSet(rsmc, nin);
-        } else {
-          if (!E) E |= nrrdResampleInputSet(rsmc, ntmp);
-        }
-        timeDo = (timeLeft > timeStep
-                  ? timeStep
-                  : timeLeft);
-        sbp->kspec->parm[0] = sqrt(timeDo);
-        for (axi=0; axi<3; axi++) {
-          if (!E) E |= nrrdResampleKernelSet(rsmc, kind->baseDim + axi,
-                                             sbp->kspec->kernel,
-                                             sbp->kspec->parm);
-        }
-        if (sbp->verbose) {
-          fprintf(stderr, "  pass %u (timeLeft=%g => time=%g, sigma=%g) ...\n",
-                  passIdx, timeLeft, timeDo, sbp->kspec->parm[0]);
-        }
-        if (!E) E |= nrrdResampleExecute(rsmc, ntmp);
-        timeLeft -= timeDo;
-        passIdx++;
-      } while (!E && timeLeft > 0.0);
-      if (!E) E |= nrrdCopy(nblur[blIdx], ntmp);
-    } else {
-      /* do blurring in one shot as usual */
-      sbp->kspec->parm[0] = sbp->scale[blIdx];
-      for (axi=0; axi<3; axi++) {
-        if (!E) E |= nrrdResampleKernelSet(rsmc, kind->baseDim + axi,
-                                           sbp->kspec->kernel,
-                                           sbp->kspec->parm);
-      }
-      if (!E) E |= nrrdResampleExecute(rsmc, nblur[blIdx]);
+    sbp->kspec->parm[0] = sbp->scale[blIdx];
+    for (axi=0; axi<3; axi++) {
+      if (!E) E |= nrrdResampleKernelSet(rsmc, kind->baseDim + axi,
+                                         sbp->kspec->kernel,
+                                         sbp->kspec->parm);
     }
+    if (!E) E |= nrrdResampleExecute(rsmc, nblur[blIdx]);
     if (E) {
       if (sbp->verbose) {
         fprintf(stderr, "problem!\n");
@@ -399,19 +314,8 @@ gageStackBlur(Nrrd *const nblur[], gageStackBlurParm *sbp,
   return 0;
 }
 
-/*
-******** gageStackBlurCheck
-**
-** (docs)
-**
-** on why sbp->dataCheck should be non-zero: really need to check that
-** the data values themselves are correct; its too dangerous to have
-** this unchecked, because it means that experimental changes in
-** volumes could mysteriously have no effect, because the cached
-** pre-blurred volumes from the old data are being re-used
-*/
 int
-gageStackBlurCheck(const Nrrd *const nblur[],
+gageStackBlurCheck(const Nrrd *const nblur[], 
                    gageStackBlurParm *sbp,
                    const Nrrd *nin, const gageKind *kind) {
   static const char me[]="gageStackBlurCheck";
@@ -442,12 +346,6 @@ gageStackBlurCheck(const Nrrd *const nblur[],
   airMopAdd(mop, shapeOld, (airMopper)gageShapeNix, airMopAlways);
 
   for (blIdx=0; blIdx<sbp->num; blIdx++) {
-    if (nin->type != nblur[blIdx]->type) {
-      biffAddf(GAGE, "%s: nblur[%u]->type %s != nin type %s\n", me,
-               blIdx, airEnumStr(nrrdType, nblur[blIdx]->type),
-               airEnumStr(nrrdType, nin->type));
-      airMopError(mop); return 1;
-    }
     /* check to see if nblur[blIdx] is as expected */
     if (gageShapeSet(shapeOld, nblur[blIdx], kind->baseDim)
         || !gageShapeEqual(shapeOld, "nblur", shapeNew, "nin")) {
@@ -462,41 +360,17 @@ gageStackBlurCheck(const Nrrd *const nblur[],
       if (!tmpval) {
         biffAddf(GAGE, "%s: didn't see key \"%s\" in nblur[%u]", me,
                  _blurKey[kvpIdx], blIdx);
-        airMopError(mop); return 1;
+        airMopOkay(mop); return 1;
       }
       airMopAdd(mop, tmpval, airFree, airMopAlways);
       if (strcmp(tmpval, blurVal[blIdx].val[kvpIdx])) {
         biffAddf(GAGE, "%s: found key[%s] \"%s\" != wanted \"%s\"", me,
                  _blurKey[kvpIdx], tmpval, blurVal[blIdx].val[kvpIdx]);
-        airMopError(mop); return 1;
-      }
-    }
-  }
-  if (sbp->dataCheck) {
-    double (*lup)(const void *, size_t), vin, vbl;
-    size_t II, NN;
-    if (!(0.0 == sbp->scale[0])) {
-      biffAddf(GAGE, "%s: sorry, dataCheck w/ scale[0] %g "
-               "!= 0.0 not implemented", me, sbp->scale[0]);
-      airMopError(mop); return 1;
-      /* so the non-zero return here will be acted upon as though there
-         was a difference between the desired and the current stack,
-         so things will be recomputed, which is conservative but costly */
-    }
-    lup = nrrdDLookup[nin->type];
-    NN = nrrdElementNumber(nin);
-    for (II=0; II<NN; II++) {
-      vin = lup(nin->data, II);
-      vbl = lup(nblur[0]->data, II);
-      if (vin != vbl) {
-        biffAddf(GAGE, "%s: value[%u] in nin %g != in nblur[0] %g\n", me,
-                 AIR_CAST(unsigned int, II), vin, vbl);
-        airMopError(mop); return 1;
+        airMopOkay(mop); return 1;
       }
     }
   }
 
-  airMopOkay(mop);
   return 0;
 }
 
@@ -561,7 +435,7 @@ gageStackBlurGet(Nrrd *const nblur[], int *recomputedP,
                 "read:\n%s\n", me, suberr);
       }
       recompute = AIR_TRUE;
-    } else if (gageStackBlurCheck(AIR_CAST(const Nrrd*const*, nblur),
+    } else if (gageStackBlurCheck(AIR_CAST(const Nrrd**, nblur),
                                   sbp, nin, kind)) {
       airMopAdd(mop, suberr = biffGetDone(GAGE), airFree, airMopAlways);
       if (sbp->verbose) {
@@ -572,8 +446,7 @@ gageStackBlurGet(Nrrd *const nblur[], int *recomputedP,
     } else {
       /* else precomputed blurrings could all be read, and did match */
       if (sbp->verbose) {
-        fprintf(stderr, "%s: will reuse %u %s pre-blurrings.\n", me,
-                sbp->num, format);
+        fprintf(stderr, "%s: will re-use %s pre-blurrings.\n", me, format);
       }
       recompute = AIR_FALSE;
     }
@@ -600,7 +473,7 @@ gageStackBlurGet(Nrrd *const nblur[], int *recomputedP,
 ** and saves output if recomputed
 */
 int
-gageStackBlurManage(Nrrd ***nblurP, int *recomputedP,
+gageStackBlurManage(Nrrd ***nblurP, int *recomputedP, 
                     gageStackBlurParm *sbp,
                     const char *format,
                     int saveIfComputed, NrrdEncoding *enc,
@@ -610,7 +483,7 @@ gageStackBlurManage(Nrrd ***nblurP, int *recomputedP,
   unsigned int ii;
   airArray *mop;
   int recomputed;
-
+  
   if (!( nblurP && sbp && nin && kind )) {
     biffAddf(GAGE, "%s: got NULL pointer", me);
     return 1;
@@ -659,7 +532,7 @@ gageStackBlurManage(Nrrd ***nblurP, int *recomputedP,
       airMopError(mop); return 1;
     }
   }
-
+  
   airMopOkay(mop);
   return 0;
 }

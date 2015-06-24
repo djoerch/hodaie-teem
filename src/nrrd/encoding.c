@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -38,11 +37,11 @@
 ** -- in case of error, put text error messages into biff via
 **    biffAddf(NRRD, <error char*> ...)
 **
-** The "unknown" encoding below is intended to serve as a template for
+** The "unknown" encoding below is intended to serve as a template for 
 ** any new encodings being developed.
 */
 
-static int
+int
 _nrrdEncodingUnknown_available(void) {
 
   /* insert code here */
@@ -50,7 +49,7 @@ _nrrdEncodingUnknown_available(void) {
   return AIR_FALSE;
 }
 
-static int
+int
 _nrrdEncodingUnknown_read(FILE *file, void *data,
                           size_t elementNum, Nrrd *nrrd,
                           struct NrrdIoState_t *nio) {
@@ -67,7 +66,7 @@ _nrrdEncodingUnknown_read(FILE *file, void *data,
   return 1;
 }
 
-static int
+int
 _nrrdEncodingUnknown_write(FILE *file, const void *data,
                            size_t elementNum, const Nrrd *nrrd,
                            struct NrrdIoState_t *nio) {

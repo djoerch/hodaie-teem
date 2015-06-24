@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -24,25 +23,24 @@
 #include "nrrd.h"
 #include "privateNrrd.h"
 
-/* learned: /usr/bin/c++ on mac (at least) won't actually put a
+/* learned: /usr/bin/c++ on mac (at least) won't actually put a 
 const int blah[] array in an object file if it hasn't been declared
 as "extern" */
 
 const char
 nrrdTypePrintfStr[NRRD_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
-  "%*d",          /* nrrdTypeUnknown: what else?  the effect will be
-                    "skip" for sscanf, and "minimum precision" for printf */
-  "%d",           /* nrrdTypeChar: char */
-  "%u",           /* nrrdTypeUChar: unsigned char */
-  "%hd",          /* nrrdTypeShort: short */
-  "%hu",          /* nrrdTypeUShort: unsigned short */
-  "%d",           /* nrrdTypeInt: int */
-  "%u",           /* nrrdTypeUInt: unsigned int */
-  AIR_LLONG_FMT,  /* nrrdTypeLLong: long long */
-  AIR_ULLONG_FMT, /* nrrdTypeULLong: unsigned long long */
-  "%f",           /* nrrdTypeFloat: float */
-  "%lf",          /* nrrdTypeDouble: double */
-  "%*d"           /* nrrdTypeBlock: what else? */
+  "%*d",  /* what else? sscanf: skip, printf: use "minimum precision" */
+  "%d",
+  "%u",
+  "%hd",
+  "%hu",
+  "%d",
+  "%u",
+  AIR_LLONG_FMT,
+  AIR_ULLONG_FMT,
+  "%f",
+  "%lf",
+  "%*d"  /* what else? */
 };
 
 /*
@@ -50,50 +48,50 @@ nrrdTypePrintfStr[NRRD_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
 */
 const size_t
 nrrdTypeSize[NRRD_TYPE_MAX+1] = {
-  0,  /* nrrdTypeUnknown: unknown */
-  1,  /* nrrdTypeChar: char */
-  1,  /* nrrdTypeUChar: unsigned char */
-  2,  /* nrrdTypeShort: short */
-  2,  /* nrrdTypeUShort: unsigned short */
-  4,  /* nrrdTypeInt: int */
-  4,  /* nrrdTypeUInt: unsigned int */
-  8,  /* nrrdTypeLLong: long long */
-  8,  /* nrrdTypeULLong: unsigned long long */
-  4,  /* nrrdTypeFloat: float */
-  8,  /* nrrdTypeDouble: double */
-  0   /* nrrdTypeBlock: effectively unknown; user has to set explicitly */
+  0,  /* unknown */
+  1,  /* char */
+  1,  /* unsigned char */
+  2,  /* short */
+  2,  /* unsigned short */
+  4,  /* int */
+  4,  /* unsigned int */
+  8,  /* long long */
+  8,  /* unsigned long long */
+  4,  /* float */
+  8,  /* double */
+  0   /* effectively unknown; user has to set explicitly */
 };
 
-const int
+const int 
 nrrdTypeIsIntegral[NRRD_TYPE_MAX+1] = {
-  0,  /* nrrdTypeUnknown: unknown */
-  1,  /* nrrdTypeChar: char */
-  1,  /* nrrdTypeUChar: unsigned char */
-  1,  /* nrrdTypeShort: short */
-  1,  /* nrrdTypeUShort: unsigned short */
-  1,  /* nrrdTypeInt: int */
-  1,  /* nrrdTypeUInt: unsigned int */
-  1,  /* nrrdTypeLLong: long long */
-  1,  /* nrrdTypeULLong: unsigned long long */
-  0,  /* nrrdTypeFloat: float */
-  0,  /* nrrdTypeDouble: double */
-  1   /* nrrdTypeBlock: for some reason we pretend that blocks are integers */
+  0,  /* unknown */
+  1,  /* char */
+  1,  /* unsigned char */
+  1,  /* short */
+  1,  /* unsigned short */
+  1,  /* int */
+  1,  /* unsigned int */
+  1,  /* long long */
+  1,  /* unsigned long long */
+  0,  /* float */
+  0,  /* double */
+  1   /* for some reason we pretend that blocks are integers */
 };
 
-const int
+const int 
 nrrdTypeIsUnsigned[NRRD_TYPE_MAX+1] = {
-  0,  /* nrrdTypeUnknown: unknown */
-  0,  /* nrrdTypeChar: char */
-  1,  /* nrrdTypeUChar: unsigned char */
-  0,  /* nrrdTypeShort: short */
-  1,  /* nrrdTypeUShort: unsigned short */
-  0,  /* nrrdTypeInt: int */
-  1,  /* nrrdTypeUInt: unsigned int */
-  0,  /* nrrdTypeLLong: long long */
-  1,  /* nrrdTypeULLong: unsigned long long */
-  0,  /* nrrdTypeFloat: float */
-  0,  /* nrrdTypeDouble: double */
-  0   /* nrrdTypeBlock: for some reason we pretend that blocks are signed */
+  0,  /* unknown */
+  0,  /* char */
+  1,  /* unsigned char */
+  0,  /* short */
+  1,  /* unsigned short */
+  0,  /* int */
+  1,  /* unsigned int */
+  0,  /* long long */
+  1,  /* unsigned long long */
+  0,  /* float */
+  0,  /* double */
+  0   /* for some reason we pretend that blocks are signed */
 };
 
 /*
@@ -108,32 +106,55 @@ nrrdTypeIsUnsigned[NRRD_TYPE_MAX+1] = {
 */
 const double
 nrrdTypeMin[NRRD_TYPE_MAX+1] = {
-  0,                       /* nrrdTypeUnknown: unknown */
-  SCHAR_MIN,               /* nrrdTypeChar: char */
-  0,                       /* nrrdTypeUChar: unsigned char */
-  SHRT_MIN,                /* nrrdTypeShort: short */
-  0,                       /* nrrdTypeUShort: unsigned short */
-  INT_MIN,                 /* nrrdTypeInt: int */
-  0,                       /* nrrdTypeUInt: unsigned int */
-  (double)NRRD_LLONG_MIN,  /* nrrdTypeLLong: long long */
-  0,                       /* nrrdTypeULLong: unsigned long long */
-  0,                       /* nrrdTypeFloat: float */
-  0,                       /* nrrdTypeDouble: double */
-  0                        /* nrrdTypeBlock: punt */
+  0,                       /* unknown */
+  SCHAR_MIN,               /* char */
+  0,                       /* unsigned char */
+  SHRT_MIN,                /* short */
+  0,                       /* unsigned short */
+  INT_MIN,                 /* int */
+  0,                       /* unsigned int */
+  (double)NRRD_LLONG_MIN,  /* long long */
+  0,                       /* unsigned long long */
+  0,                       /* float */
+  0,                       /* double */
+  0                        /* punt */
 },
 nrrdTypeMax[NRRD_TYPE_MAX+1] = {
-  0,                       /* nrrdTypeUnknown: unknown */
-  SCHAR_MAX,               /* nrrdTypeChar: char */
-  UCHAR_MAX,               /* nrrdTypeUChar: unsigned char */
-  SHRT_MAX,                /* nrrdTypeShort: short */
-  USHRT_MAX,               /* nrrdTypeUShort: unsigned short */
-  INT_MAX,                 /* nrrdTypeInt: int */
-  UINT_MAX,                /* nrrdTypeUInt: unsigned int */
-  (double)NRRD_LLONG_MAX,  /* nrrdTypeLLong: long long */
-  (double)NRRD_ULLONG_MAX, /* nrrdTypeULLong: unsigned long long */
-  0,                       /* nrrdTypeFloat: float */
-  0,                       /* nrrdTypeDouble: double */
-  0                        /* nrrdTypeBlock: punt */
+  0,                       /* unknown */
+  SCHAR_MAX,               /* char */
+  UCHAR_MAX,               /* unsigned char */
+  SHRT_MAX,                /* short */
+  USHRT_MAX,               /* unsigned short */
+  INT_MAX,                 /* int */
+  UINT_MAX,                /* unsigned int */
+  (double)NRRD_LLONG_MAX,  /* long long */
+  (double)NRRD_ULLONG_MAX, /* unsigned long long */
+  0,                       /* float */
+  0,                       /* double */
+  0                        /* punt */
+};
+
+/*
+******** nrrdTypeNumberOfValues[]
+**
+** only meaningful for integral values, and only correct for
+** 32-bit values; tells the number of different integral values that
+** can be represented by the type
+*/
+const double
+nrrdTypeNumberOfValues[NRRD_TYPE_MAX+1] = {
+  0,                         /* unknown */
+  UCHAR_MAX+1,               /* char */
+  UCHAR_MAX+1,               /* unsigned char */
+  USHRT_MAX+1,               /* short */
+  USHRT_MAX+1,               /* unsigned short */
+  (double)UINT_MAX+1,        /* int */
+  (double)UINT_MAX+1,        /* unsigned int */
+  (double)NRRD_ULLONG_MAX+1, /* long long */
+  (double)NRRD_ULLONG_MAX+1, /* unsigned long long */
+  0,                         /* float */
+  0,                         /* double */
+  0                          /* punt */
 };
 
 /*
@@ -182,7 +203,7 @@ _nrrdFieldValidInImage[NRRD_FIELD_MAX+1] = {
 
 /*
 ** _nrrdFieldOnePerAxis
-**
+** 
 ** whether or not you need one value per axis, like labels and spacings
 */
 const int
@@ -224,7 +245,7 @@ _nrrdFieldOnePerAxis[NRRD_FIELD_MAX+1] = {
 
 /*
 ** _nrrdFieldValidInText[]
-**
+** 
 ** these fields are valid embedded in plain text comments
 ** This does NOT include the fields who's values are constrained
 ** the plain text format itself.
@@ -235,7 +256,7 @@ _nrrdFieldValidInText[NRRD_FIELD_MAX+1] = {
   1, /* nrrdField_comment */
   1, /* nrrdField_content */
   0, /* nrrdField_number */
-  0, /* nrrdField_type: decided AGAINST plain text holding general type
+  0, /* nrrdField_type: decided AGAINST plain text holding general type 
         (but I forget why ...) */
   0, /* nrrdField_block_size */
   1, /* nrrdField_dimension: but can only be 1 or 2 */
@@ -259,7 +280,7 @@ _nrrdFieldValidInText[NRRD_FIELD_MAX+1] = {
   0, /* nrrdField_encoding */
   0, /* nrrdField_line_skip */
   0, /* nrrdField_byte_skip */
-  1, /* nrrdField_keyvalue */
+  0, /* nrrdField_keyvalue */
   0, /* nrrdField_sample_units */
   0, /* nrrdField_space_units */
   0, /* nrrdField_space_origin */

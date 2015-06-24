@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,53 +24,39 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Ternary operation on three nrrds or constants"
-static const char *_unrrdu_3opInfoL =
+char *_unrrdu_3opInfoL =
 (INFO
  ". Can have one, two, or three nrrds, but not zero. "
  "Use \"-\" for an operand to signify "
  "a nrrd to be read from stdin (a pipe).  Note, however, "
- "that \"-\" can probably only be used once (reliably).\n "
- "* Uses nrrdArithIterTernaryOp or (with -w) nrrdArithIterTernaryOpSelect");
+ "that \"-\" can probably only be used once (reliably).");
 
 int
-unrrdu_3opMain(int argc, const char **argv, const char *me,
-               hestParm *hparm) {
+unrrdu_3opMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   NrrdIter *in1, *in2, *in3;
   Nrrd *nout, *ntmp=NULL;
-  int op, type, E, pret, which;
+  int op, type, E, pret;
   airArray *mop;
 
   hestOptAdd(&opt, NULL, "operator", airTypeEnum, 1, 1, &op, NULL,
              "Ternary operator. Possibilities include:\n "
              "\b\bo \"+\", \"x\": sum or product of three values\n "
              "\b\bo \"min\", \"max\": minimum, maximum\n "
-             "\b\bo \"min_sm\": smoothed minimum function; "
-             "min_sm(x, w, M) is like min(x,M) but for x > M-w (with w > 0) "
-             "there is a smooth transition from x to asymptotic to M\n "
-             "\b\bo \"max_sm\": smoothed maximum function; "
-             "max_sm(m, w, x) is like max(M,x) but for x < m+w (with w > m) "
-             "there is a smooth transition from x to asymptotic to m\n "
-             "\b\bo \"lt_sm\": 1st less than 3rd, smoothed by 2nd\n "
-             "\b\bo \"gt_sm\": 1st greater than 3rd, smoothed by 2nd\n "
-             "\b\bo \"clamp\": 2nd value is clamped to range between "
-             "the 1st and the 3rd\n "
+             "\b\bo \"clamp\": second value is clamped to range between "
+             "the first and the third\n "
              "\b\bo \"ifelse\": if 1st value non-zero, then 2nd value, else "
              "3rd value\n "
              "\b\bo \"lerp\": linear interpolation between the 2nd and "
              "3rd values, as the 1st value varies between 0.0 and 1.0, "
              "respectively\n "
-             "\b\bo \"exists\": if the 1st value exists, use the 2nd "
-             "value, otherwise use the 3rd\n "
-             "\b\bo \"in_op\": 1 iff 2nd value is > 1st and < 3rd, "
-             "0 otherwise\n "
-             "\b\bo \"in_cl\": 1 iff 2nd value is >= 1st and <= 3rd, "
-             "0 otherwise\n "
-             "\b\bo \"gauss\": evaluate (at 1st value) Gaussian with mean=2nd "
-             "and stdv=3rd value\n "
-             "\b\bo \"rician\": evaluate (at 1st value) Rician with mean=2nd "
-             "and stdv=3rd value",
+             "\b\bo \"exists\": if the first value exists, use the second "
+             "value, otherwise use the third\n "
+             "\b\bo \"in_op\": 1 iff second value is > first and < "
+             "third, 0 otherwise\n "
+             "\b\bo \"in_cl\": 1 iff second value is >= first and <= "
+             "third, 0 otherwise",
              NULL, nrrdTernaryOp);
   hestOptAdd(&opt, NULL, "in1", airTypeOther, 1, 1, &in1, NULL,
              "First input.  Can be a single value or a nrrd.",
@@ -88,10 +73,6 @@ unrrdu_3opMain(int argc, const char **argv, const char *me,
              "By default (not using this option), the types of the input "
              "nrrds are left unchanged.",
              NULL, NULL, &unrrduHestMaybeTypeCB);
-  hestOptAdd(&opt, "w,which", "arg", airTypeInt, 1, 1, &which, "-1",
-             "Which argument (0, 1, or 2) should be used to determine the "
-             "shape of the output nrrd. By default (not using this option), "
-             "the first non-constant argument is used. ");
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopNew();
@@ -106,7 +87,7 @@ unrrdu_3opMain(int argc, const char **argv, const char *me,
 
   /*
   fprintf(stderr, "%s: op = %d\n", me, op);
-  fprintf(stderr, "%s: in1->left = %d, in2->left = %d\n", me,
+  fprintf(stderr, "%s: in1->left = %d, in2->left = %d\n", me, 
           (int)(in1->left), (int)(in2->left));
   */
   if (nrrdTypeDefault != type) {
@@ -133,20 +114,13 @@ unrrdu_3opMain(int argc, const char **argv, const char *me,
     /* this will still leave a nrrd in the NrrdIter for nrrdIterNix()
        (called by hestParseFree() called be airMopOkay()) to clear up */
   }
-
-  /* HEY: will need to add handling of RNG seed (as in 1op and 2op)
-     if there are any 3ops involving random numbers */
-
-  if (-1 == which
-      ? nrrdArithIterTernaryOp(nout, op, in1, in2, in3)
-      : nrrdArithIterTernaryOpSelect(nout, op, in1, in2, in3,
-                                     AIR_CAST(unsigned int, which))) {
+  if (nrrdArithIterTernaryOp(nout, op, in1, in2, in3)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error doing ternary operation:\n%s", me, err);
     airMopError(mop);
     return 1;
   }
-
+  
   SAVE(out, nout, NULL);
 
   airMopOkay(mop);

@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,9 +25,8 @@
 char *vhInfo = ("deepens valleys. a hack.");
 
 int
-main(int argc, const char *argv[]) {
-  const char *me;
-  char *outS;
+main(int argc, char *argv[]) {
+  char *me, *outS;
   hestOpt *hopt;
   hestParm *hparm;
   airArray *mop;
@@ -106,7 +105,7 @@ main(int argc, const char *argv[]) {
   airMopAdd(mop, rsmc, (airMopper)nrrdResampleContextNix, airMopAlways);
   E = AIR_FALSE;
   if (!E) E |= nrrdResampleDefaultCenterSet(rsmc, nrrdCenterCell);
-  if (!E) E |= nrrdResampleInputSet(rsmc, nin);
+  if (!E) E |= nrrdResampleNrrdSet(rsmc, nin);
   for (ai=0; ai<3; ai++) {
     if (!E) E |= nrrdResampleKernelSet(rsmc, ai, kb0->kernel, kb0->parm);
     if (!E) E |= nrrdResampleSamplesSet(rsmc, ai, nin->axis[ai].size);
@@ -219,7 +218,7 @@ main(int argc, const char *argv[]) {
   fprintf(stderr, "%s: post-blurring ... ", me);
   fflush(stderr);
   E = AIR_FALSE;
-  if (!E) E |= nrrdResampleInputSet(rsmc, nout);
+  if (!E) E |= nrrdResampleNrrdSet(rsmc, nout);
   for (ai=0; ai<3; ai++) {
     if (!E) E |= nrrdResampleKernelSet(rsmc, ai, kb1->kernel, kb1->parm);
     if (!E) E |= nrrdResampleSamplesSet(rsmc, ai, nout->axis[ai].size);

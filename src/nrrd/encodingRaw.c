@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -24,13 +23,13 @@
 #include "nrrd.h"
 #include "privateNrrd.h"
 
-static int
+int
 _nrrdEncodingRaw_available(void) {
 
   return AIR_TRUE;
 }
 
-static int
+int
 _nrrdEncodingRaw_read(FILE *file, void *data, size_t elementNum,
                       Nrrd *nrrd, NrrdIoState *nio) {
   static const char me[]="_nrrdEncodingRaw_read";
@@ -38,9 +37,8 @@ _nrrdEncodingRaw_read(FILE *file, void *data, size_t elementNum,
   int fd, dio, car;
   long savePos;
   char *data_c;
-  size_t elementSize, maxChunkSize, remainderValue, chunkSize;
+  size_t elementSize, maxChunkSize, remainder, chunkSize;
   size_t retTmp;
-  char stmp[3][AIR_STRLEN_SMALL];
 
   bsize = nrrdElementSize(nrrd)*elementNum;
   if (nio->format->usesDIO) {
@@ -56,11 +54,10 @@ _nrrdEncodingRaw_read(FILE *file, void *data, size_t elementNum,
     }
     ret = airDioRead(fd, data, bsize);
     if (ret != bsize) {
-      biffAddf(NRRD, "%s: airDioRead got read only %s of %sbytes "
+      biffAddf(NRRD, "%s: airDioRead got read only "
+               _AIR_SIZE_T_CNV " of " _AIR_SIZE_T_CNV " bytes "
                "(%g%% of expected)", me,
-               airSprintSize_t(stmp[0], ret),
-               airSprintSize_t(stmp[1], bsize),
-               100.0*AIR_CAST(double, ret)/AIR_CAST(double, bsize));
+               ret, bsize, 100.0*ret/bsize);
       return 1;
     }
   } else {
@@ -80,41 +77,47 @@ _nrrdEncodingRaw_read(FILE *file, void *data, size_t elementNum,
     elementSize = nrrdElementSize(nrrd);
     maxChunkSize = 1024 * 1024 * 1024 / elementSize;
     while(ret < elementNum) {
-      remainderValue = elementNum-ret;
-      if (remainderValue < maxChunkSize) {
-        chunkSize = remainderValue;
+      remainder = elementNum-ret;
+      if (remainder < maxChunkSize) {
+	chunkSize = remainder;
       } else {
-        chunkSize = maxChunkSize;
+	chunkSize = maxChunkSize;
       }
-      retTmp =
-        fread(&(data_c[ret*elementSize]), elementSize, chunkSize, file);
+      retTmp = 
+	fread(&(data_c[ret*elementSize]), elementSize, chunkSize, file);
       ret += retTmp;
       if (retTmp != chunkSize) {
-        biffAddf(NRRD, "%s: fread got only %s %s-sized things, not %s "
-                 "(%g%% of expected)", me,
-                 airSprintSize_t(stmp[0], ret),
-                 airSprintSize_t(stmp[1], nrrdElementSize(nrrd)),
-                 airSprintSize_t(stmp[2], elementNum),
-                 100.0*AIR_CAST(double, ret)/AIR_CAST(double, elementNum));
-        return 1;
+	biffAddf(NRRD, "%s: fread got read only "
+                 _AIR_SIZE_T_CNV " " _AIR_SIZE_T_CNV "-sized things, not "
+                 _AIR_SIZE_T_CNV " (%g%% of expected)", me,
+                 ret, nrrdElementSize(nrrd), elementNum,
+                 100.0*ret/elementNum);
+	return 1;
       }
     }
+    /* HEY: Here's the old version of the above code. 
+    ret = fread(data, nrrdElementSize(nrrd), elementNum, file);
+    if (ret != elementNum) {
+      biffAddf(NRRD, "%s: fread got read only "
+               _AIR_SIZE_T_CNV " " _AIR_SIZE_T_CNV "-sized things, not "
+               _AIR_SIZE_T_CNV " (%g%% of expected)", me,
+               ret, nrrdElementSize(nrrd), elementNum,
+               100.0*ret/elementNum);
+      return 1;
+    }
+    */
 
     car = fgetc(file);
-    if (EOF != car) {
-      if (1 <= nrrdStateVerboseIO) {
-        fprintf(stderr, "%s: WARNING: finished reading raw data, "
-                "but file not at EOF\n", me);
-      }
+    if (1 <= nrrdStateVerboseIO && EOF != car) {
+      fprintf(stderr, "%s: WARNING: finished reading raw data, "
+              "but file not at EOF\n", me);
       ungetc(car, file);
     }
     if (2 <= nrrdStateVerboseIO && nio->byteSkip && stdin != file) {
       savePos = ftell(file);
       if (!fseek(file, 0, SEEK_END)) {
-        double frac = (AIR_CAST(double, bsize)
-                       /AIR_CAST(double, ftell(file) + 1));
-        fprintf(stderr, "(%s: used %g%% of file for nrrd data)\n", me,
-                100.0*frac);
+        fprintf(stderr, "(%s: used %g%% of file for nrrd data)\n",
+                me, 100.0*bsize/(ftell(file) + 1));
         fseek(file, savePos, SEEK_SET);
       }
     }
@@ -123,17 +126,16 @@ _nrrdEncodingRaw_read(FILE *file, void *data, size_t elementNum,
   return 0;
 }
 
-static int
+int
 _nrrdEncodingRaw_write(FILE *file, const void *data, size_t elementNum,
                        const Nrrd *nrrd, NrrdIoState *nio) {
   static const char me[]="_nrrdEncodingRaw_write";
   int fd, dio;
   size_t ret, bsize;
-  const char *data_c;
-  size_t elementSize, maxChunkSize, remainderValue, chunkSize;
+  char *data_c;
+  size_t elementSize, maxChunkSize, remainder, chunkSize;
   size_t retTmp;
-  char stmp[3][AIR_STRLEN_SMALL];
-
+  
   bsize = nrrdElementSize(nrrd)*elementNum;
   if (nio->format->usesDIO) {
     fd = fileno(file);
@@ -148,11 +150,10 @@ _nrrdEncodingRaw_write(FILE *file, const void *data, size_t elementNum,
     }
     ret = airDioWrite(fd, data, bsize);
     if (ret != bsize) {
-      biffAddf(NRRD, "%s: airDioWrite wrote only %s of %s bytes "
+      biffAddf(NRRD, "%s: airDioWrite wrote only "
+               _AIR_SIZE_T_CNV " of " _AIR_SIZE_T_CNV " bytes "
                "(%g%% of expected)", me,
-               airSprintSize_t(stmp[0], ret),
-               airSprintSize_t(stmp[1], bsize),
-               100.0*AIR_CAST(double, ret)/AIR_CAST(double, bsize));
+               ret, bsize, 100.0*ret/bsize);
       return 1;
     }
   } else {
@@ -168,29 +169,39 @@ _nrrdEncodingRaw_write(FILE *file, const void *data, size_t elementNum,
             actually read/written the data.  The work-around is to loop
             over the data, reading/writing 1GB (or smaller) chunks.         */
     ret = 0;
-    data_c = AIR_CAST(const char *, data);
+    data_c = (char *)data;
     elementSize = nrrdElementSize(nrrd);
     maxChunkSize = 1024 * 1024 * 1024 / elementSize;
     while(ret < elementNum) {
-      remainderValue = elementNum-ret;
-      if (remainderValue < maxChunkSize) {
-        chunkSize = remainderValue;
+      remainder = elementNum-ret;
+      if (remainder < maxChunkSize) {
+	chunkSize = remainder;
       } else {
-        chunkSize = maxChunkSize;
+	chunkSize = maxChunkSize;
       }
-      retTmp =
-        fwrite(&(data_c[ret*elementSize]), elementSize, chunkSize, file);
+      retTmp = 
+	fwrite(&(data_c[ret*elementSize]), elementSize, chunkSize, file);
       ret += retTmp;
       if (retTmp != chunkSize) {
-        biffAddf(NRRD, "%s: fwrite wrote only %s %s-sized things, not %s "
-                 "(%g%% of expected)", me,
-                 airSprintSize_t(stmp[0], ret),
-                 airSprintSize_t(stmp[1], nrrdElementSize(nrrd)),
-                 airSprintSize_t(stmp[2], elementNum),
-                 100.0*AIR_CAST(double, ret)/AIR_CAST(double, elementNum));
-        return 1;
+	biffAddf(NRRD, "%s: fwrite wrote only "
+                 _AIR_SIZE_T_CNV " " _AIR_SIZE_T_CNV "-sized things, not "
+                 _AIR_SIZE_T_CNV " (%g%% of expected)", me,
+                 ret, nrrdElementSize(nrrd), elementNum,
+                 100.0*ret/elementNum);
+	return 1;
       }
     }
+    /* HEY: Here's the old version of the above code.
+    ret = fwrite(data, nrrdElementSize(nrrd), elementNum, file);
+    if (ret != elementNum) {
+      biffAddf(NRRD, "%s: fwrite wrote only "
+               _AIR_SIZE_T_CNV " " _AIR_SIZE_T_CNV "-sized things, not " 
+               _AIR_SIZE_T_CNV " (%g%% of expected)", me,
+               ret, nrrdElementSize(nrrd), elementNum,
+               100.0*ret/elementNum);
+      return 1;
+    }
+    */
 
     fflush(file);
     /*

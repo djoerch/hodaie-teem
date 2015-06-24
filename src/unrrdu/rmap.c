@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,7 +24,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Map nrrd through one *regular* univariate map (\"colormap\")"
-static const char *_unrrdu_rmapInfoL =
+char *_unrrdu_rmapInfoL =
 (INFO
  ". A map is regular if the control points are evenly "
  "spaced along the domain, and hence their position isn't "
@@ -39,12 +38,10 @@ static const char *_unrrdu_rmapInfoL =
  "either case, the output is the result of linearly "
  "interpolating between map points, either scalar values "
  "(\"grayscale\"), or scanlines along axis 0 "
- "(\"color\").\n "
- "* Uses nrrdApply1DRegMap");
+ "(\"color\").");
 
 int
-unrrdu_rmapMain(int argc, const char **argv, const char *me,
-                hestParm *hparm) {
+unrrdu_rmapMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nmap, *nout;
@@ -105,7 +102,7 @@ unrrdu_rmapMain(int argc, const char **argv, const char *me,
      user range specification, instead of letting nrrdApply1DRegMap
      find the input range itself (by passing a NULL NrrdRange).
   */
-  if (!( AIR_EXISTS(nmap->axis[nmap->dim - 1].min) &&
+  if (!( AIR_EXISTS(nmap->axis[nmap->dim - 1].min) && 
          AIR_EXISTS(nmap->axis[nmap->dim - 1].max) )) {
     rescale = AIR_TRUE;
   }

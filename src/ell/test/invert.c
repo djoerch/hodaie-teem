@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -26,9 +26,8 @@ char *invInfo = ("Tests ell_Nm_inv and ell_Nm_pseudo_inv, "
                  "and ell_{3,4}inv_d where possible ");
 
 int
-main(int argc, const char *argv[]) {
-  const char *me;
-  char *outS, *err;
+main(int argc, char *argv[]) {
+  char *me, *outS, *err;
   hestOpt *hopt;
   hestParm *hparm;
   airArray *mop;
@@ -57,7 +56,7 @@ main(int argc, const char *argv[]) {
   airMopAdd(mop, nidn, (airMopper)nrrdNuke, airMopAlways);
   nmat = nrrdNew();
   airMopAdd(mop, nmat, (airMopper)nrrdNuke, airMopAlways);
-
+  
   nrrdConvert(nmat, nin, nrrdTypeDouble);
   if (3 == nmat->axis[0].size && 3 == nmat->axis[1].size) {
     ell_3m_inv_d(m3, (double *)nmat->data);

@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -79,7 +78,7 @@ meetPullVolParse(meetPullVol *mpv, const char *_str) {
   }
   /* mpv->nin is set elsewhere */
   wantSS = (4 == airStrntok(str, ":"));
-
+  
   ctok = airStrtok(str, ":", &clast);
   if (!(mpv->fileName = airStrdup(ctok))) {
     biffAddf(MEET, "%s: couldn't strdup fileName", me);
@@ -132,7 +131,7 @@ meetPullVolParse(meetPullVol *mpv, const char *_str) {
       airMopAdd(mop, flags, airFree, airMopAlways);
       if (strchr(flags, 'n')) {
         mpv->derivNormSS = AIR_TRUE;
-      }
+      } 
       if (strchr(flags, 'u')) {
         mpv->uniformSS = AIR_TRUE;
       }
@@ -146,7 +145,7 @@ meetPullVolParse(meetPullVol *mpv, const char *_str) {
       }
       if ((bias = strchr(flags, '+'))) {
         /* indicating a bias, unfortunately only a positive one is
-           possible here, because of the way that other fields are
+           possible here, because of the way that other fields are 
            tokenized by '-' */
         bias++;
         if (1 != sscanf(bias, "%lf", &(mpv->derivNormBiasSS))) {
@@ -175,13 +174,13 @@ meetPullVolParse(meetPullVol *mpv, const char *_str) {
   }
   airMopAdd(mop, &(mpv->volName), (airMopper)airSetNull, airMopOnError);
   airMopAdd(mop, mpv->volName, airFree, airMopOnError);
-
+  
   if (strchr(ctok, '-')) {
     biffAddf(MEET, "%s: you probably don't want \"-\" in volume name \"%s\"; "
              "forgot last \":\" in scale sampling specification?", me, ctok);
     airMopError(mop); return 1;
   }
-
+  
   airMopOkay(mop);
   return 0;
 }
@@ -200,11 +199,11 @@ meetHestPullVolParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   mpvP = AIR_CAST(meetPullVol **, ptr);
   *mpvP = mpv = meetPullVolNew();
   airMopAdd(mop, mpvP, (airMopper)airSetNull, airMopOnError);
-  airMopAdd(mop, mpv, (airMopper)meetPullVolNix, airMopOnError);
+  airMopAdd(mop, mpv, (airMopper)meetPullVolNuke, airMopOnError);
   if (meetPullVolParse(mpv, str)) {
     char *ler;
     airMopAdd(mop, ler = biffGetDone(MEET), airFree, airMopOnError);
-    airStrcpy(err, AIR_STRLEN_HUGE, ler);
+    strncpy(err, ler, AIR_STRLEN_HUGE-1);
     airMopError(mop);
     return 1;
   }
@@ -218,7 +217,7 @@ meetHestPullVolParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
 ** this frees stuff allocated meetPullVolParse and meetPullVolLoadMulti
 */
 meetPullVol *
-meetPullVolNix(meetPullVol *mpv) {
+meetPullVolNuke(meetPullVol *mpv) {
 
   if (mpv) {
     if (!mpv->leeching && mpv->nin) {
@@ -250,8 +249,8 @@ _meetHestPullVol = {
   sizeof(meetPullVol *),
   "meetPullVol",
   meetHestPullVolParse,
-  (airMopper)meetPullVolNix,
-};
+  (airMopper)meetPullVolNuke,
+}; 
 
 hestCB *
 meetHestPullVol = &_meetHestPullVol;
@@ -333,16 +332,15 @@ meetPullVolLeech(meetPullVol *vol,
 /*
 ******** meetPullVolLoadMulti
 **
-** at this point the per-pullVolume information required for
+** at this point the only per-pullVolume information required for
 ** loading/creating the volumes, which is NOT in the meetPullVol, is
-** the cachePath and the info we have to set in the gageStackBlurParm,
+** the cachePath and the kernel used for blurring at different scales,
 ** so these have to be passed explicitly.
 */
 int
-meetPullVolLoadMulti(meetPullVol **mpv, unsigned int mpvNum,
-                     char *cachePath, NrrdKernelSpec *kSSblur,
-                     int boundary, double padValue, int verbose) {
-  static const char me[]="meetPullVolLoadMulti";
+meetPullVolLoadMulti(meetPullVol **mpv, unsigned int mpvNum, 
+                     char *cachePath, NrrdKernelSpec *kSSblur, int verbose) {
+  static const char me[]="meetPullVolReadMulti";
   char formatSS[AIR_STRLEN_LARGE];
   unsigned int mpvIdx;
   gageStackBlurParm *sbp;
@@ -354,11 +352,11 @@ meetPullVolLoadMulti(meetPullVol **mpv, unsigned int mpvNum,
     return 1;
   }
   mop = airMopNew();
-
+  
   /* this can be re-used for different volumes */
   sbp = gageStackBlurParmNew();
   airMopAdd(mop, sbp, (airMopper)gageStackBlurParmNix, airMopAlways);
-
+  
   for (mpvIdx=0; mpvIdx<mpvNum; mpvIdx++) {
     unsigned int pvi, ssi;
     vol = mpv[mpvIdx];
@@ -388,31 +386,24 @@ meetPullVolLoadMulti(meetPullVol **mpv, unsigned int mpvNum,
     airMopAdd(mop, &(vol->nin), (airMopper)airSetNull, airMopOnError);
     airMopAdd(mop, vol->nin, (airMopper)nrrdNuke, airMopOnError);
     if (nrrdLoad(vol->nin, vol->fileName, NULL)) {
-      biffMovef(MEET, NRRD, "%s: trouble loading mpv[%u]->nin (\"%s\")",
+      biffMovef(MEET, NRRD, "%s: trouble loading mpv[%u]->nin (\"%s\")", 
                 me, mpvIdx, vol->volName);
       airMopError(mop); return 1;
     }
     if (vol->numSS) {
       sprintf(formatSS, "%s/%s-%%03u-%03u.nrrd",
               cachePath, vol->volName, vol->numSS);
-      if (verbose) {
-        fprintf(stderr, "%s: managing %s ... \n", me, formatSS);
-      }
       if (gageStackBlurParmScaleSet(sbp, vol->numSS,
-                                    vol->rangeSS[0], vol->rangeSS[1],
+                                    vol->rangeSS[0], vol->rangeSS[1], 
                                     vol->uniformSS, vol->optimSS)
-          || gageStackBlurParmKernelSet(sbp, kSSblur, AIR_TRUE)
-          || gageStackBlurParmBoundarySet(sbp, boundary, padValue)
-          || gageStackBlurParmVerboseSet(sbp, verbose)
+          || gageStackBlurParmKernelSet(sbp, kSSblur, nrrdBoundaryBleed,
+                                        AIR_TRUE, verbose)
           || gageStackBlurManage(&(vol->ninSS), &(vol->recomputedSS), sbp,
                                  formatSS, AIR_TRUE, NULL,
                                  vol->nin, vol->kind)) {
         biffMovef(MEET, GAGE, "%s: trouble getting volume stack (\"%s\")",
                   me, formatSS);
         airMopError(mop); return 1;
-      }
-      if (verbose) {
-        fprintf(stderr, "%s: ... done\n", me);
       }
     }
     /* allocate and set vol->posSS from sbp-scale regardless of kind */
@@ -430,7 +421,7 @@ meetPullVolLoadMulti(meetPullVol **mpv, unsigned int mpvNum,
 /*
 ******** meetPullVolAddMulti
 **
-** the spatial (k00, k11, k22) and scale (kSSrecon) reconstruction
+** the spatial (k00, k11, k22) and scale (kSSrecon) reconstruction 
 ** kernels are not part of the meetPullVol, so have to be passed in here
 */
 int
@@ -468,7 +459,7 @@ meetPullVolAddMulti(pullContext *pctx,
       return 1;
     }
   }
-
+  
   return 0;
 }
 
@@ -490,10 +481,10 @@ meetPullInfoNew(void) {
 
 meetPullInfo *
 meetPullInfoNix(meetPullInfo *minf) {
-
+  
   if (minf) {
-    airFree(minf->volName);
-    airFree(minf->itemStr);
+    minf->volName = airFree(minf->volName);
+    minf->itemStr = airFree(minf->itemStr);
     free(minf);
   }
   return NULL;
@@ -548,7 +539,7 @@ meetPullInfoParse(meetPullInfo *minf, const char *_str) {
              me, _str);
     return 1;
   }
-
+  
   mop = airMopNew();
   if (!( str = airStrdup(_str) )) {
     biffAddf(MEET, "%s: couldn't strdup input", me);
@@ -565,7 +556,7 @@ meetPullInfoParse(meetPullInfo *minf, const char *_str) {
       iflags++;
     }
     if (!(minf->info = airEnumVal(pullInfo, tok))) {
-      biffAddf(MEET, "%s: couldn't parse \"%s\" as %s",
+      biffAddf(MEET, "%s: couldn't parse \"%s\" as %s", 
                me, tok, pullInfo->name);
       airMopError(mop); return 1;
     }
@@ -590,18 +581,18 @@ meetPullInfoParse(meetPullInfo *minf, const char *_str) {
     /* "<info>:prop=<prop>[:<zero>:<scale>]" */
     tok = airStrtok(str, ":", &last);
     if (!(minf->info = airEnumVal(pullInfo, tok))) {
-      biffAddf(MEET, "%s: couldn't parse \"%s\" as %s",
+      biffAddf(MEET, "%s: couldn't parse \"%s\" as %s", 
                me, tok, pullInfo->name);
       airMopError(mop); return 1;
     }
     tok = airStrtok(NULL, ":", &last);
     if (strncmp(PROP_PREFIX, tok, strlen(PROP_PREFIX))) {
-      biffAddf(MEET, "%s: property info didn't start with %s",
+      biffAddf(MEET, "%s: property info didn't start with %s", 
                me, PROP_PREFIX);
     }
     tok += strlen(PROP_PREFIX);
     if (!(minf->prop = airEnumVal(pullProp, tok))) {
-      biffAddf(MEET, "%s: couldn't parse \"%s\" as %s",
+      biffAddf(MEET, "%s: couldn't parse \"%s\" as %s", 
                me, tok, pullProp->name);
       airMopError(mop); return 1;
     }
@@ -610,11 +601,11 @@ meetPullInfoParse(meetPullInfo *minf, const char *_str) {
       airMopError(mop); return 1;
     }
   } else {
-    biffAddf(MEET, "%s: sorry, source %s not handled",
+    biffAddf(MEET, "%s: sorry, source %s not handled", 
              me, airEnumStr(pullSource, source));
     airMopError(mop); return 1;
   }
-
+  
   airMopOkay(mop);
   return 0;
 }
@@ -637,7 +628,7 @@ meetHestPullInfoParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   if (meetPullInfoParse(minf, str)) {
     char *ler;
     airMopAdd(mop, ler = biffGetDone(MEET), airFree, airMopOnError);
-    airStrcpy(err, AIR_STRLEN_HUGE, ler);
+    strncpy(err, ler, AIR_STRLEN_HUGE-1);
     airMopError(mop);
     return 1;
   }
@@ -651,7 +642,7 @@ _meetHestPullInfo = {
   "meetPullInfo",
   meetHestPullInfoParse,
   (airMopper)meetPullInfoNix
-};
+}; 
 
 hestCB *
 meetHestPullInfo = &_meetHestPullInfo;
@@ -690,7 +681,7 @@ meetPullInfoAddMulti(pullContext *pctx,
         airMopError(mop); return 1;
       }
       if (!( ispec->item = airEnumVal(vol->kind->enm, minf[ii]->itemStr))) {
-        biffAddf(MEET, "%s: can't parse \"%s\" as item of %s kind (minf[%u])\n",
+        biffAddf(MEET, "%s: can't parse %s as item of %s kind (minf[%u])\n",
                  me, minf[ii]->itemStr, vol->kind->name, ii);
         airMopError(mop); return 1;
       }

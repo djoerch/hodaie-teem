@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -27,23 +26,27 @@
 #include <teem/air.h>
 #include <teem/hest.h>
 
-static const char *info =
-  ("Converts from DOS text files to normal (converting LF-CR pairs "
-   "to just CR), or, with the \"-r\" option, convert back to DOS, "
-   "for whatever sick and twisted reason you'd have to do that. "
-   "Can also handle legacy MAC text files (only LF). "
-   "Unlike the simple sed or perl scripts for this purpose, "
-   "this program is careful to be idempotent.  Also, this makes "
-   "an effort to not meddle with binary files (on which this may "
-   "be mistakenly invoked).  A message is printed "
-   "to stderr for all the files actually modified. ");
+char *info = ("Converts from DOS text files to normal (converting LF-CR pairs "
+              "to just CR), or, with the \"-r\" option, convert back to DOS, "
+              "for whatever sick and twisted reason you'd have to do that. "
+              "Can also handle legacy MAC text files (only LF). "
+              "Unlike the simple sed or perl scripts for this purpose, "
+              "this program is careful to be idempotent.  Also, this makes "
+              "an effort to not meddle with binary files (on which this may "
+              "be mistakenly invoked).  A message is printed "
+              "to stderr for all the files actually modified. ");
 
 #define CR 10
 #define LF 13
 #define BAD_PERC 5.0
 
+typedef union {
+  char **c;
+  void **v;
+} _undosU;
+
 void
-undosConvert(const char *me, char *name, int reverse, int mac,
+undosConvert(char *me, char *name, int reverse, int mac,
              int quiet, int noAction) {
   airArray *mop;
   FILE *fin, *fout;
@@ -51,7 +54,7 @@ undosConvert(const char *me, char *name, int reverse, int mac,
   airArray *dataArr;
   unsigned int ci;
   int car, numBad, willConvert;
-  airPtrPtrUnion appu;
+  _undosU uu;
 
   mop = airMopNew();
   if (!airStrlen(name)) {
@@ -64,7 +67,7 @@ undosConvert(const char *me, char *name, int reverse, int mac,
   fin = airFopen(name, stdin, "rb");
   if (!fin) {
     if (!quiet) {
-      fprintf(stderr, "%s: couldn't open \"%s\" for reading: \"%s\"\n",
+      fprintf(stderr, "%s: couldn't open \"%s\" for reading: \"%s\"\n", 
               me, name, strerror(errno));
     }
     airMopError(mop); return;
@@ -73,8 +76,8 @@ undosConvert(const char *me, char *name, int reverse, int mac,
 
   /* -------------------------------------------------------- */
   /* create buffer */
-  appu.c = &data;
-  dataArr = airArrayNew(appu.v, NULL, sizeof(char), AIR_STRLEN_HUGE);
+  uu.c = &data;
+  dataArr = airArrayNew(uu.v, NULL, sizeof(char), AIR_STRLEN_HUGE);
   if (!dataArr) {
     if (!quiet) {
       fprintf(stderr, "%s: internal allocation error #1\n", me);
@@ -102,7 +105,7 @@ undosConvert(const char *me, char *name, int reverse, int mac,
       airMopError(mop); return;
     }
     data[ci] = car;
-    numBad += !(isprint(car) || isspace(car));
+    numBad += !(isprint(data[ci]) || isspace(data[ci]));
     car = getc(fin);
   } while (EOF != car && BAD_PERC > 100.0*numBad/dataArr->len);
   if (EOF != car) {
@@ -110,7 +113,7 @@ undosConvert(const char *me, char *name, int reverse, int mac,
       fprintf(stderr, "%s: more than %g%% of \"%s\" is non-printing, "
               "skipping ...\n", me, BAD_PERC, name);
     }
-    airMopError(mop); return;
+    airMopError(mop); return;    
   }
   fin = airFclose(fin);
 
@@ -154,7 +157,7 @@ undosConvert(const char *me, char *name, int reverse, int mac,
     return;
   } else {
     if (!quiet) {
-      fprintf(stderr, "%s: %s \"%s\" %s %s ... \n", me,
+      fprintf(stderr, "%s: %s \"%s\" %s %s ... \n", me, 
               noAction ? "would convert" : "converting",
               name,
               reverse ? "to" : "from",
@@ -173,7 +176,7 @@ undosConvert(const char *me, char *name, int reverse, int mac,
   fout = airFopen(name, stdout, "wb");
   if (!fout) {
     if (!quiet) {
-      fprintf(stderr, "%s: couldn't open \"%s\" for writing: \"%s\"\n",
+      fprintf(stderr, "%s: couldn't open \"%s\" for writing: \"%s\"\n", 
               me, name, strerror(errno));
     }
     airMopError(mop); return;
@@ -219,9 +222,8 @@ undosConvert(const char *me, char *name, int reverse, int mac,
 }
 
 int
-main(int argc, const char *argv[]) {
-  const char *me;
-  char **name;
+main(int argc, char *argv[]) {
+  char *me, **name;
   int lenName, ni, reverse, quiet, noAction, mac;
   hestOpt *hopt = NULL;
   airArray *mop;
@@ -249,7 +251,7 @@ main(int argc, const char *argv[]) {
   for (ni=0; ni<lenName; ni++) {
     undosConvert(me, name[ni], reverse, mac, quiet, noAction);
   }
-
+  
   airMopOkay(mop);
   return 0;
 }

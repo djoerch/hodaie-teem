@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,21 +24,16 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Create 1-D histogram of values in a nrrd"
-static const char *_unrrdu_histoInfoL =
-  (INFO
-   ". Can explicitly set bounds of histogram domain or can learn these "
-   "from the data.\n "
-   "* Uses nrrdHisto");
+char *_unrrdu_histoInfoL = INFO;
 
 int
-unrrdu_histoMain(int argc, const char **argv, const char *me,
-                 hestParm *hparm) {
+unrrdu_histoMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout, *nwght;
-  char *minStr, *maxStr;
   int type, pret, blind8BitRange;
   unsigned int bins;
+  double min, max;
   NrrdRange *range;
   airArray *mop;
 
@@ -51,25 +45,12 @@ unrrdu_histoMain(int argc, const char **argv, const char *me,
              "sample, but by giving a nrrd, the value in the nrrd at the "
              "corresponding location will be the bin count increment ",
              NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&opt, "min,minimum", "value", airTypeString, 1, 1,
-             &minStr, "nan",
-             "Value at low end of histogram, given explicitly as a "
-             "regular number, "
-             "*or*, if the number is given with a \"" NRRD_MINMAX_PERC_SUFF
-             "\" suffix, this "
-             "minimum is specified in terms of the percentage of samples in "
-             "input that are lower. "
-             "By default (not using this option), the lowest value "
+  hestOptAdd(&opt, "min,minimum", "value", airTypeDouble, 1, 1, &min, "nan",
+             "Value at low end of histogram. Defaults to lowest value "
              "found in input nrrd.");
-  hestOptAdd(&opt, "max,maximum", "value", airTypeString, 1, 1,
-             &maxStr, "nan",
-             "Value at high end of histogram, given "
-             "explicitly as a regular number, "
-             "*or*, if the number is given with "
-             "a \"" NRRD_MINMAX_PERC_SUFF "\" suffix, "
-             "this maximum is specified "
-             "in terms of the percentage of samples in input that are higher. "
-             "Defaults to highest value found in input nrrd.");
+  hestOptAdd(&opt, "max,maximum", "value", airTypeDouble, 1, 1, &max, "nan",
+             "Value at high end of histogram. Defaults to highest value "
+             "found in input nrrd.");
   hestOptAdd(&opt, "blind8", "bool", airTypeBool, 1, 1, &blind8BitRange,
              nrrdStateBlind8BitRange ? "true" : "false",
              "Whether to know the range of 8-bit data blindly "
@@ -85,17 +66,19 @@ unrrdu_histoMain(int argc, const char **argv, const char *me,
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
-  range = nrrdRangeNew(AIR_NAN, AIR_NAN);
-  airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-  if (nrrdRangePercentileFromStringSet(range, nin, minStr, maxStr,
-                                       10*bins /* HEY magic */,
-                                       blind8BitRange)
-      || nrrdHisto(nout, nin, range, nwght, bins, type)) {
-    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-    fprintf(stderr, "%s: error with range or quantizing:\n%s", me, err);
-    airMopError(mop);
+  
+  /* If the input nrrd never specified min and max, then they'll be
+     AIR_NAN, and nrrdRangeSafeSet will find them, and will do so
+     according to blind8BitRange */
+  range = nrrdRangeNew(min, max);
+  airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
+  nrrdRangeSafeSet(range, nin, blind8BitRange);
+  if (nrrdHisto(nout, nin, range, nwght, bins, type)) {
+    err = biffGet(NRRD);
+    fprintf(stderr, "%s: error calculating histogram:\n%s", me, err);
+    free(err);
     return 1;
   }
 

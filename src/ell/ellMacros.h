@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -95,10 +94,6 @@ extern "C" {
 #define ELL_2V_SET(v, a, b) \
   ((v)[0]=(a), (v)[1]=(b))
 
-#define ELL_2V_SET_TT(v, TT, a, b) \
-  ((v)[0] = AIR_CAST(TT, (a)), \
-   (v)[1] = AIR_CAST(TT, (b)))
-
 #define ELL_2V_COPY(v2, v1) \
   ((v2)[0] = (v1)[0], (v2)[1] = (v1)[1])
 
@@ -109,10 +104,6 @@ extern "C" {
 #define ELL_2V_LERP(v3, w, v1, v2)            \
   ((v3)[0] = AIR_LERP((w), (v1)[0], (v2)[0]), \
    (v3)[1] = AIR_LERP((w), (v1)[1], (v2)[1]))
-
-#define ELL_2V_LERP_TT(v3, TT, w, v1, v2)                      \
-  ((v3)[0] = AIR_CAST(TT, AIR_LERP((w), (v1)[0], (v2)[0])),    \
-   (v3)[1] = AIR_CAST(TT, AIR_LERP((w), (v1)[1], (v2)[1])))
 
 #define ELL_2V_ADD2(v3, v1, v2) \
   ((v3)[0] = (v1)[0] + (v2)[0], \
@@ -133,10 +124,6 @@ extern "C" {
 #define ELL_2V_COPY(v2, v1) \
   ((v2)[0] = (v1)[0], (v2)[1] = (v1)[1])
 
-#define ELL_2V_COPY_TT(v2, TYPE, v1)  \
-  ((v2)[0] = AIR_CAST(TYPE, (v1)[0]), \
-   (v2)[1] = AIR_CAST(TYPE, (v1)[1]))
-
 #define ELL_2V_DOT(v1, v2) ((v1)[0]*(v2)[0] + (v1)[1]*(v2)[1])
 
 #define ELL_2V_LEN(v) (sqrt(ELL_2V_DOT((v),(v))))
@@ -152,36 +139,22 @@ extern "C" {
 #define ELL_2V_NORM(v2, v1, length) \
   (length = ELL_2V_LEN(v1), ELL_2V_SCALE(v2, 1.0/length, v1))
 
-/*
-** the 2x2 matrix-related macros assume that the matrix indexing is:
-** 0  1
-** 2  3
-*/
-
 #define _ELL_2M_DET(a,b,c,d) ((a)*(d) - (b)*(c))
 
 #define ELL_2M_DET(m) _ELL_2M_DET((m)[0],(m)[1],(m)[2],(m)[3])
 
-#define ELL_2M_TRANSPOSE(m2, m1)                \
-  ((m2)[0] = (m1)[0],                           \
-   (m2)[1] = (m1)[2],                           \
-   (m2)[2] = (m1)[1],                           \
+#define ELL_2M_TRANSPOSE(m2, m1) \
+  ((m2)[0] = (m1)[0], 		 \
+   (m2)[1] = (m1)[2],		 \
+   (m2)[2] = (m1)[1],		 \
    (m2)[3] = (m1)[3])
 
-#define ELL_2M_MUL(m3, m1, m2)                  \
+#define ELL_2M_MUL(m3, m1, m2)			\
   ((m3)[0] = (m1)[0]*(m2)[0] + (m1)[1]*(m2)[2], \
    (m3)[1] = (m1)[0]*(m2)[1] + (m1)[1]*(m2)[3], \
-                                                \
+   						\
    (m3)[2] = (m1)[2]*(m2)[0] + (m1)[3]*(m2)[2], \
    (m3)[3] = (m1)[2]*(m2)[1] + (m1)[3]*(m2)[3])
-
-#define ELL_2M_ROTATE_SET(m, th)                \
-  (ELL_2V_SET((m)+ 0,  cos(th) , -sin(th)),     \
-   ELL_2V_SET((m)+ 2, +sin(th) ,  cos(th)))
-
-#define ELL_2MV_MUL(v2, m, v1)                  \
-  ((v2)[0] = (m)[0]*(v1)[0] + (m)[1]*(v1)[1],   \
-   (v2)[1] = (m)[2]*(v1)[0] + (m)[3]*(v1)[1])
 
 /*
 ** the 3x3 matrix-related macros assume that the matrix indexing is:
@@ -192,8 +165,6 @@ extern "C" {
 
 #define ELL_3V_SET(v, a, b, c) \
   ((v)[0] = (a), (v)[1] = (b), (v)[2] = (c))
-
-#define ELL_3V_ZERO_SET(v)  ELL_3V_SET(v, 0, 0, 0)
 
 #define ELL_3V_SET_TT(v, TT, a, b, c) \
   ((v)[0] = AIR_CAST(TT, (a)), \
@@ -223,11 +194,6 @@ extern "C" {
   ((v3)[0] = AIR_LERP((w), (v1)[0], (v2)[0]), \
    (v3)[1] = AIR_LERP((w), (v1)[1], (v2)[1]), \
    (v3)[2] = AIR_LERP((w), (v1)[2], (v2)[2]))
-
-#define ELL_3V_LERP_TT(v3, TT, w, v1, v2)                      \
-  ((v3)[0] = AIR_CAST(TT, AIR_LERP((w), (v1)[0], (v2)[0])),    \
-   (v3)[1] = AIR_CAST(TT, AIR_LERP((w), (v1)[1], (v2)[1])),    \
-   (v3)[2] = AIR_CAST(TT, AIR_LERP((w), (v1)[2], (v2)[2])))
 
 #define ELL_3V_ADD2(v3, v1, v2) \
   ((v3)[0] = (v1)[0] + (v2)[0], \
@@ -560,11 +526,6 @@ extern "C" {
    (m)[3]*(v)[0]*(v)[1] + (m)[4]*(v)[1]*(v)[1] + (m)[5]*(v)[2]*(v)[1] + \
    (m)[6]*(v)[0]*(v)[2] + (m)[7]*(v)[1]*(v)[2] + (m)[8]*(v)[2]*(v)[2])
 
-#define ELL_3MV_CONTR2(u, m, v)                                         \
-  ((m)[0]*(v)[0]*(u)[0] + (m)[1]*(v)[1]*(u)[0] + (m)[2]*(v)[2]*(u)[0] + \
-   (m)[3]*(v)[0]*(u)[1] + (m)[4]*(v)[1]*(u)[1] + (m)[5]*(v)[2]*(u)[1] + \
-   (m)[6]*(v)[0]*(u)[2] + (m)[7]*(v)[1]*(u)[2] + (m)[8]*(v)[2]*(u)[2])
-
 #define ELL_3MV_MUL_TT(v2, TT, m, v1) \
   ((v2)[0] = AIR_CAST(TT, (m)[0]*(v1)[0] + (m)[1]*(v1)[1] + (m)[2]*(v1)[2]), \
    (v2)[1] = AIR_CAST(TT, (m)[3]*(v1)[0] + (m)[4]*(v1)[1] + (m)[5]*(v1)[2]), \
@@ -645,8 +606,6 @@ extern "C" {
 #define ELL_4V_SET(v, a, b, c, d) \
   ((v)[0] = (a), (v)[1] = (b), (v)[2] = (c), (v)[3] = (d))
 
-#define ELL_4V_ZERO_SET(v)  ELL_4V_SET(v, 0, 0, 0, 0)
-
 #define ELL_4V_NAN_SET(v) ( \
   (v)[0] = AIR_NAN, \
   (v)[1] = AIR_NAN, \
@@ -701,13 +660,13 @@ extern "C" {
 #define ELL_4V_SCALE(v2, a, v1) \
   ((v2)[0] = (v1)[0]*a, (v2)[1] = (v1)[1]*a, \
    (v2)[2] = (v1)[2]*a, (v2)[3] = (v1)[3]*a)
-
+  
 #define ELL_4V_SCALE_TT(v2, TT, a, v1)   \
   ((v2)[0] = AIR_CAST(TT, (v1)[0]*(a)),  \
    (v2)[1] = AIR_CAST(TT, (v1)[1]*(a)),  \
    (v2)[2] = AIR_CAST(TT, (v1)[2]*(a)),  \
    (v2)[3] = AIR_CAST(TT, (v1)[3]*(a)))
-
+  
 #define ELL_4V_SCALE_ADD2(v2, s0, v0, s1, v1) \
   ((v2)[0] = (s0)*(v0)[0] + (s1)*(v1)[0],    \
    (v2)[1] = (s0)*(v0)[1] + (s1)*(v1)[1],    \
@@ -908,7 +867,7 @@ extern "C" {
                         +(m)[10]*(v1)[2]+(m)[11]*(v1)[3])), \
    (v2)[3]=AIR_CAST(TT, ((m)[12]*(v1)[0]+(m)[13]*(v1)[1]    \
                         +(m)[14]*(v1)[2]+(m)[15]*(v1)[3])))
-
+   
 #define ELL_4MV_TMUL(v2, m, v1)                                             \
   ((v2)[0]=(m)[ 0]*(v1)[0]+(m)[ 4]*(v1)[1]+(m)[ 8]*(v1)[2]+(m)[12]*(v1)[3], \
    (v2)[1]=(m)[ 1]*(v1)[0]+(m)[ 5]*(v1)[1]+(m)[ 9]*(v1)[2]+(m)[13]*(v1)[3], \
@@ -919,15 +878,6 @@ extern "C" {
   ((v2)[0] = (v1)[0]/(v1)[3], \
    (v2)[1] = (v1)[1]/(v1)[3], \
    (v2)[2] = (v1)[2]/(v1)[3])
-
-/* 3-vector v2 = 4x4 homog coord matrix m times 3-vector v1,
-   using 4-vector tv as tmp */
-#define ELL_4M3V_HOMOG_MUL(v2, m, v1, tv)                               \
-  ((tv)[0]=(m)[ 0]*(v1)[0]+(m)[ 1]*(v1)[1]+(m)[ 2]*(v1)[2]+(m)[ 3],     \
-   (tv)[1]=(m)[ 4]*(v1)[0]+(m)[ 5]*(v1)[1]+(m)[ 6]*(v1)[2]+(m)[ 7],     \
-   (tv)[2]=(m)[ 8]*(v1)[0]+(m)[ 9]*(v1)[1]+(m)[10]*(v1)[2]+(m)[11],     \
-   (tv)[3]=(m)[12]*(v1)[0]+(m)[13]*(v1)[1]+(m)[14]*(v1)[2]+(m)[15]);    \
-  ELL_34V_HOMOG(v2, tv)
 
 #define ELL_34V_HOMOG_TT(v2, TT, v1) \
   ((v2)[0] = AIR_CAST(TT, (v1)[0]/(v1)[3]), \
@@ -967,7 +917,7 @@ extern "C" {
    && ELL_4V_EXISTS((m) + 4) \
    && ELL_4V_EXISTS((m) + 8) \
    && ELL_4V_EXISTS((m) + 12))
-
+  
 #define ELL_4M_ZERO_SET(m) \
   (ELL_4V_SET((m)+ 0,  0 ,  0 ,  0 , 0), \
    ELL_4V_SET((m)+ 4,  0 ,  0 ,  0 , 0), \
@@ -1009,7 +959,7 @@ extern "C" {
    ELL_4V_NAN_SET((m)+ 4),  \
    ELL_4V_NAN_SET((m)+ 8),  \
    ELL_4V_NAN_SET((m)+ 12))
-
+  
 #define ELL_4M_MUL(n, l, m)                                                 \
   ((n)[ 0]=(l)[ 0]*(m)[ 0]+(l)[ 1]*(m)[ 4]+(l)[ 2]*(m)[ 8]+(l)[ 3]*(m)[12], \
    (n)[ 1]=(l)[ 0]*(m)[ 1]+(l)[ 1]*(m)[ 5]+(l)[ 2]*(m)[ 9]+(l)[ 3]*(m)[13], \
@@ -1217,17 +1167,6 @@ extern "C" {
    (v2)[7] = (v1)[7],       \
    (v2)[8] = (v1)[8])
 
-#define ELL_9V_SUB(v3, v1, v2)   \
-  ((v3)[0] = (v1)[0] - (v2)[0],  \
-   (v3)[1] = (v1)[1] - (v2)[1],  \
-   (v3)[2] = (v1)[2] - (v2)[2],  \
-   (v3)[3] = (v1)[3] - (v2)[3],  \
-   (v3)[4] = (v1)[4] - (v2)[4],  \
-   (v3)[5] = (v1)[5] - (v2)[5],  \
-   (v3)[6] = (v1)[6] - (v2)[6],  \
-   (v3)[7] = (v1)[7] - (v2)[7],  \
-   (v3)[8] = (v1)[8] - (v2)[8])
-
 #define ELL_9V_DOT(v1, v2) \
   ((v1)[0]*(v2)[0] +       \
    (v1)[1]*(v2)[1] +       \
@@ -1238,8 +1177,6 @@ extern "C" {
    (v1)[6]*(v2)[6] +       \
    (v1)[7]*(v2)[7] +       \
    (v1)[8]*(v2)[8])
-
-#define ELL_9V_LEN(v) (sqrt(ELL_9V_DOT((v),(v))))
 
 #define ELL_10V_ZERO_SET(v)                         \
   ((v)[0]=0, (v)[1]=0, (v)[2]=0,                    \

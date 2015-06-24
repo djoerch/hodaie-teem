@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,17 +24,14 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Expand \"blocks\" into scanlines on axis 0"
-static const char *
-_unrrdu_unblockInfoL =
-  (INFO
-   ". Based on the requested output type, the number of "
-   "samples along axis 0 will be determined automatically. "
-   "Axis N information will be bumped up to axis N+1. "
-   "Underlying data is unchanged.");
+char *_unrrdu_unblockInfoL = (INFO
+                      ". Based on the requested output type, the number of "
+                      "samples along axis 0 will be determined automatically. "
+                      "Axis N information will be bumped up to axis N+1. "
+                      "Underlying data is unchanged.");
 
 int
-unrrdu_unblockMain(int argc, const char **argv, const char *me,
-                   hestParm *hparm) {
+unrrdu_unblockMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;

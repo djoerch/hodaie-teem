@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,52 +24,30 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Replace each scanline along an axis with its histogram"
-static const char *_unrrdu_histaxInfoL =
-  (INFO
-   ".\n "
-   "* Uses nrrdHistoAxis");
+char *_unrrdu_histaxInfoL = (INFO
+                         ". ");
 
 int
-unrrdu_histaxMain(int argc, const char **argv, const char *me,
-                  hestParm *hparm) {
+unrrdu_histaxMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  char *minStr, *maxStr;
-  int type, pret, blind8BitRange;
-  unsigned int axis, bins;
+  int type, bins, pret, blind8BitRange;
+  unsigned int axis;
+  double min, max;
   airArray *mop;
   NrrdRange *range;
 
   OPT_ADD_AXIS(axis, "axis to histogram along");
-  hestOptAdd(&opt, "b,bin", "bins", airTypeUInt, 1, 1, &bins, NULL,
+  hestOptAdd(&opt, "b,bin", "bins", airTypeInt, 1, 1, &bins, NULL,
              "# of bins in histogram");
   OPT_ADD_TYPE(type, "output type", "uchar");
-  /* HEY copy and paste from unrrdu/quantize.c */
-  hestOptAdd(&opt, "min,minimum", "value", airTypeString, 1, 1,
-             &minStr, "nan",
-             "The value to map to zero, given explicitly as a regular number, "
-             "*or*, if the number is given with a \"" NRRD_MINMAX_PERC_SUFF
-             "\" suffix, this "
-             "minimum is specified in terms of the percentage of samples in "
-             "input that are lower. "
-             "\"0" NRRD_MINMAX_PERC_SUFF "\" means the "
-             "lowest input value is used, "
-             "\"1" NRRD_MINMAX_PERC_SUFF "\" means that the "
-             "1% of the lowest values are all mapped to zero. "
-             "By default (not using this option), the lowest input value is "
-             "used.");
-  hestOptAdd(&opt, "max,maximum", "value", airTypeString, 1, 1,
-             &maxStr, "nan",
-             "The value to map to the highest unsigned integral value, given "
-             "explicitly as a regular number, "
-             "*or*, if the number is given with "
-             "a \"" NRRD_MINMAX_PERC_SUFF "\" suffix, "
-             "this maximum is specified "
-             "in terms of the percentage of samples in input that are higher. "
-             "\"0" NRRD_MINMAX_PERC_SUFF "\" means the highest input value is "
-             "used, which is also the default "
-             "behavior (same as not using this option).");
+  hestOptAdd(&opt, "min,minimum", "value", airTypeDouble, 1, 1, &min, "nan",
+             "Value at low end of histogram. Defaults to lowest value "
+             "found in input nrrd.");
+  hestOptAdd(&opt, "max,maximum", "value", airTypeDouble, 1, 1, &max, "nan",
+             "Value at high end of histogram. Defaults to highest value "
+             "found in input nrrd.");
   hestOptAdd(&opt, "blind8", "bool", airTypeBool, 1, 1, &blind8BitRange,
              nrrdStateBlind8BitRange ? "true" : "false",
              "Whether to know the range of 8-bit data blindly "
@@ -85,19 +62,19 @@ unrrdu_histaxMain(int argc, const char **argv, const char *me,
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
-  range = nrrdRangeNew(AIR_NAN, AIR_NAN);
-  airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-  if (nrrdRangePercentileFromStringSet(range, nin, minStr, maxStr,
-                                       10*bins /* HEY magic */,
-                                       blind8BitRange)
-      || nrrdHistoAxis(nout, nin, range, axis, bins, type)) {
+
+  range = nrrdRangeNew(min, max);
+  airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
+  nrrdRangeSafeSet(range, nin, blind8BitRange);
+  if (nrrdHistoAxis(nout, nin, range, axis, bins, type)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error doing axis histogramming:\n%s", me, err);
     airMopError(mop);
     return 1;
   }
+  
 
   SAVE(out, nout, NULL);
 

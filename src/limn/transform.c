@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -42,7 +41,7 @@ limnObjectWorldHomog(limnObject *obj) {
     vert->world[3] = 1.0;
     ELL_3V_NORM_TT(vert->worldNormal, float, vert->worldNormal, h);
   }
-
+  
   return 0;
 }
 
@@ -66,9 +65,9 @@ limnObjectFaceNormals(limnObject *obj, int space) {
     ELL_3V_SET(nn, 0, 0, 0);
     for (vii=0; vii<face->sideNum; vii++) {
       vert0 = obj->vert + face->vertIdx[vii];
-      vert1 = (obj->vert
+      vert1 = (obj->vert 
                + face->vertIdx[AIR_MOD((int)vii+1, (int)face->sideNum)]);
-      vert2 = (obj->vert
+      vert2 = (obj->vert 
                + face->vertIdx[AIR_MOD((int)vii-1, (int)face->sideNum)]);
       if (limnSpaceWorld == space) {
         ELL_3V_SUB(vec1, vert1->world, vert0->world);
@@ -140,7 +139,7 @@ _limnObjectViewTransform(limnObject *obj, limnCamera *cam) {
     d = AIR_CAST(float, 1.0/vert->world[3]);
     ELL_4V_SCALE(vert->coord, d, vert->coord);
     /*
-    printf("%s: w[%d] = %g %g %g %g --> v = %g %g %g\n",
+    printf("%s: w[%d] = %g %g %g %g --> v = %g %g %g\n", 
            "_limnObjectVTransform",
            pi, p->w[0], p->w[1], p->w[2], p->w[3], p->v[0], p->v[1], p->v[2]);
     */
@@ -164,7 +163,7 @@ _limnObjectScreenTransform(limnObject *obj, limnCamera *cam) {
   }
   for (vertIdx=0; vertIdx<obj->vertNum; vertIdx++) {
     vert = obj->vert + vertIdx;
-    d = (cam->orthographic
+    d = (cam->orthographic 
          ? 1.0f
          : AIR_CAST(float, cam->vspDist/vert->coord[2]));
     vert->coord[0] *= d;
@@ -186,7 +185,7 @@ _limnObjectDeviceTransform(limnObject *obj, limnCamera *cam,
   unsigned int vertIdx;
   limnVertex *vert;
   float wy0, wy1, wx0, wx1, t;
-
+  
   if (limnSpaceScreen != obj->vertSpace) {
     biffAddf(LIMN, "%s: object's verts in %s (not %s) space", me,
              airEnumStr(limnSpace, obj->vertSpace),
@@ -254,7 +253,7 @@ limnObjectPartTransform(limnObject *obj, unsigned int partIdx,
   limnPart *part;
   limnVertex *vert;
   float tmp[4];
-
+  
   part= obj->part[partIdx];
   for (vertIdxIdx=0; vertIdxIdx<part->vertIdxNum; vertIdxIdx++) {
     vert = obj->vert + part->vertIdx[vertIdxIdx];
@@ -267,11 +266,11 @@ limnObjectPartTransform(limnObject *obj, unsigned int partIdx,
 
 int
 _limnPartDepthCompare(const void *_a, const void *_b) {
-  limnPart *const *a;
-  limnPart *const *b;
+  limnPart **a;
+  limnPart **b;
 
-  a = (limnPart *const *)_a;
-  b = (limnPart *const *)_b;
+  a = (limnPart **)_a;
+  b = (limnPart **)_b;
   return AIR_COMPARE((*b)->depth, (*a)->depth);
 }
 
@@ -292,9 +291,9 @@ limnObjectDepthSortParts(limnObject *obj) {
     }
     part->depth /= part->vertIdxNum;
   }
-
+  
   qsort(obj->part, obj->partNum, sizeof(limnPart*), _limnPartDepthCompare);
-
+  
   /* re-assign partIdx, post-sorting */
   for (partIdx=0; partIdx<obj->partNum; partIdx++) {
     part = obj->part[partIdx];
@@ -313,11 +312,11 @@ limnObjectDepthSortParts(limnObject *obj) {
 
 int
 _limnFaceDepthCompare(const void *_a, const void *_b) {
-  limnFace *const*a;
-  limnFace *const*b;
+  limnFace **a;
+  limnFace **b;
 
-  a = (limnFace *const*)_a;
-  b = (limnFace *const*)_b;
+  a = (limnFace **)_a;
+  b = (limnFace **)_b;
   return -AIR_COMPARE((*a)->depth, (*b)->depth);
 }
 
@@ -327,7 +326,7 @@ limnObjectDepthSortFaces(limnObject *obj) {
   limnVertex *vert;
   unsigned int faceIdx, vii;
 
-  obj->faceSort = AIR_MALLOC(obj->faceNum, limnFace *);
+  obj->faceSort = (limnFace **)calloc(obj->faceNum, sizeof(limnFace *));
   for (faceIdx=0; faceIdx<obj->faceNum; faceIdx++) {
     face = obj->face + faceIdx;
     face->depth = 0;
@@ -361,7 +360,7 @@ limnObjectFaceReverse(limnObject *obj) {
     face = obj->face + faceIdx;
     buff = (int *)calloc(face->sideNum, sizeof(int));
     if (!(buff)) {
-      biffAddf(LIMN, "%s: couldn't allocate %d side buffer for face %d\n",
+      biffAddf(LIMN, "%s: couldn't allocate %d side buffer for face %d\n", 
                me, face->sideNum, faceIdx);
       return 1;
     }

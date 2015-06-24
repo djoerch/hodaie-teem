@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -23,86 +22,80 @@
 
 #include "nrrd.h"
 
-static void
+void
 _nrrdSwap16Endian(void *_data, size_t N) {
-  unsigned short *data, dd, fix, mask;
+  short *data, s, fix;
   size_t I;
-
-  if (!_data) {
-    return;
-  }
-  data = AIR_CAST(unsigned short *, _data);
-  mask = AIR_CAST(unsigned short, 0x00FFu);
-  for (I=0; I<N; I++) {
-    dd = data[I];
-    fix = (dd & mask); dd >>= 0x08;
-    fix = (dd & mask) | AIR_CAST(unsigned short, fix << 0x08);
-    data[I] = fix;
+  
+  if (_data) {
+    data = (short *)_data;
+    for (I=0; I<N; I++) {
+      s = data[I];
+      fix =  (s & 0x00FF);
+      fix = ((s & 0xFF00) >> 0x08) | (fix << 0x08);
+      data[I] = fix;
+    }
   }
 }
 
-static void
+void
 _nrrdSwap32Endian(void *_data, size_t N) {
-  unsigned int *data, dd, fix, mask;
+  int *data, w, fix;
   size_t I;
 
-  if (!_data) {
-    return;
-  }
-  data = AIR_CAST(unsigned int *, _data);
-  mask = 0x000000FFu;
-  for (I=0; I<N; I++) {
-    dd = data[I];
-    fix = (dd & mask);                 dd >>= 0x08;
-    fix = (dd & mask) | (fix << 0x08); dd >>= 0x08;
-    fix = (dd & mask) | (fix << 0x08); dd >>= 0x08;
-    fix = (dd & mask) | (fix << 0x08);
-    data[I] = fix;
+  if (_data) {
+    data = (int *)_data;
+    for (I=0; I<N; I++) {
+      w = data[I];
+      fix =  (w & 0x000000FF);
+      fix = ((w & 0x0000FF00) >> 0x08) | (fix << 0x08);
+      fix = ((w & 0x00FF0000) >> 0x10) | (fix << 0x08);
+      fix = ((w & 0xFF000000) >> 0x18) | (fix << 0x08);
+      data[I] = fix;
+    }
   }
 }
 
-static void
+void
 _nrrdSwap64Endian(void *_data, size_t N) {
-  airULLong *data, dd, fix, mask;
+  airLLong *data, l, fix;
   size_t I;
 
-  if (!_data) {
-    return;
-  }
-  data = AIR_CAST(airULLong *, _data);
-  mask = AIR_ULLONG(0x00000000000000FF);
-  for (I=0; I<N; I++) {
-    dd = data[I];
-    fix = (dd & mask);                 dd >>= 0x08;
-    fix = (dd & mask) | (fix << 0x08); dd >>= 0x08;
-    fix = (dd & mask) | (fix << 0x08); dd >>= 0x08;
-    fix = (dd & mask) | (fix << 0x08); dd >>= 0x08;
-    fix = (dd & mask) | (fix << 0x08); dd >>= 0x08;
-    fix = (dd & mask) | (fix << 0x08); dd >>= 0x08;
-    fix = (dd & mask) | (fix << 0x08); dd >>= 0x08;
-    fix = (dd & mask) | (fix << 0x08);
-    data[I] = fix;
+  if (_data) {
+    data = (airLLong *)_data;
+    for (I=0; I<N; I++) {
+      l = data[I];
+      fix =  (l &           0x00000000000000FF);
+      fix = ((l &           0x000000000000FF00) >> 0x08) | (fix << 0x08);
+      fix = ((l &           0x0000000000FF0000) >> 0x10) | (fix << 0x08);
+      fix = ((l &           0x00000000FF000000) >> 0x18) | (fix << 0x08);
+      fix = ((l & AIR_LLONG(0x000000FF00000000)) >> 0x20) | (fix << 0x08);
+      fix = ((l & AIR_LLONG(0x0000FF0000000000)) >> 0x28) | (fix << 0x08);
+      fix = ((l & AIR_LLONG(0x00FF000000000000)) >> 0x30) | (fix << 0x08);
+      fix = ((l & AIR_LLONG(0xFF00000000000000)) >> 0x38) | (fix << 0x08);
+      data[I] = fix;
+    }
   }
 }
 
-static void
+void
 _nrrdNoopEndian(void *data, size_t N) {
   AIR_UNUSED(data);
   AIR_UNUSED(N);
   return;
 }
 
-static void
+void
 _nrrdBlockEndian(void *data, size_t N) {
   char me[]="_nrrdBlockEndian";
-
+  
   AIR_UNUSED(data);
   AIR_UNUSED(N);
   fprintf(stderr, "%s: WARNING: can't fix endiannes of nrrd type %s\n", me,
           airEnumStr(nrrdType, nrrdTypeBlock));
 }
 
-static void
+void
 (*_nrrdSwapEndian[])(void *, size_t) = {
   _nrrdNoopEndian,         /*  0: nobody knows! */
   _nrrdNoopEndian,         /*  1:   signed 1-byte integer */
@@ -120,9 +113,9 @@ static void
 
 void
 nrrdSwapEndian(Nrrd *nrrd) {
-
-  if (nrrd
-      && nrrd->data
+  
+  if (nrrd 
+      && nrrd->data 
       && !airEnumValCheck(nrrdType, nrrd->type)) {
     _nrrdSwapEndian[nrrd->type](nrrd->data, nrrdElementNumber(nrrd));
   }

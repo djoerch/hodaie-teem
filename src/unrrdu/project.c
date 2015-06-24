@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,20 +24,17 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Collapse scanlines to scalars along some axis"
-static const char *_unrrdu_projectInfoL =
+char *_unrrdu_projectInfoL = 
 (INFO
  ". The scanline is reduced to a single scalar by "
  "\"measuring\" all the values in the scanline "
  "with some measure.  The output nrrd has dimension "
- "one less than input (except when the input is itself 1-D); "
- "the output type depends on "
+ "one less than input; the output type depends on "
  "the measure in a non-trivial way, or it can be set explicitly "
- "with the \"-t\" option.\n "
- "* Uses nrrdProject");
+ "with the \"-t\" option.");
 
 int
-unrrdu_projectMain(int argc, const char **argv, const char *me,
-                   hestParm *hparm) {
+unrrdu_projectMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;

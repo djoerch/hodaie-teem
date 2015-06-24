@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,7 +24,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Map nrrd through *irregular* univariate map (\"colormap\")"
-static const char *_unrrdu_imapInfoL =
+char *_unrrdu_imapInfoL =
 (INFO
  ". A map is irregular if the control points are not evenly "
  "spaced along the domain, and hence their position must be "
@@ -34,12 +33,10 @@ static const char *_unrrdu_imapInfoL =
  "location of the control point, and the remaining values "
  "give are the range of the map for that control point. "
  "The output value(s) is the result of linearly "
- "interpolating between value(s) from the map.\n "
- "* Uses nrrdApply1DIrregMap");
+ "interpolating between value(s) from the map.");
 
 int
-unrrdu_imapMain(int argc, const char **argv, const char *me,
-                hestParm *hparm) {
+unrrdu_imapMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nmap, *nacl, *nout;

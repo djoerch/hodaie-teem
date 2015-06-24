@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -27,17 +26,17 @@
  *********** ITS JUST A MACRO (sorry) */
 
   /* fw? + N*?
-       |     |
+       |     |  
        |     +- along which axis (0:x, 1:y, 2:z)
        |
-       + what information (0:value, 1:1st deriv, 2:2nd deriv, ...)
+       + what information (0:value, 1:1st deriv, 2:2nd deriv)
 
      ivX: 3D cube cache of original volume values
-          (its scanlines are along the "X" or fastest spatial axis)
+          (its scanlines are along the X axis)
      ivY: 2D square cache of intermediate filter results
-          (its scanlines are along the "Y" or medium spatial axis)
+          (its scanlines are along the Y axis)
      ivZ: 1D linear cache of intermediate filter results
-          (it is a scanline along the "Z" or slowest spatial axis)
+          (it is a scanline along the Z axis)
   */
 
 #define DOT_N(ANS, a, b) \

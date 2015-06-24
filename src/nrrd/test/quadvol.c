@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -34,16 +33,15 @@ quadFunc(float x, float y, float z, float A, float B, float off) {
 }
 
 int
-main(int argc, const char *argv[]) {
-  const char *me;
-  char *err, *out;
+main(int argc, char *argv[]) {
+  char *me, *err, *out;
   int size[3], xi, yi, zi;
   hestOpt *hopt;
   hestParm *hparm;
   airArray *mop;
   float min[3], max[3], AB[2], x, y, z, *data, off;
   Nrrd *nout;
-
+  
   me = argv[0];
   mop = airMopNew();
   hparm = hestParmNew();

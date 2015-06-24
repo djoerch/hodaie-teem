@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -58,7 +57,7 @@ _mopShapeReset(void *_shape) {
 gageShape *
 gageShapeNew() {
   gageShape *shape;
-
+  
   shape = (gageShape *)calloc(1, sizeof(gageShape));
   if (shape) {
     gageShapeReset(shape);
@@ -79,25 +78,25 @@ gageShapeCopy(const gageShape *shp) {
 
 gageShape *
 gageShapeNix(gageShape *shape) {
-
+  
   airFree(shape);
   return NULL;
 }
 
 static void
 shapeUnitItoW(const gageShape *shape, double world[3],
-              const double indx[3], const double volHalfLen[3]) {
+              const double index[3], const double volHalfLen[3]) {
   unsigned int i;
-
+  
   if (nrrdCenterNode == shape->center) {
     for (i=0; i<=2; i++) {
       world[i] = NRRD_NODE_POS(-volHalfLen[i], volHalfLen[i],
-                               shape->size[i], indx[i]);
+                               shape->size[i], index[i]);
     }
   } else {
     for (i=0; i<=2; i++) {
       world[i] = NRRD_CELL_POS(-volHalfLen[i], volHalfLen[i],
-                               shape->size[i], indx[i]);
+                               shape->size[i], index[i]);
     }
   }
 }
@@ -111,9 +110,9 @@ shapeUnitItoW(const gageShape *shape, double world[3],
 ** ctx is NULL, gageShapeSet was called, in which case we go with lax
 ** behavior (nothing "required")
 **
-** This function has subsumed the contents of the old gageVolumeCheck,
-** and hence has become this weird beast- part error checker and part
-** (gageShape) initializer.  Oh well...
+** This function has subsumed the old gageVolumeCheck, and hence has 
+** become this weird beast- part error checker and part (gageShape)
+** initializer.  Oh well...
 */
 int
 _gageShapeSet(const gageContext *ctx, gageShape *shape,
@@ -125,15 +124,15 @@ _gageShapeSet(const gageContext *ctx, gageShape *shape,
   double vecA[4], vecB[3], vecC[3], vecD[4], matA[9],
     spcCalc[3], vecCalc[3][NRRD_SPACE_DIM_MAX], orig[NRRD_SPACE_DIM_MAX];
   airArray *mop;
-
+  
   /*
   fprintf(stderr, "!%s: ctx = %p (%s, %s)\n", me, ctx,
-          (ctx
+          (ctx 
            ? (ctx->shape->fromOrientation
               ? "YES from orient"
               : "not from orient")
            : "???"),
-          (ctx
+          (ctx 
            ? (ctx->parm.orientationFromSpacing
               ? "YES ofs"
               : "not ofs")
@@ -206,7 +205,7 @@ _gageShapeSet(const gageContext *ctx, gageShape *shape,
   if (nrrdSpacingStatusNone == status) {
     biffAddf(GAGE, "%s: sorry, need some spacing info for spatial axes "
              "%u, %u, %u", me,
-             baseDim+0, baseDim+1, baseDim+2);
+             baseDim+0, baseDim+1, baseDim+2); 
     airMopError(mop); return 1;
   }
   /* actually, there shouldn't be any other options for spacing status
@@ -245,7 +244,7 @@ _gageShapeSet(const gageContext *ctx, gageShape *shape,
   cz = ax[2]->center;
   if (!( cx == cy && cy == cz )) {
     biffAddf(GAGE,
-             "%s: axes %d,%d,%d centerings (%s,%s,%s) not all equal",
+             "%s: axes %d,%d,%d centerings (%s,%s,%s) not all equal", 
              me, baseDim+0, baseDim+1, baseDim+2,
              airEnumStr(nrrdCenter, cx),
              airEnumStr(nrrdCenter, cy),
@@ -256,7 +255,7 @@ _gageShapeSet(const gageContext *ctx, gageShape *shape,
      worry will be moot if ctx->parm.defaultCenter goes away */
   shape->center = (nrrdCenterUnknown != cx
                    ? cx /* cx == cy == cz, by above */
-                   : (ctx
+                   : (ctx 
                       ? ctx->parm.defaultCenter
                       : shape->defaultCenter));
 
@@ -268,11 +267,11 @@ _gageShapeSet(const gageContext *ctx, gageShape *shape,
   /* this can't be relaxed in the face of having full orientation info,
      because even then, you can't have a non-zero probe-able volume if
      there's only one sample along a node-centered axis */
-  if (!(shape->size[0] >= minsize
+  if (!(shape->size[0] >= minsize 
         && shape->size[1] >= minsize
         && shape->size[2] >= minsize )) {
     biffAddf(GAGE, "%s: sizes (%u,%u,%u) must all be >= %u "
-             "(min number of %s-centered samples)", me,
+             "(min number of %s-centered samples)", me, 
              shape->size[0], shape->size[1], shape->size[2],
              minsize, airEnumStr(nrrdCenter, shape->center));
     airMopError(mop); return 1;
@@ -280,7 +279,7 @@ _gageShapeSet(const gageContext *ctx, gageShape *shape,
 
   /* ------ find spacings[0,1,2] and ItoW matrix */
   /* Hopefully, ctx->parm.orientationFromSpacing and
-     shape->orientationFromSpacing don't represent competing interests;
+     shape->orientationFromSpacing don't represent competing interests; 
      this worry will be moot if ctx->parm.orientationFromSpacing goes away */
   ofspc = ((ctx && ctx->parm.orientationFromSpacing)
            || shape->orientationFromSpacing);
@@ -388,7 +387,7 @@ _gageShapeSet(const gageContext *ctx, gageShape *shape,
     vecA[3] = 1;
     ELL_4MV_COL3_SET(shape->ItoW, vecA);
   }
-
+  
   /* ------ set the rest of the matrices */
   ell_4m_inv_d(shape->WtoI, shape->ItoW);
   ELL_34M_EXTRACT(matA, shape->ItoW);
@@ -413,17 +412,17 @@ gageShapeSet(gageShape *shape, const Nrrd *nin, int baseDim) {
 /*
 ** this wasn't being used at all
 void
-gageShapeUnitWtoI(gageShape *shape, double indx[3], double world[3]) {
+gageShapeUnitWtoI(gageShape *shape, double index[3], double world[3]) {
   int i;
-
+  
   if (nrrdCenterNode == shape->center) {
     for (i=0; i<=2; i++) {
-      indx[i] = NRRD_NODE_IDX(-shape->volHalfLen[i], shape->volHalfLen[i],
+      index[i] = NRRD_NODE_IDX(-shape->volHalfLen[i], shape->volHalfLen[i],
                                shape->size[i], world[i]);
     }
   } else {
     for (i=0; i<=2; i++) {
-      indx[i] = NRRD_CELL_IDX(-shape->volHalfLen[i], shape->volHalfLen[i],
+      index[i] = NRRD_CELL_IDX(-shape->volHalfLen[i], shape->volHalfLen[i],
                                shape->size[i], world[i]);
     }
   }
@@ -432,35 +431,35 @@ gageShapeUnitWtoI(gageShape *shape, double indx[3], double world[3]) {
 
 void
 gageShapeWtoI(const gageShape *shape,
-              double _indx[3], const double _world[3]) {
+              double _index[3], const double _world[3]) {
   /* static const char me[]="gageShapeWtoI"; */
-  double indx[4], world[4];
+  double index[4], world[4];
 
   /*
-  fprintf(stderr, "!%s: hello %p %p %p; %p\n", me,
-          shape, _indx, _world, shape->WtoI);
+  fprintf(stderr, "!%s: hello %p %p %p; %p\n", me, 
+          shape, _index, _world, shape->WtoI);
   */
   ELL_3V_COPY(world, _world);
   world[3] = 1.0;
-  ELL_4MV_MUL(indx, shape->WtoI, world);
-  ELL_3V_SCALE(_indx, 1.0/indx[3], indx);
+  ELL_4MV_MUL(index, shape->WtoI, world);
+  ELL_3V_SCALE(_index, 1.0/index[3], index);
 }
 
 void
 gageShapeItoW(const gageShape *shape,
-              double _world[3], const double _indx[3]) {
-  double world[4], indx[4];
+              double _world[3], const double _index[3]) {
+  double world[4], index[4];
 
-  ELL_3V_COPY(indx, _indx);
-  indx[3] = 1.0;
-  ELL_4MV_MUL(world, shape->ItoW, indx);
+  ELL_3V_COPY(index, _index);
+  index[3] = 1.0;
+  ELL_4MV_MUL(world, shape->ItoW, index);
   ELL_3V_SCALE(_world, 1.0/world[3], world);
 }
 
 /*
 ******** gageShapeEqual
 **
-** shapes not being equal is a biffable error,
+** shapes not being equal is a biffable error, 
 ** returning 0 signifies this "error"
 ** returning 1 means no error, they ARE equal
 */
@@ -487,8 +486,8 @@ gageShapeEqual(const gageShape *shape1, const char *_name1,
          shape1->size[1] == shape2->size[1] &&
          shape1->size[2] == shape2->size[2] )) {
     biffAddf(GAGE,
-             "%s: dimensions of %s (%u,%u,%u) != %s's (%u,%u,%u)",
-             me, name1,
+             "%s: dimensions of %s (%u,%u,%u) != %s's (%u,%u,%u)", 
+             me, name1, 
              shape1->size[0], shape1->size[1], shape1->size[2],
              name2,
              shape2->size[0], shape2->size[1], shape2->size[2]);
@@ -529,7 +528,7 @@ gageShapeBoundingBox(double min[3], double max[3],
   /* static const char me[]="gageShapeBoundingBox"; */
   double minIdx[3], maxIdx[3], cornerIdx[8][3], tmp[3];
   unsigned int ii;
-
+  
   if (!( min && max && shape )) {
     return;
   }

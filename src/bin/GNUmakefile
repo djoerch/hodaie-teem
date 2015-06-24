@@ -1,6 +1,5 @@
 #
 # Teem: Tools to process and visualize scientific data and images
-# Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
 # Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
 # Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 #
@@ -22,8 +21,8 @@
 #
 
 #### Name of the library goes here.
-####
-####
+#### 
+#### 
 L := bin
 ####
 #### We're not a library at all actually ...
@@ -43,15 +42,15 @@ endif
 ifeq (,$($(L).SEEN))
 $(L).SEEN := true
 
-#### By the ordering and guarding of includes, this will ALWAYS be the
+#### By the ordering and guarding of includes, this will ALWAYS be the 
 #### last "library" makefile to be parsed, regardless of the directory
 #### in which make started.
 
 ## BINS: all the command-line executables associated with teem
-##
-BINS = airSanity cubic nrrdSanity overrgb emap undos talkweb \
-  unu pprobe vprobe gprobe qbert mrender miter gkms ungantry ilk \
-  tend spots ninspect deconv puller
+## 
+BINS = airSanity affine cubic nrrdSanity overrgb idx2pos emap undos talkweb \
+  pos2idx unu pprobe vprobe gprobe qbert mrender miter gkms ungantry ilk \
+  tend spots ninspect deconv
 
 ## _binD(bins): list of development locations for given bins
 ## _binI(bins): list of install locations for given bins
@@ -62,7 +61,7 @@ _binI = $(foreach bin,$(1),$(BDEST)/$(bin))
 _binDI = $(foreach bin,$(1),$(TEEM_SRC)/bin/$(bin) $(BDEST)/$(bin))
 
 ## BINS.{DEV,INST}: full paths to development and install versions
-##
+## 
 BINS.DEV := $(call _binD,$(BINS))
 BINS.INST := $(call _binI,$(BINS))
 
@@ -72,23 +71,25 @@ BINS.INST := $(call _binI,$(BINS))
 ##
 bin/dev: $(BINS.DEV)
 bin/install: $(BINS.INST)
-bin/clean:
+bin/clean: 
 	$(RM) $(addsuffix $(DOTEXE),$(BINS.DEV))
 bin/clobber: bin/clean
 	$(RM) $(addsuffix $(DOTEXE),$(BINS.INST))
 
 ## All the prerequisite usables of the bins, **RECURSIVELY EXPANDED**
-## (or not? since things here are depending on meet, and yet not all
-## Teem libraries are listed here).  The calls to need() will work
+## (yes, by hand, by you, Gordon!).  The calls to need() will work
 ## correctly because we've gotten here only after going through all
 ## the other library makesfiles.  The arguments to need() are
 ## libraries for which we need a header and/or libraries we need to
 ## link against.
-##
+##	
 airSanity.need  = $(call meneed,air)
+affine.need     = $(call meneed,air)
 cubic.need      = $(call meneed,ell)
 nrrdSanity.need = $(call meneed,nrrd biff)
 undos.need      = $(call meneed,hest air)
+idx2pos.need    = $(call meneed,nrrd hest air)
+pos2idx.need    = $(call meneed,nrrd hest air)
 overrgb.need    = $(call meneed,nrrd hest biff air)
 qbert.need      = $(call meneed,bane gage nrrd hest air)
 ilk.need        = $(call meneed,moss unrrdu nrrd ell biff hest air)
@@ -106,7 +107,6 @@ gprobe.need     = $(call meneed,meet ten limn gage nrrd ell biff hest air)
 deconv.need     = $(call meneed,meet ten limn gage nrrd ell biff hest air)
 pprobe.need     = $(call meneed,meet ten limn gage nrrd ell biff hest air)
 spots.need      = $(call meneed,alan nrrd ell biff hest air)
-puller.need     = $(call meneed,meet pull ten gage nrrd ell biff hest air)
 
 ## Old: "We need some way of expressing the fact that a given binary
 ## (install and dev) depends on the usable of its top dependency."
@@ -116,9 +116,12 @@ puller.need     = $(call meneed,meet pull ten gage nrrd ell biff hest air)
 ## mrender needs
 ##
 $(call _binDI,airSanity)  : $(call used,$(airSanity.need))
+$(call _binDI,affine)     : $(call used,$(affine.need))
 $(call _binDI,cubic)      : $(call used,$(cubic.need))
 $(call _binDI,nrrdSanity) : $(call used,$(nrrdSanity.need))
 $(call _binDI,undos)      : $(call used,$(undos.need))
+$(call _binDI,idx2pos)    : $(call used,$(idx2pos.need))
+$(call _binDI,pos2idx)    : $(call used,$(pos2idx.need))
 $(call _binDI,overrgb)    : $(call used,$(overrgb.need))
 $(call _binDI,qbert)      : $(call used,$(qbert.need))
 $(call _binDI,ilk)        : $(call used,$(ilk.need))
@@ -136,12 +139,11 @@ $(call _binDI,ungantry)   : $(call used,$(ungantry.need))
 $(call _binDI,talkweb)    : $(call used,$(talkweb.need))
 $(call _binDI,tend)       : $(call used,$(tend.need))
 $(call _binDI,spots)      : $(call used,$(spots.need))
-$(call _binDI,puller)     : $(call used,$(puller.need))
 
 ## How to make bins.dev and bins.inst: both kinds link against the
 ## same (installed) libraries and include the same (installed)
 ## headers, so the commands aren't actually any different ...
-##
+## 
 $(TEEM_SRC)/bin/% $(BDEST)/% : $(TEEM_SRC)/bin/%.c
 	$(P) $(CC) $(CFLAGS) $(BIN_CFLAGS) $(IPATH) -o $@ $< \
 	$(LPATH) $(call link,$($(notdir $@).need)) \

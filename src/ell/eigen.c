@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -56,7 +55,7 @@ void
 _ell_align3_d(double v[9]) {
   double d0, d1, d2;
   int Mi, ai, bi;
-
+  
   d0 = ELL_3V_DOT(v+0, v+0);
   d1 = ELL_3V_DOT(v+3, v+3);
   d2 = ELL_3V_DOT(v+6, v+6);
@@ -71,7 +70,7 @@ _ell_align3_d(double v[9]) {
     ELL_3V_SCALE(v+3*bi, -1, v+3*bi);
   }
   /* lob B */
-  /* we can't guarantee that dot(v+3*ai,v+3*bi) > 0 . . . */
+  /* we can't guarantee that dot(v+3*ai,v+3*bi) > 0 ... */
 }
 
 /*
@@ -105,7 +104,7 @@ _ell_3m_enforce_orthogonality(double v[9]) {
 void
 _ell_3m_make_right_handed_d(double v[9]) {
   double x[3];
-
+  
   ELL_3V_CROSS(x, v+3*0, v+3*1);
   if (0 > ELL_3V_DOT(x, v+3*2)) {
     ELL_3V_SCALE(v+3*2, -1, v+3*2);
@@ -136,14 +135,14 @@ _ell_3m_make_right_handed_d(double v[9]) {
 ** the given matrix is assumed to have a nullspace of dimension one.
 ** A normalized vector which spans the nullspace is put into ans.
 **
-** The given nullspace matrix is NOT modified.
+** The given nullspace matrix is NOT modified.  
 **
 ** This does NOT use biff
 */
 void
 ell_3m_1d_nullspace_d(double ans[3], const double _n[9]) {
   double t[9], n[9], norm;
-
+  
   ELL_3M_TRANSPOSE(n, _n);
   /* find the three cross-products of pairs of column vectors of n */
   ELL_3V_CROSS(t+0, n+0, n+3);
@@ -166,7 +165,7 @@ ell_3m_1d_nullspace_d(double ans[3], const double _n[9]) {
 **
 ** the given matrix is assumed to have a nullspace of dimension two.
 **
-** The given nullspace matrix is NOT modified
+** The given nullspace matrix is NOT modified 
 **
 ** This does NOT use biff
 */
@@ -178,7 +177,7 @@ ell_3m_2d_nullspace_d(double ans0[3], double ans1[3], const double _n[9]) {
   _ell_align3_d(n);
   ELL_3V_ADD3(tmp, n+0, n+3, n+6);
   ELL_3V_NORM(tmp, tmp, norm);
-
+  
   /* any two vectors which are perpendicular to the (supposedly 1D)
      span of the column vectors span the nullspace */
   ell_3v_perp_d(ans0, tmp);
@@ -203,7 +202,7 @@ ell_3m_2d_nullspace_d(double ans0[3], double ans1[3], const double _n[9]) {
 ** Doing the frobenius normalization proved successfull in avoiding the
 ** the creating of NaN eigenvalues when the coefficients of the matrix
 ** were really large (> 50000).  Also, when the matrix norm was really
-** small, the comparison to "epsilon" in ell_cubic mistook three separate
+** small, the comparison to "epsilon" in ell_cubic mistook three seperate
 ** roots for a single and a double, with this matrix in particular:
 **  1.7421892  0.0137642  0.0152975
 **  0.0137642  1.7565432 -0.0062296
@@ -223,25 +222,18 @@ ell_3m_eigenvalues_d(double _eval[3], const double _m[9], const int newton) {
   frob = ELL_3M_FROB(_m);
   scale = frob ? 1.0/frob : 1.0;
   ELL_3M_SCALE(m, scale, _m);
-  /*
-  printf("!%s: m = %g %g %g; %g %g %g; %g %g %g\n", "ell_3m_eigenvalues_d",
-         m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7], m[8]);
-  */
-  /*
+  /* 
   ** from gordon with mathematica; these are the coefficients of the
   ** cubic polynomial in x: det(x*I - M).  The full cubic is
   ** x^3 + A*x^2 + B*x + C.
   */
   A = -m[0] - m[4] - m[8];
-  B = m[0]*m[4] - m[3]*m[1]
-    + m[0]*m[8] - m[6]*m[2]
+  B = m[0]*m[4] - m[3]*m[1] 
+    + m[0]*m[8] - m[6]*m[2] 
     + m[4]*m[8] - m[7]*m[5];
   C = (m[6]*m[4] - m[3]*m[7])*m[2]
     + (m[0]*m[7] - m[6]*m[1])*m[5]
     + (m[3]*m[1] - m[0]*m[4])*m[8];
-  /*
-  printf("!%s: A B C = %g %g %g\n", "ell_3m_eigenvalues_d", A, B, C);
-  */
   roots = ell_cubic(eval, A, B, C, newton);
   /* no longer need to sort here */
   ELL_3V_SCALE(_eval, 1.0/scale, eval);
@@ -249,9 +241,9 @@ ell_3m_eigenvalues_d(double _eval[3], const double _m[9], const int newton) {
 }
 
 void
-_ell_3m_evecs_d(double evec[9], double eval[3], int roots,
+_ell_3m_evecs_d(double evec[9], double eval[3], int roots, 
                 const double m[9]) {
-  double n[9], e0=0, e1=0.0, e2=0.0, t /* , tmpv[3] */ ;
+  double n[9], e0, e1, e2, t /* , tmpv[3] */ ;
 
   ELL_3V_GET(e0, e1, e2, eval);
   /* if (ell_debug) {
@@ -264,7 +256,7 @@ _ell_3m_evecs_d(double evec[9], double eval[3], int roots,
   switch (roots) {
   case ell_cubic_root_three:
     /* if (ell_debug) {
-      printf("ell_3m_evecs_d: evals: %20.15f %20.15f %20.15f\n",
+      printf("ell_3m_evecs_d: evals: %20.15f %20.15f %20.15f\n", 
              eval[0], eval[1], eval[2]);
              } */
     ELL_3M_DIAG_SET(n, m[0]-e0, m[4]-e0, m[8]-e0);
@@ -316,16 +308,16 @@ _ell_3m_evecs_d(double evec[9], double eval[3], int roots,
   /* if (ell_debug) {
     printf("ell_3m_evecs_d (numroots = %d): evecs: \n", numroots);
     ELL_3MV_MUL(tmpv, m, evec[0]);
-    printf(" (%g:%g): %20.15f %20.15f %20.15f\n",
-           eval[0], ELL_3V_DOT(evec[0], tmpv),
+    printf(" (%g:%g): %20.15f %20.15f %20.15f\n", 
+           eval[0], ELL_3V_DOT(evec[0], tmpv), 
            evec[0][0], evec[0][1], evec[0][2]);
     ELL_3MV_MUL(tmpv, m, evec[1]);
-    printf(" (%g:%g): %20.15f %20.15f %20.15f\n",
-           eval[1], ELL_3V_DOT(evec[1], tmpv),
+    printf(" (%g:%g): %20.15f %20.15f %20.15f\n", 
+           eval[1], ELL_3V_DOT(evec[1], tmpv), 
            evec[1][0], evec[1][1], evec[1][2]);
     ELL_3MV_MUL(tmpv, m, evec[2]);
-    printf(" (%g:%g): %20.15f %20.15f %20.15f\n",
-           eval[2], ELL_3V_DOT(evec[2], tmpv),
+    printf(" (%g:%g): %20.15f %20.15f %20.15f\n", 
+           eval[2], ELL_3V_DOT(evec[2], tmpv), 
            evec[2][0], evec[2][1], evec[2][2]);
            } */
   return;
@@ -341,10 +333,10 @@ _ell_3m_evecs_d(double evec[9], double eval[3], int roots,
 ** is set to a corresponding eigenvector.  The eigenvectors are
 ** (evec+0)[], (evec+3)[], and (evec+6)[]
 **
-** NOTE: Even in the post-Teem-1.7 switch from column-major to
+** NOTE: Even in the post-Teem-1.7 switch from column-major to 
 ** row-major- its still the case that the eigenvectors are at
 ** evec+0, evec+3, evec+6: this means that they USED to be the
-** "columns" of the matrix, and NOW they're the rows.
+** "columns" of the matrix, and NOW they're the rows.  
 **
 ** The eigenvalues (and associated eigenvectors) are sorted in
 ** descending order.
@@ -362,7 +354,7 @@ ell_3m_eigensolve_d(double eval[3], double evec[9],
     printf(" {%20.15f,\t%20.15f,\t%20.15f},\n", m[3], m[4], m[5]);
     printf(" {%20.15f,\t%20.15f,\t%20.15f}};\n",m[6], m[7], m[8]);
     } */
-
+  
   roots = ell_3m_eigenvalues_d(eval, m, newton);
   _ell_3m_evecs_d(evec, eval, roots, m);
 
@@ -382,14 +374,14 @@ ell_3m_eigensolve_d(double eval[3], double evec[9],
 ** returns info about singular values according to ellCubeRoot enum
 **
 ** HEY: I think this does the wrong thing when given a symmetric
-** matrix with negative eigenvalues . . .
+** matrix with negative eigenvalues...
 */
 int
-ell_3m_svd_d(double uu[9], double sval[3], double vv[9],
+ell_3m_svd_d(double uu[9], double sval[3], double vv[9], 
              const double mat[9], const int newton) {
   double trn[9], msqr[9], eval[3], evec[9];
   int roots;
-
+  
   ELL_3M_TRANSPOSE(trn, mat);
   ELL_3M_MUL(msqr, mat, trn);
   roots = ell_3m_eigensolve_d(eval, evec, msqr, newton);
@@ -406,7 +398,7 @@ ell_3m_svd_d(double uu[9], double sval[3], double vv[9],
 /*
 ** NOTE: profiling showed that about a quarter of the execution time of
 ** ell_6ms_eigensolve_d() is spent here; so reconsider its need and
-** implementation . . . (fabs vs. AIR_ABS() made no difference)
+** implementation... (fabs vs. AIR_ABS() made no difference)
 */
 static void
 _maxI_sum_find(unsigned int maxI[2], double *sumon, double *sumoff,
@@ -455,9 +447,9 @@ _maxI_sum_find(unsigned int maxI[2], double *sumon, double *sumoff,
 
 static int
 _compar(const void *A_void, const void *B_void) {
-  const double *A, *B;
-  A = AIR_CAST(const double *, A_void);
-  B = AIR_CAST(const double *, B_void);
+  double *A, *B;
+  A = AIR_CAST(double *, A_void);
+  B = AIR_CAST(double *, B_void);
   return (A[0] < B[0] ? 1 : (A[0] > B[0] ? -1 : 0));
 }
 
@@ -467,9 +459,9 @@ _compar(const void *A_void, const void *B_void) {
 ** uses Jacobi iterations to find eigensystem of 6x6 symmetric matrix,
 ** given in sym[21], to within convergence threshold eps.  Puts
 ** eigenvalues, in descending order, in eval[6], and corresponding
-** eigenvectors in _evec+0, _evec+6, . . ., _evec+30.  NOTE: you can
+** eigenvectors in _evec+0, _evec+6, ..., _evec+30.  NOTE: you can
 ** pass a NULL _evec if eigenvectors aren't needed.
-**
+** 
 ** does NOT use biff
 */
 int
@@ -516,8 +508,8 @@ ell_6ms_eigensolve_d(double eval[6], double _evec[36],
   fprintf(stderr, "!%s(INIT): m = [", me);
   for (rrI=0; rrI<6; rrI++) {
     for (ccI=0; ccI<6; ccI++) {
-      fprintf(stderr, "%f%s",
-              (rrI <= ccI ? mat[0][rrI][ccI] : mat[0][ccI][rrI]),
+      fprintf(stderr, "%f%s", 
+              (rrI <= ccI ? mat[0][rrI][ccI] : mat[0][ccI][rrI]), 
               ccI<5 ? "," : (rrI<5 ? ";" : "]"));
     }
     fprintf(stderr, "\n");
@@ -528,7 +520,7 @@ ell_6ms_eigensolve_d(double eval[6], double _evec[36],
   cur = 1;         /* fake out anticipating first line of loop */
   iter = 0;
   while (sumoff/sumon > eps) {
-    double th, tt, cc, ss;
+    double th, tt, cc, ss; 
     unsigned int P, Q;
     /*
     fprintf(stderr, "!%s(%u): sumoff/sumon = %g/%g = %g > %g\n", me, iter,
@@ -572,12 +564,12 @@ ell_6ms_eigensolve_d(double eval[6], double _evec[36],
       mat[1-cur][rrI][P] = cc*mat[cur][rrI][P] - ss*mat[cur][rrI][Q];
     }
     for (ccI=P+1; ccI<6; ccI++) {
-      mat[1-cur][P][ccI] = cc*mat[cur][P][ccI] - ss*(Q <= ccI
-                                                     ? mat[cur][Q][ccI]
+      mat[1-cur][P][ccI] = cc*mat[cur][P][ccI] - ss*(Q <= ccI 
+                                                     ? mat[cur][Q][ccI] 
                                                      : mat[cur][ccI][Q]);
     }
     for (rrI=0; rrI<Q; rrI++) {
-      mat[1-cur][rrI][Q] = ss*(rrI <= P
+      mat[1-cur][rrI][Q] = ss*(rrI <= P 
                                ? mat[cur][rrI][P]
                                : mat[cur][P][rrI]) + cc*mat[cur][rrI][Q];
     }
@@ -608,8 +600,8 @@ ell_6ms_eigensolve_d(double eval[6], double _evec[36],
     fprintf(stderr, "!%s(%u): m = [", me, iter);
     for (rrI=0; rrI<6; rrI++) {
       for (ccI=0; ccI<6; ccI++) {
-        fprintf(stderr, "%f%s",
-                (rrI <= ccI ? mat[1-cur][rrI][ccI] : mat[1-cur][ccI][rrI]),
+        fprintf(stderr, "%f%s", 
+                (rrI <= ccI ? mat[1-cur][rrI][ccI] : mat[1-cur][ccI][rrI]), 
                 ccI<5 ? "," : (rrI<5 ? ";" : "]"));
       }
       fprintf(stderr, "\n");
@@ -637,6 +629,6 @@ ell_6ms_eigensolve_d(double eval[6], double _evec[36],
       }
     }
   }
-
+  
   return 0;
 }

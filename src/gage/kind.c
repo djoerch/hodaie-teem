@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -43,7 +42,7 @@ gageKindCheck(const gageKind *kind) {
     return 1;
   }
   if (kind->itemMax > GAGE_ITEM_MAX) {
-    biffAddf(GAGE, "%s: kind \"%s\" item max %d > GAGE_ITEM_MAX %d",
+    biffAddf(GAGE, "%s: kind \"%s\" item max %d > GAGE_ITEM_MAX %d", 
              me, kind->name, kind->itemMax, GAGE_ITEM_MAX);
     return 1;
   }
@@ -69,12 +68,11 @@ gageKindCheck(const gageKind *kind) {
       }
       return 1;
     }
-    if (!(AIR_IN_CL(0, item->needDeriv, GAGE_DERIV_MAX))) {
+    if (!(AIR_IN_CL(0, item->needDeriv, 2))) {
       biffAddf(GAGE,
-               "%s: \"%s\"-kind \"%s\" (item %d) has invalid needDeriv %d "
-               "(not in [0,%u])\n",
+               "%s: \"%s\"-kind \"%s\" (item %d) has invalid needDeriv %d",
                me, kind->name, airEnumStr(kind->enm, ii),
-               ii, item->needDeriv, GAGE_DERIV_MAX);
+               ii, item->needDeriv);
       return 1;
     }
     for (pi=0; pi<GAGE_ITEM_PREREQ_MAXNUM; pi++) {
@@ -96,9 +94,9 @@ gageKindCheck(const gageKind *kind) {
     pitem = item->parentItem;
     pindex = item->parentIndex;
     if (0 != pitem) {
-      if (1 == ii) {
-        biffAddf(GAGE, "%s: first item (index 1) of \"%s\"-kind can't "
-                 "be a sub-item (wanted parent index %d)",
+      if (0 == ii) {
+        biffAddf(GAGE, "%s: first item (index 0) of \"%s\"-kind can't "
+                 "be a sub-item (wanted parent index %d)", 
                  me, kind->name, pitem);
         return 1;
       }
@@ -110,12 +108,12 @@ gageKindCheck(const gageKind *kind) {
       }
       if (0 != kind->table[pitem].parentItem) {
         biffAddf(GAGE, "%s: item %d of \"%s\"-kind has parent %d which "
-                 "wants to have parent %d: can't have sub-sub-items",
+                 "wants to have parent %d: can't have sub-sub-items", 
                  me, ii, kind->name, pitem, kind->table[pitem].parentItem);
         return 1;
       }
       if (!( 0 <= pindex
-             && ((unsigned int)pindex + alen
+             && ((unsigned int)pindex + alen 
                  <= kind->table[pitem].answerLength) )) {
         biffAddf(GAGE,
                  "%s: item %d of \"%s\"-kind wants index range [%d,%d] "
@@ -126,7 +124,7 @@ gageKindCheck(const gageKind *kind) {
         return 1;
       }
     }
-  }
+  } 
   return 0;
 }
 
@@ -138,7 +136,7 @@ gageKindTotalAnswerLength(const gageKind *kind) {
   int ii;
 
   if (gageKindCheck(kind)) {
-    err = biffGetDone(GAGE);
+    err = biffGetDone(GAGE); 
     fprintf(stderr, "%s: PANIC:\n %s", me, err);
     free(err); exit(1);
   }
@@ -154,7 +152,7 @@ gageKindTotalAnswerLength(const gageKind *kind) {
 /*
 ** _gageKindAnswerOffset
 **
-** return the location of the item in the master answer array
+** return the location of the item in the master answer array 
 **
 ** I don't think this will work if there are sub-sub-items
 */
@@ -171,7 +169,7 @@ _gageKindAnswerOffset(const gageKind *kind, int item) {
   parent = kind->table[item].parentItem;
   if (0 != parent) {
     /* we're a sub-item */
-    return (kind->table[item].parentIndex
+    return (kind->table[item].parentIndex 
             + _gageKindAnswerOffset(kind, parent));
   }
 
@@ -191,7 +189,7 @@ gageKindAnswerLength(const gageKind *kind, int item) {
   char *err;
 
   if (gageKindCheck(kind)) {
-    err = biffGetDone(GAGE);
+    err = biffGetDone(GAGE); 
     fprintf(stderr, "%s: PANIC:\n %s", me, err);
     free(err); exit(1);
   }
@@ -205,9 +203,9 @@ int
 gageKindAnswerOffset(const gageKind *kind, int item) {
   static const char me[]="gageKindAnswerOffset";
   char *err;
-
+  
   if (gageKindCheck(kind)) {
-    err = biffGetDone(GAGE);
+    err = biffGetDone(GAGE); 
     fprintf(stderr, "%s: PANIC:\n %s", me, err);
     free(err); exit(1);
   }
@@ -240,35 +238,14 @@ gageKindVolumeCheck(const gageKind *kind, const Nrrd *nrrd) {
              airEnumStr(nrrdType, nrrdTypeBlock));
     return 1;
   }
-  if (kind->baseDim) {
-    char stmp[AIR_STRLEN_SMALL];
-    if (1 == kind->baseDim) {
-      if (kind->valLen != nrrd->axis[0].size) {
-        biffAddf(GAGE, "%s: %s kind needs %u axis 0 values, not %s", me,
-                 kind->name, kind->valLen,
-                 airSprintSize_t(stmp, nrrd->axis[0].size));
-        return 1;
-      }
-    } else {
-      /* actually there is yet to be a kind in Teem for which
-         kind->baseDim > 1, but this code would work in that case */
-      unsigned int axi;
-      size_t numsub; /* number of samples sub base dim */
-      numsub = 1;
-      for (axi=0; axi<kind->baseDim; axi++) {
-        numsub *= nrrd->axis[axi].size;
-      }
-      if (kind->valLen != numsub) {
-        biffAddf(GAGE, "%s: %s kind needs %u values below baseDim axis %u, "
-                 "not %s", me, kind->name,kind->valLen, kind->baseDim,
-                 airSprintSize_t(stmp, numsub));
-        return 1;
-      }
-    }
+  if (1 == kind->baseDim && (kind->valLen != nrrd->axis[0].size)) {
+    biffAddf(GAGE, "%s: kind requires %u axis 0 values, not " 
+             _AIR_SIZE_T_CNV, me, kind->valLen, nrrd->axis[0].size);
+    return 1;
   }
   /* this eventually calls _gageShapeSet(), which, for purely historical
      reasons, does the brunt of the error checking, some of which is almost
-     certainly redundant with checks above . . . */
+     certainly redundant with checks above ... */
   if (gageVolumeCheck(NULL, nrrd, kind)) {
     biffAddf(GAGE, "%s: trouble", me);
     return 1;

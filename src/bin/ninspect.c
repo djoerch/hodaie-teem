@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -102,7 +101,7 @@ fixproj(Nrrd *nproj[3], Nrrd *nvol) {
     biffMovef(NINSPECT, NRRD, "%s: trouble with nrrd operations", me);
     airMopError(mop); return 1;
   }
-
+  
   for (ii=0; ii<3; ii++) {
     sz[ii] = nvol->axis[map[ii]].size;
     sp[ii] = ELL_3V_LEN(nvol->axis[map[ii]].spaceDirection);
@@ -128,7 +127,7 @@ int
 ninspect_proj(Nrrd *nout, Nrrd *nin, int axis, int smart, float amount) {
   static const char me[]="ninspect_proj";
   airArray *mop;
-  Nrrd *ntmpA, *ntmpB, **nrgb;
+  Nrrd *ntmpA, *ntmpB, *nrgb[3];
   int bins;
 
   if (!(nout && nin)) {
@@ -145,11 +144,6 @@ ninspect_proj(Nrrd *nout, Nrrd *nin, int axis, int smart, float amount) {
   mop = airMopNew();
   airMopAdd(mop, ntmpA = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, ntmpB = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-  /* HEY: this used to be nrgb[3], but its passing to nrrdJoin caused
-     "dereferencing type-punned pointer might break strict-aliasing rules"
-     warning; GLK not sure how else to fix it */
-  nrgb = AIR_CALLOC(3, Nrrd*);
-  airMopAdd(mop, nrgb, airFree, airMopAlways);
   airMopAdd(mop, nrgb[0] = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nrgb[1] = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nrgb[2] = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
@@ -157,7 +151,7 @@ ninspect_proj(Nrrd *nout, Nrrd *nin, int axis, int smart, float amount) {
   /* these arguments to nrrdHistoEq will control its behavior */
   bins = 3000;  /* equalization will use a histogram with this many bins */
 
-  /* the following idiom is one way of handling the fact that any
+  /* the following idiom is one way of handling the fact that any 
      non-trivial nrrd call can fail, and if it does, then any subsequent
      nrrd calls should be avoided (to be perfectly safe), so that you can
      get the error message from biff.  Because of the left-to-right ordering
@@ -172,11 +166,11 @@ ninspect_proj(Nrrd *nout, Nrrd *nin, int axis, int smart, float amount) {
       || nrrdQuantize(nrgb[1], ntmpB, NULL, 8)
       || nrrdProject(ntmpA, nin, axis, nrrdMeasureMax, nrrdTypeDefault)
       || nrrdQuantize(nrgb[2], ntmpA, NULL, 8)
-      || nrrdJoin(nout, (const Nrrd*const*)nrgb, 3, 0, AIR_TRUE)) {
+      || nrrdJoin(nout, (const Nrrd**)nrgb, 3, 0, AIR_TRUE)) {
     biffMovef(NINSPECT, NRRD, "%s: trouble with nrrd operations", me);
     airMopError(mop); return 1;
   }
-
+  
   airMopOkay(mop);
   return 0;
 }
@@ -198,7 +192,7 @@ doit(Nrrd *nout, Nrrd *nin, int smart, float amount) {
              me, nin->dim);
     return 1;
   }
-
+  
   mop = airMopNew();
   airMopAdd(mop, nproj[0]=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nproj[1]=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
@@ -241,8 +235,8 @@ doit(Nrrd *nout, Nrrd *nin, int smart, float amount) {
     biffMovef(NINSPECT, NRRD, "%s: couldn't allocate output", me);
     airMopError(mop); return 1;
   }
-
-  min[0] = 0;
+  
+  min[0] = 0; 
   E = 0;
   which = 0;
   if (!E) { min[1] = margin; min[2] = margin; which = 1; }
@@ -252,7 +246,7 @@ doit(Nrrd *nout, Nrrd *nin, int smart, float amount) {
   if (!E) { min[1] = 2*margin + srl; min[2] = margin; which = 3; }
   if (!E) E |= nrrdInset(nout, nout, nproj[0], min);
   if (E) {
-    biffAddf(NINSPECT, NRRD, "%s: couldn't composite output (which = %d)",
+    biffAddf(NINSPECT, NRRD, "%s: couldn't composite output (which = %d)", 
              me, which);
     airMopError(mop); return 1;
   }
@@ -262,39 +256,37 @@ doit(Nrrd *nout, Nrrd *nin, int smart, float amount) {
 }
 
 void
-ninspect_usage(void) {
+ninspect_usage() {
 
   fprintf(stderr, "\nusage: %s <input volume> <output image>\n\n",
           NINSPECT);
   fprintf(stderr, "<input volume>: must be a 3-D array in NRRD or "
           "NRRD-compatible format.\n");
-  fprintf(stderr, "<output image>: will be saved out in whatever format "
+  fprintf(stderr, "<output image>: will be saved out in whatever format " 
           "is implied by the\n");
   fprintf(stderr, "   extension (if recognized), or else in NRRD format\n");
 }
 
-static const char *info =
-  ("Quick way of seeing what's inside a 3D volume.  A color image "
-   "of three axis-aligned projections is composed of histogram-"
-   "equalized and quantized images of the summation (red), "
-   "variance (green), and maximum (blue) intensity projections. "
-   "If volume is orientation in RAS space, then a standard "
-   "orientation is used for projections and projections are "
-   "upsampled (with box kernel) to have isotropic pixels.");
+char *info = ("Quick way of seeing what's inside a 3D volume.  A color image "
+              "of three axis-aligned projections is composed of histogram-"
+              "equalized and quantized images of the summation (red), "
+              "variance (green), and maximum (blue) intensity projections. "
+              "If volume is orientation in RAS space, then a standard "
+              "orientation is used for projections and projections are "
+              "upsampled (with box kernel) to have isotropic pixels.");
 
 int
-main(int argc, const char *argv[]) {
+main(int argc, char *argv[]) {
   hestOpt *hopt=NULL;
   airArray *mop;
-  const char *me;
-  char *outS, *err;
+  char *me, *outS, *err;
   Nrrd *nin, *nout;
   NrrdIoState *nio;
   float heqamount;
 
   me = argv[0];
   mop = airMopNew();
-
+  
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
              "input nrrd to project.  Must be three dimensional.",
              NULL, NULL, nrrdHestNrrd);
@@ -302,12 +294,12 @@ main(int argc, const char *argv[]) {
              "how much to apply histogram equalization to projection images");
   hestOptAdd(&hopt, "o", "img out", airTypeString, 1, 1, &outS,
              NULL, "output image to save to.  Will try to use whatever "
-             "format is implied by extension, but will fall back to PPM.");
+             "format is implied by extention, but will fall back to PPM.");
   hestParseOrDie(hopt, argc-1, argv+1, NULL,
                  me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
-
+  
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
   nio = nrrdIoStateNew();

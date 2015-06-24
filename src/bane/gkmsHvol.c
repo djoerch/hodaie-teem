@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,7 +24,7 @@
 #include "privateBane.h"
 
 #define HVOL_INFO "Make histogram volume"
-static const char *_baneGkms_hvolInfoL =
+char *_baneGkms_hvolInfoL =
   (HVOL_INFO
    ".  The histogram volume is a three-dimensional histogram recording "
    "the relationship between data value, gradient magnitude, and the "
@@ -33,8 +32,7 @@ static const char *_baneGkms_hvolInfoL =
    "it is the first step in semi-automatic transfer function generation.  ");
 
 int
-baneGkms_hvolMain(int argc, const char **argv, const char *me,
-                  hestParm *hparm) {
+baneGkms_hvolMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *perr;
   Nrrd *nin, *nout;
@@ -45,7 +43,7 @@ baneGkms_hvolMain(int argc, const char **argv, const char *me,
   NrrdIoState *nio;
   NrrdKernelSpec *ksp00, *ksp11, *ksp22;
 
-  hestOptAdd(&opt, "s", "incV incG incH", airTypeOther, 3, 3, inc,
+  hestOptAdd(&opt, "s", "incV incG incH", airTypeOther, 3, 3, inc, 
              "f:1.0 p:0.005 p:0.015",
              "Strategies for determining how much of the range "
              "of a quantity should be included and quantized in its axis "
@@ -76,7 +74,7 @@ baneGkms_hvolMain(int argc, const char **argv, const char *me,
              "directional derivative.  No faster, less accurate.");
   hestOptAdd(&opt, "slow", NULL, airTypeInt, 0, 0, &slow, NULL,
              "Instead of allocating a floating point VGH volume and measuring "
-             "V,G,H once, measure V,G,H multiple times on separate passes "
+             "V,G,H once, measure V,G,H multiple times on seperate passes "
              "(slower, but needs less memory)");
   if (nrrdEncodingGzip->available()) {
     hestOptAdd(&opt, "gz", NULL, airTypeInt, 0, 0, &gz, NULL,

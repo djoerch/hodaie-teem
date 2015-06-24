@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -26,9 +26,8 @@ char *rot2aaInfo = ("converts a list of rotation matrices to a list of "
                     "angle axis specifications");
 
 int
-main(int argc, const char *argv[]) {
-  const char *me;
-  char *outS, *err;
+main(int argc, char *argv[]) {
+  char *me, *outS, *err;
   hestOpt *hopt;
   hestParm *hparm;
   airArray *mop;

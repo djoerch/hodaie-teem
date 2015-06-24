@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,15 +24,14 @@
 #include "privateBane.h"
 
 #define MITE_INFO "Modify opacity function to work with \"mite\""
-static const char *_baneGkms_miteInfoL =
+char *_baneGkms_miteInfoL =
   (MITE_INFO
    ". Useful when using the \"mite\" Teem library, or the \"miter\" "
    "command-line renderer.  This adds a \"stub\" axis 0, and setting the "
    "axis labels to identify the domain and range of the opacity function. "
    "The underlying opacity function is not modified.");
 int
-baneGkms_miteMain(int argc, const char **argv, const char *me,
-                  hestParm *hparm) {
+baneGkms_miteMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *perr;
   Nrrd *nin, *nout;
@@ -77,7 +75,7 @@ baneGkms_miteMain(int argc, const char **argv, const char *me,
     biffMovef(BANE, NRRD, "%s: trouble saving opacity function", me);
     airMopError(mop); return 1;
   }
-
+  
   airMopOkay(mop);
   return 0;
 }

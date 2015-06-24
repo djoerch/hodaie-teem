@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,15 +24,14 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Select subset of slices along an axis"
-static const char *_unrrdu_sselectInfoL =
-  (INFO ". The choice to keep or nix a slice is determined by whether the "
-   "values in a given 1-D line of values is above or below a given "
-   "threshold.\n "
-   "* Uses nrrdSliceSelect");
+char *_unrrdu_sselectInfoL = (INFO
+                              ". The choice to keep or nix a slice is "
+                              "determined by whether the values in a "
+                              "given 1-D line of values is above or "
+                              "below a given threshold.");
 
 int
-unrrdu_sselectMain(int argc, const char **argv, const char *me,
-                   hestParm *hparm) {
+unrrdu_sselectMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *err;
   Nrrd *nin, *noutAbove, *noutBelow, *nline;
@@ -89,7 +87,7 @@ unrrdu_sselectMain(int argc, const char **argv, const char *me,
     airMopError(mop);
     return 1;
   }
-
+  
   if (noutAbove) {
     SAVE(outS[0], noutAbove, NULL);
   }

@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,15 +24,10 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Recover floating point values from quantized data"
-static const char *_unrrdu_unquantizeInfoL =
-  (INFO ". Uses the oldMin and oldMax fields in the Nrrd of quantized values "
-   "to regenerate approximate versions of the original unquantized values. "
-   "Can also override these with \"-min\" and \"-max\".\n "
-   "* Uses nrrdUnquantize");
+char *_unrrdu_unquantizeInfoL = INFO;
 
 int
-unrrdu_unquantizeMain(int argc, const char **argv, const char *me,
-                      hestParm *hparm) {
+unrrdu_unquantizeMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -43,11 +37,7 @@ unrrdu_unquantizeMain(int argc, const char **argv, const char *me,
 
   /* mandatory arg so that "unu unquantize" produces usage info */
   hestOptAdd(&opt, "i,input", "nin", airTypeOther, 1, 1, &nin, NULL,
-             "input nrrd.  That this argument is required instead of "
-             "optional, as with most unu commands, is a quirk caused by the "
-             "need to have \"unu unquantize\" generate usage info, combined "
-             "with the fact that all the other arguments have sensible "
-             "defaults",
+             "input nrrd",
              NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&opt, "min,minimum", "value", airTypeDouble, 1, 1, &oldMin, "nan",
              "Lowest value prior to quantization.  Defaults to "
@@ -58,7 +48,7 @@ unrrdu_unquantizeMain(int argc, const char **argv, const char *me,
   hestOptAdd(&opt, "double", NULL, airTypeBool, 0, 0, &dbl, NULL,
              "Use double for output type, instead of float");
   OPT_ADD_NOUT(out, "output nrrd");
-
+  
   mop = airMopNew();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 

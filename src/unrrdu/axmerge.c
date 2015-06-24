@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,17 +24,15 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Merge two adjacent axes into one"
-static const char *_unrrdu_axmergeInfoL =
+char *_unrrdu_axmergeInfoL =
 (INFO
  ". A more general version of \"unu axdelete\". "
  "The underlying linear ordering of the samples is "
  "unchanged, and the information about the other axes is "
- "shifted downwards as needed.\n "
- "* Uses nrrdAxesMerge");
+ "shifted downwards as needed.");
 
 int
-unrrdu_axmergeMain(int argc, const char **argv, const char *me,
-                   hestParm *hparm) {
+unrrdu_axmergeMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout[2];
@@ -64,7 +61,7 @@ unrrdu_axmergeMain(int argc, const char **argv, const char *me,
 
   if (axesLen > 1) {
     /* sort merge axes into ascending order */
-    qsort(axes, axesLen, sizeof(*axes), nrrdValCompare[nrrdTypeInt]);
+    qsort(axes, axesLen, sizeof(int), nrrdValCompare[nrrdTypeInt]);
   }
 
   ni = 0;
@@ -80,7 +77,7 @@ unrrdu_axmergeMain(int argc, const char **argv, const char *me,
     }
     ni = 1-ni;
   }
-
+  
   SAVE(out, nout[1-ni], NULL);
 
   airMopOkay(mop);

@@ -1,6 +1,5 @@
 #
 # Teem: Tools to process and visualize scientific data and images
-# Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
 # Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
 # Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 #
@@ -52,7 +51,7 @@ $(L).PRIVATE_HEADERS = privateNrrd.h
 $(L).OBJS = \
 	accessors.o  arith.o     arraysNrrd.o   apply1D.o apply2D.o \
 	axis.o       comment.o   convertNrrd.o  defaultsNrrd.o   \
-	deringNrrd.o   endianNrrd.o   enumsNrrd.o   filt.o   gzio.o  \
+	endianNrrd.o enumsNrrd.o filt.o         gzio.o           \
 	hestNrrd.o   histogram.o iter.o         kernel.o   	 \
 	map.o        measure.o   methodsNrrd.o  parseNrrd.o      \
 	read.o       write.o        reorder.o   resampleNrrd.o \
@@ -62,7 +61,7 @@ $(L).OBJS = \
 	encodingGzip.o   encodingBzip2.o  \
 	format.o     formatNRRD.o     formatPNM.o      formatPNG.o \
 	formatVTK.o      formatText.o     formatEPS.o      \
-	keyvalue.o  resampleContext.o  fftNrrd.o
+	keyvalue.o  resampleContext.o
 $(L).TESTS = test/tread test/trand test/ax test/io test/strio test/texp \
 	test/minmax test/tkernel test/typestest test/tline test/genvol \
 	test/quadvol test/convo test/kv test/reuse test/histrad test/otsu \

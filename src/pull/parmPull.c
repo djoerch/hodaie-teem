@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -48,8 +47,6 @@ _pullSysParmInit(pullSysParm *sysParm) {
   sysParm->alpha = 0.5;
   sysParm->beta = 0.5;
   sysParm->gamma = 1;
-  sysParm->separableGammaLearnRescale = 8;
-  sysParm->theta = 0.0;
   sysParm->wall = 1;
   sysParm->radiusSpace = 1;
   sysParm->radiusScale = 1;
@@ -81,8 +78,6 @@ _pullFlagInit(pullFlag *flag) {
   flag->popCntlEnoughTest = AIR_TRUE; /* really needs to be true by default */
   flag->binSingle = AIR_FALSE;
   flag->allowCodimension3Constraints = AIR_FALSE;
-  flag->scaleIsTau = AIR_FALSE;
-  flag->startSkipsPoints = AIR_FALSE; /* must be false by default */
   return;
 }
 
@@ -91,7 +86,7 @@ _pullIterParmCheck(pullIterParm *iterParm) {
   static const char me[]="_pullIterParmCheck";
 
   if (!( 1 <= iterParm->constraintMax
-         && iterParm->constraintMax <= 500 )) {
+         && iterParm->constraintMax <= 50 )) {
     biffAddf(PULL, "%s: iterParm->constraintMax %u not in range [%u,%u]",
              me, iterParm->constraintMax, 1, _PULL_CONSTRAINT_ITER_MAX);
     return 1;
@@ -167,16 +162,15 @@ _pullSysParmCheck(pullSysParm *sysParm) {
   CHECK(alpha, 0.0, 1.0);
   CHECK(beta, 0.0, 1.0);
   /* HEY: no check on gamma? */
-  /* no check on theta */
   CHECK(wall, 0.0, 100.0);
-  CHECK(radiusSpace, 0.000001, 80.0);
-  CHECK(radiusScale, 0.000001, 80.0);
+  CHECK(radiusSpace, 0.000001, 25.0);
+  CHECK(radiusScale, 0.000001, 25.0);
   CHECK(binWidthSpace, 1.0, 15.0);
   CHECK(neighborTrueProb, 0.02, 1.0);
   CHECK(probeProb, 0.02, 1.0);
   if (!( AIR_EXISTS(sysParm->stepInitial)
          && sysParm->stepInitial > 0 )) {
-    biffAddf(PULL, "%s: sysParm->stepInitial %g not > 0", me,
+    biffAddf(PULL, "%s: sysParm->stepInitial %g not > 0", me, 
              sysParm->stepInitial);
     return 1;
   }
@@ -212,12 +206,6 @@ pullSysParmSet(pullContext *pctx, int which, double pval) {
     break;
   case pullSysParmGamma:
     pctx->sysParm.gamma = pval;
-    break;
-  case pullSysParmSeparableGammaLearnRescale:
-    pctx->sysParm.separableGammaLearnRescale = pval;
-    break;
-  case pullSysParmTheta:
-    pctx->sysParm.theta = pval;
     break;
   case pullSysParmStepInitial:
     pctx->sysParm.stepInitial = pval;
@@ -319,12 +307,6 @@ pullFlagSet(pullContext *pctx, int which, int flag) {
   case pullFlagAllowCodimension3Constraints:
     pctx->flag.allowCodimension3Constraints = flag;
     break;
-  case pullFlagScaleIsTau:
-    pctx->flag.scaleIsTau = flag;
-    break;
-  case pullFlagStartSkipsPoints:
-    pctx->flag.startSkipsPoints = flag;
-    break;
   default:
     biffAddf(me, "%s: sorry, flag %d valid but not handled?", me, which);
     return 1;
@@ -337,7 +319,7 @@ pullFlagSet(pullContext *pctx, int which, int flag) {
 ** I know they're there to be copied upon task creation to create the
 ** per-TASK volumes, but its easy to think that one is supposed to be
 ** doing something with them, or that changes to them will have some
-** effect . . .
+** effect ...
 */
 int
 pullVerboseSet(pullContext *pctx, int verbose) {
@@ -400,7 +382,7 @@ pullProgressBinModSet(pullContext *pctx, unsigned int bmod) {
   return 0;
 }
 
-int
+int 
 pullCallbackSet(pullContext *pctx,
                 void (*iter_cb)(void *data_cb),
                 void *data_cb) {
@@ -422,7 +404,7 @@ pullCallbackSet(pullContext *pctx,
 ** which is clumsy because which pullEnergySpecs are necessary is
 ** different depending on interType.  Pass NULL for those not needed.
 **
-** Note that all the pullEnergySpecs inside the pctx are created
+** Note that all the pullEnergySpecs inside the pctx are created 
 ** by pullContextNew, so they should never be NULL.  When a pullEnergySpec
 ** is not needed for a given interType, we set it to pullEnergyZero
 ** and a vector of NaNs.
@@ -458,7 +440,7 @@ pullInterEnergySet(pullContext *pctx, int interType,
 
   switch (interType) {
   case pullInterTypeJustR:
-    /* 1: phi(r,s) = phi_r(r) */
+    /* 1: phi(r,s) = phi_r(r) */    
   case pullInterTypeUnivariate:
     /* 2: phi(r,s) = phi_r(u); u = sqrt(r*r+s*s) */
     CHECK_N_COPY(R);
@@ -491,14 +473,14 @@ pullInterEnergySet(pullContext *pctx, int interType,
 ** you can pass in a NULL FILE* if you want
 */
 int
-pullLogAddSet(pullContext *pctx, FILE *flog) {
+pullLogAddSet(pullContext *pctx, FILE *log) {
   static const char me[]="pullLogAddSet";
-
+  
   if (!(pctx)) {
     biffAddf(PULL, "%s: got NULL pointer", me);
     return 1;
   }
 
-  pctx->logAdd = flog;
+  pctx->logAdd = log;
   return 0;
 }

@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,23 +24,20 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Connect slices and/or slabs into a bigger nrrd"
-static const char *_unrrdu_joinInfoL =
+char *_unrrdu_joinInfoL =
 (INFO
  ". Can stich images into volumes, or tile images side "
  "by side, or attach images onto volumes.  If there are many many "
  "files to name in the \"-i\" option, and using wildcards won't work, "
  "consider putting the list of "
- "filenames into a separate text file (e.g. \"slices.txt\"), and then "
+ "filenames into a seperate text file (e.g. \"slices.txt\"), and then "
  "name this file as a response file (e.g. \"-i @slices.txt\"). "
  "This command now allows you to set the same pieces of information that "
  "previously had to be set with \"unu axinfo\": label, spacing, and min/max. "
- "These can be use whether the join axis is new (because of \"-incr\") or "
- "not.\n "
- "* Uses nrrdJoin");
+ "These can be use whether the join axis is new (because of \"-incr\") or not.");
 
 int
-unrrdu_joinMain(int argc, const char **argv, const char *me,
-                hestParm *hparm) {
+unrrdu_joinMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err, *label;
   Nrrd **nin;
@@ -81,8 +77,7 @@ unrrdu_joinMain(int argc, const char **argv, const char *me,
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  if (nrrdJoin(nout, AIR_CAST(const Nrrd*const*, nin), ninLen,
-               axis, incrDim)) {
+  if (nrrdJoin(nout, AIR_CAST(const Nrrd**, nin), ninLen, axis, incrDim)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error joining nrrds:\n%s", me, err);
     airMopError(mop);

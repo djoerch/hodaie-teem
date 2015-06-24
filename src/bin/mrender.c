@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -33,14 +32,13 @@
 
 #define MREND "mrender"
 
-static const char *info =
-  ("A demonstration of hoover, gage, and nrrd measures. "
-   "Uses hoover to cast rays through a volume (scalar, vector, or "
-   "tensor), gage to "
-   "measure one of various quantities along the rays, and a "
-   "specified nrrd measure to reduce all the values along a ray "
-   "down to one scalar, which is saved in the output (double) "
-   "image.");
+char *info = ("A demonstration of hoover, gage, and nrrd measures. "
+              "Uses hoover to cast rays through a volume (scalar, vector, or "
+              "tensor), gage to "
+              "measure one of various quantities along the rays, and a "
+              "specified nrrd measure to reduce all the values along a ray "
+              "down to one scalar, which is saved in the output (double) "
+              "image.");
 
 /* -------------------------------------------------------------- */
 
@@ -58,10 +56,10 @@ typedef struct {
     fromNaN;            /* what to convert non-existent value to */
   int whatq,            /* what to measure along the ray */
     measr;              /* how to reduce the ray samples to a scalar */
-  /* we have a separate copy of the kernel specs so that hest can
+  /* we have a seperate copy of the kernel specs so that hest can
      set these, and then we'll gageKernelSet() them in the context
      in order to do the proper error checking- hest can't do the
-     error checking that we need. */
+     error checking that we need... */
   NrrdKernelSpec *ksp[GAGE_KERNEL_MAX+1];
   gageShape *shape;     /* used to document ItoW transform */
   gageContext *gctx0;   /* gage input and parent thread state */
@@ -69,16 +67,16 @@ typedef struct {
   char *outS;           /* (managed by hest) output filename */
   double imgOrig[3],    /* output: set as extra info about camera */
     imgU[3], imgV[3];
-
+  
   airArray *mrmop;
 } mrendUser;
 
 mrendUser *
-mrendUserNew(void) {
+mrendUserNew() {
   mrendUser *uu;
   int i;
-
-  uu = AIR_CALLOC(1, mrendUser);
+  
+  uu = (mrendUser *)calloc(1, sizeof(mrendUser));
   uu->nin = NULL;
   uu->kind = NULL;
   uu->rayStep = 0.0;
@@ -100,7 +98,7 @@ mrendUserNew(void) {
 
 mrendUser *
 mrendUserNix(mrendUser *uu) {
-
+  
   if (uu) {
     airMopOkay(uu->mrmop);
     airFree(uu);
@@ -111,9 +109,9 @@ mrendUserNix(mrendUser *uu) {
 int
 mrendUserCheck(mrendUser *uu) {
   static const char me[]="mrendUserCheck";
-
+  
   if (3 + uu->kind->baseDim != uu->nin->dim) {
-    biffAddf(MREND, "%s: input nrrd needs %d dimensions, not %d",
+    biffAddf(MREND, "%s: input nrrd needs %d dimensions, not %d", 
              me,  + uu->kind->baseDim, uu->nin->dim);
     return 1;
   }
@@ -131,7 +129,7 @@ mrendUserCheck(mrendUser *uu) {
              me, airEnumStr(uu->kind->enm, uu->whatq), uu->kind->name);
     return 1;
   }
-
+  
   return 0;
 }
 
@@ -166,17 +164,16 @@ int
 mrendRenderBegin(mrendRender **rrP, mrendUser *uu) {
   static const char me[]="mrendRenderBegin";
   gagePerVolume *pvl;
-  int E;
-  unsigned int thr;
-
+  int E, thr;
+  
   /* this assumes that mrendUserCheck(uu) has passed */
-
-  *rrP = AIR_CALLOC(1, mrendRender);
+  
+  *rrP = (mrendRender *)calloc(1, sizeof(mrendRender));
   airMopAdd(uu->mrmop, *rrP, airFree, airMopAlways);
   /* pvl managed via parent context */
-
+  
   (*rrP)->time0 = airTime();
-
+  
   E = 0;
   if (!E) E |= !(pvl = gagePerVolumeNew(uu->gctx0, uu->nin, uu->kind));
   if (!E) E |= gagePerVolumeAttach(uu->gctx0, pvl);
@@ -197,7 +194,7 @@ mrendRenderBegin(mrendRender **rrP, mrendUser *uu) {
   }
   fprintf(stderr, "%s: kernel support = %d^3 samples\n", me,
           2*uu->gctx0->radius);
-
+  
   if (nrrdMaybeAlloc_va((*rrP)->nout=nrrdNew(), nrrdTypeDouble, 2,
                         AIR_CAST(size_t, uu->hctx->imgSize[0]),
                         AIR_CAST(size_t, uu->hctx->imgSize[1]))) {
@@ -212,26 +209,26 @@ mrendRenderBegin(mrendRender **rrP, mrendUser *uu) {
   (*rrP)->imgData = AIR_CAST(double*, (*rrP)->nout->data);
   (*rrP)->sx = uu->hctx->imgSize[0];
   (*rrP)->sy = uu->hctx->imgSize[1];
-
+  
   for (thr=0; thr<uu->hctx->numThreads; thr++) {
-    (*rrP)->tinfo[thr] = AIR_CALLOC(1, mrendThread);
+    (*rrP)->tinfo[thr] = (mrendThread *)calloc(1, sizeof(mrendThread));
     airMopAdd(uu->mrmop, (*rrP)->tinfo[thr], airFree, airMopAlways);
   }
-
+  
   return 0;
 }
 
 int
 mrendRenderEnd(mrendRender *rr, mrendUser *uu) {
   static const char me[]="mrendRenderEnd";
-  unsigned int thr;
-
+  int thr;
+  
   /* add up # samples from all threads */
   rr->totalSamples = 0;
   for (thr=0; thr<uu->hctx->numThreads; thr++) {
     rr->totalSamples += rr->tinfo[thr]->numSamples;
   }
-
+  
   rr->time1 = airTime();
   fprintf(stderr, "\n");
   fprintf(stderr, "%s: rendering time = %g secs\n", me,
@@ -242,7 +239,7 @@ mrendRenderEnd(mrendRender *rr, mrendUser *uu) {
     biffMovef(MREND, NRRD, "%s: trouble saving image", me);
     return 1;
   }
-
+  
   return 0;
 }
 
@@ -251,7 +248,7 @@ mrendRenderEnd(mrendRender *rr, mrendUser *uu) {
 int
 mrendThreadBegin(mrendThread **ttP,
                  mrendRender *rr, mrendUser *uu, int whichThread) {
-
+  
   /* allocating the mrendThreads should be part of the thread body,
      but as long as there isn't a mutex around registering them with
      the airMop in the mrendRender, then all that needs to be done
@@ -285,7 +282,7 @@ mrendThreadEnd(mrendThread *tt, mrendRender *rr, mrendUser *uu) {
     tt->gctx = gageContextNix(tt->gctx);
   }
   tt->val = AIR_CAST(double*, airFree(tt->val));
-
+  
   return 0;
 }
 
@@ -312,7 +309,7 @@ mrendRayBegin(mrendThread *tt, mrendRender *rr, mrendUser *uu,
   tt->vi = vIndex;
   if (!( -1 == uu->verbPixel[0] && -1 == uu->verbPixel[1] )) {
     if (uIndex == uu->verbPixel[0] && vIndex == uu->verbPixel[1]) {
-      fprintf(stderr, "\n%s: verbose for pixel (%d,%d)\n", me,
+      fprintf(stderr, "\n%s: verbose for pixel (%d,%d)\n", me, 
               uu->verbPixel[0], uu->verbPixel[1]);
       gageParmSet(tt->gctx, gageParmVerbose, 6);
       tt->verbose = 6;
@@ -328,7 +325,7 @@ mrendRayBegin(mrendThread *tt, mrendRender *rr, mrendUser *uu,
   if (!tt->val || newLen > tt->valLen) {
     tt->val = AIR_CAST(double*, airFree(tt->val));
     tt->valLen = newLen;
-    tt->val = AIR_CALLOC(newLen, double);
+    tt->val = AIR_CAST(double*, calloc(newLen, sizeof(double)));
   }
   tt->valNum = 0;
   if (!uIndex) {
@@ -343,7 +340,7 @@ mrendRayBegin(mrendThread *tt, mrendRender *rr, mrendUser *uu,
   } else if (0 == uIndex && 1 == vIndex) {
     ELL_3V_COPY(uu->imgV, rayStartWorld);  /* will fix later */
   }
-
+  
   fflush(stderr);
   return 0;
 }
@@ -363,7 +360,7 @@ mrendRayEnd(mrendThread *tt, mrendRender *rr, mrendUser *uu) {
   } else {
     rr->imgData[(tt->ui) + (rr->sx)*(tt->vi)] = 0.0;
   }
-
+  
   return 0;
 }
 
@@ -399,7 +396,7 @@ mrendSample(mrendThread *tt, mrendRender *rr, mrendUser *uu,
       return AIR_NAN;
     }
     if (tt->verbose) {
-      fprintf(stderr, "%s: val[%d] = %g\n", me,
+      fprintf(stderr, "%s: val[%d] = %g\n", me, 
               tt->valNum, *(tt->answer));
     }
     tt->val[tt->valNum++] = *(tt->answer);
@@ -408,7 +405,7 @@ mrendSample(mrendThread *tt, mrendRender *rr, mrendUser *uu,
     }
     tt->numSamples++;
   }
-
+  
   return tt->rayStep;
 }
 
@@ -427,13 +424,13 @@ kind, instead of being restricted to scalars
 ** together, be very sure that the generation of the strings on the
 ** two passes is identical.  Had a very troublesome memory error because
 ** I was using short version of the description string to determine
-** allocation, and then the long version in the second pass
+** allocation, and then the long version in the second pass...
 */
 char *
 mrendGage(char *prefix) {
   char *line, *ret;
   int i, len;
-
+  
   /* 1st pass through- determine needed buffer size */
   len = 0;
   for (i=airEnumUnknown(gageScl)+1; !airEnumValCheck(gageScl, i); i++) {
@@ -443,7 +440,7 @@ mrendGage(char *prefix) {
       free(line);
     }
   }
-  ret = AIR_CALLOC(strlen(prefix) + len + 1, char);
+  ret = (char*)calloc(strlen(prefix) + len + 1, sizeof(char));
   if (ret) {
     strcpy(ret, prefix);
     /* 2nd pass through: create output */
@@ -461,26 +458,25 @@ mrendGage(char *prefix) {
 #endif
 
 int
-main(int argc, const char *argv[]) {
+main(int argc, char *argv[]) {
   hestOpt *hopt=NULL;
   hestParm *hparm;
   int E, Ecode, Ethread, renorm, offfr;
-  const char *me;
-  char *errS, *whatS;
+  char *me, *errS, *whatS;
   mrendUser *uu;
   float isScale;
   airArray *mop;
   double gmc, turn, eye[3], eyedist;
-
+  
   me = argv[0];
   mop = airMopNew();
   hparm = hestParmNew();
   hparm->respFileEnable = AIR_TRUE;
   uu = mrendUserNew();
-
+  
   airMopAdd(mop, hparm, (airMopper)hestParmFree, airMopAlways);
   airMopAdd(mop, uu, (airMopper)mrendUserNix, airMopAlways);
-
+  
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &(uu->nin), NULL,
              "input nrrd to render", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "k", "kind", airTypeOther, 1, 1, &(uu->kind), NULL,
@@ -540,14 +536,14 @@ main(int argc, const char *argv[]) {
   hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &(uu->outS), "-",
              "file to write output nrrd to.  Defaults to stdout (\"-\").");
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
-
+  
   hestParseOrDie(hopt, argc-1, argv+1, hparm,
                  me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   uu->hctx->imgSize[0] = AIR_CAST(int, isScale*uu->hctx->imgSize[0]);
   uu->hctx->imgSize[1] = AIR_CAST(int, isScale*uu->hctx->imgSize[1]);
-
+  
   uu->whatq = airEnumVal(uu->kind->enm, whatS);
   if (-1 == uu->whatq) {
     /* -1 indeed always means "unknown" for any gageKind */
@@ -577,11 +573,11 @@ main(int argc, const char *argv[]) {
   fprintf(stderr, "%s: will render %s of %s in %s volume\n", me,
           airEnumStr(nrrdMeasure, uu->measr),
           airEnumStr(uu->kind->enm, uu->whatq), uu->kind->name);
-
+  
   if (offfr) {
     ELL_3V_INCR(uu->hctx->cam->from, uu->hctx->cam->at);
   }
-  if (limnCameraAspectSet(uu->hctx->cam,
+  if (limnCameraAspectSet(uu->hctx->cam, 
                           uu->hctx->imgSize[0], uu->hctx->imgSize[1],
                           nrrdCenterCell)
       || limnCameraUpdate(uu->hctx->cam)) {
@@ -614,7 +610,7 @@ main(int argc, const char *argv[]) {
     fprintf(stderr, "    N = {%g,%g,%g}\n",
     uu->hctx->cam->N[0], uu->hctx->cam->N[1], uu->hctx->cam->N[2]);
   */
-
+  
   /* set remaining fields of hoover context */
   if (0) {
     /* this is the old code that assumed everything about orientation
@@ -647,7 +643,7 @@ main(int argc, const char *argv[]) {
   uu->hctx->rayEnd = (hooverRayEnd_t *)mrendRayEnd;
   uu->hctx->threadEnd = (hooverThreadEnd_t *)mrendThreadEnd;
   uu->hctx->renderEnd = (hooverRenderEnd_t *)mrendRenderEnd;
-
+  
   if (!airThreadCapable && 1 != uu->hctx->numThreads) {
     fprintf(stderr, "%s: This Teem not compiled with "
             "multi-threading support.\n", me);
@@ -655,7 +651,7 @@ main(int argc, const char *argv[]) {
             me, uu->hctx->numThreads);
     uu->hctx->numThreads = 1;
   }
-
+  
   E = hooverRender(uu->hctx, &Ecode, &Ethread);
   if (E) {
     if (hooverErrInit == E) {
@@ -681,7 +677,7 @@ main(int argc, const char *argv[]) {
     fprintf(stderr, "%s: loc(0,1) - loc(0,0) = (%g,%g,%g)\n", me,
             uu->imgV[0], uu->imgV[1], uu->imgV[2]);
   }
-
+  
   airMopOkay(mop);
   return 0;
 }

@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -22,7 +22,7 @@
 
 
 /*
-test/tspline -loop -t 300 300 -s 10 -i s.txt:2v:bc:1,0 -m 1000 > ! out.ps
+test/tspline -loop -t 300 300 -s 10 -i s.txt:2v:bc:1,0 -m 1000 > ! out.ps 
 */
 
 /* s.txt:
@@ -52,9 +52,8 @@ char *info = ("Test limnSplines by drawing postscript curves. "
               "The output is written to standard out.");
 
 int
-main(int argc, const char *argv[]) {
-  const char *me;
-  char *err;
+main(int argc, char *argv[]) {
+  char *me, *err;
   limnSpline *spline, *warp;
   hestOpt *hopt=NULL;
   airArray *mop;
@@ -63,7 +62,7 @@ main(int argc, const char *argv[]) {
   double *out, minT, maxT, scale, tran[2];
 
   mop = airMopNew();
-
+  
   me = argv[0];
   hestOptAdd(&hopt, "i", "spline", airTypeOther, 1, 1, &spline, NULL,
              "the spline that we want to sample", NULL, NULL, limnHestSpline);
@@ -102,7 +101,7 @@ main(int argc, const char *argv[]) {
     if (loop) {
       if (!( limnSplineNumPoints(warp) == 1 + limnSplineNumPoints(spline) )) {
         fprintf(stderr, "%s: # warp points (%d) needs to be 1 more than "
-                "# spline points (%d) for looping\n", me,
+                "# spline points (%d) for looping\n", me, 
                 limnSplineNumPoints(warp), limnSplineNumPoints(spline));
         airMopError(mop);
         return 1;
@@ -111,13 +110,13 @@ main(int argc, const char *argv[]) {
       if (!( limnSplineNumPoints(warp) ==  limnSplineNumPoints(spline) )) {
         fprintf(stderr, "%s: # warp points (%d) != # spline points (%d)\n", me,
                 limnSplineNumPoints(warp), limnSplineNumPoints(spline));
-
+                
         airMopError(mop);
         return 1;
       }
     }
   }
-
+  
   airMopAdd(mop, nout=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, ntmp=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   if (warp) {
@@ -159,7 +158,7 @@ main(int argc, const char *argv[]) {
   }
   printf("stroke\n");
   printf("showpage\n");
-
+  
   airMopOkay(mop);
   return 0;
 }

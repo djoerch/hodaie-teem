@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -24,17 +23,14 @@
 #include "echo.h"
 #include "privateEcho.h"
 
-const int
-echoPresent = 42;
-
 const char *
 echoBiffKey = "echo";
 
 echoRTParm *
 echoRTParmNew(void) {
   echoRTParm *parm;
-
-  parm = AIR_CALLOC(1, echoRTParm);
+  
+  parm = (echoRTParm *)calloc(1, sizeof(echoRTParm));
   if (parm) {
     parm->jitterType = echoJitterNone;
     parm->reuseJitter = AIR_FALSE;
@@ -69,8 +65,8 @@ echoRTParmNix(echoRTParm *parm) {
 echoGlobalState *
 echoGlobalStateNew(void) {
   echoGlobalState *state;
-
-  state = AIR_CALLOC(1, echoGlobalState);
+  
+  state = (echoGlobalState *)calloc(1, sizeof(echoGlobalState));
   if (state) {
     state->verbose = 0;
     state->time = 0;
@@ -95,8 +91,8 @@ echoGlobalStateNix(echoGlobalState *state) {
 echoThreadState *
 echoThreadStateNew(void) {
   echoThreadState *state;
-
-  state = AIR_CALLOC(1, echoThreadState);
+  
+  state = (echoThreadState *)calloc(1, sizeof(echoThreadState));
   if (state) {
     state->thread = airThreadNew();
     state->verbose = 0;
@@ -130,29 +126,28 @@ echoThreadStateNix(echoThreadState *state) {
 echoScene *
 echoSceneNew(void) {
   echoScene *ret;
-  echoPtrPtrUnion eppu;
-
-  ret = AIR_CALLOC(1, echoScene);
+  
+  ret = (echoScene *)calloc(1, sizeof(echoScene));
   if (ret) {
     ret->cat = NULL;
-    ret->catArr = airArrayNew((eppu.obj = &(ret->cat), eppu.v), NULL,
+    ret->catArr = airArrayNew((void**)&(ret->cat), NULL,
                               sizeof(echoObject *),
                               ECHO_LIST_OBJECT_INCR);
     airArrayPointerCB(ret->catArr,
                       airNull,
                       (void *(*)(void *))echoObjectNix);
     ret->rend = NULL;
-    ret->rendArr = airArrayNew((eppu.obj = &(ret->rend), eppu.v), NULL,
+    ret->rendArr = airArrayNew((void**)&(ret->rend), NULL,
                                sizeof(echoObject *),
                                ECHO_LIST_OBJECT_INCR);
     /* no callbacks set, renderable objecs are nixed from catArr */
     ret->light = NULL;
-    ret->lightArr = airArrayNew((eppu.obj = &(ret->light), eppu.v), NULL,
+    ret->lightArr = airArrayNew((void**)&(ret->light), NULL,
                                 sizeof(echoObject *),
                                 ECHO_LIST_OBJECT_INCR);
     /* no callbacks set; light objects are nixed from catArr */
     ret->nrrd = NULL;
-    ret->nrrdArr = airArrayNew((eppu.nrd = &(ret->nrrd), eppu.v), NULL,
+    ret->nrrdArr = airArrayNew((void**)&(ret->nrrd), NULL,
                                sizeof(Nrrd *),
                                ECHO_LIST_OBJECT_INCR);
     airArrayPointerCB(ret->nrrdArr,
@@ -168,7 +163,7 @@ echoSceneNew(void) {
 void
 _echoSceneLightAdd(echoScene *scene, echoObject *obj) {
   unsigned int idx;
-
+  
   for (idx=0; idx<scene->lightArr->len; idx++) {
     if (obj == scene->light[idx]) {
       break;
@@ -183,7 +178,7 @@ _echoSceneLightAdd(echoScene *scene, echoObject *obj) {
 void
 _echoSceneNrrdAdd(echoScene *scene, Nrrd *nrrd) {
   unsigned int idx;
-
+  
   for (idx=0; idx<scene->nrrdArr->len; idx++) {
     if (nrrd == scene->nrrd[idx]) {
       break;
@@ -197,7 +192,7 @@ _echoSceneNrrdAdd(echoScene *scene, Nrrd *nrrd) {
 
 echoScene *
 echoSceneNix(echoScene *scene) {
-
+  
   if (scene) {
     airArrayNuke(scene->catArr);
     airArrayNuke(scene->rendArr);

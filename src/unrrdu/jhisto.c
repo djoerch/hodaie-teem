@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,25 +24,23 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Create joint histogram of two or more nrrds"
-static const char *_unrrdu_jhistoInfoL =
+char *_unrrdu_jhistoInfoL =
 (INFO
  ". Each axis of the output corresponds to one of the "
  "input nrrds, and each bin in the output records the "
  "number of corresponding positions in the inputs with "
  "a combination of values represented by the coordinates "
- "of the bin.\n "
- "* Uses nrrdHistoJoint");
+ "of the bin.");
 
 int
-unrrdu_jhistoMain(int argc, const char **argv, const char *me,
-                  hestParm *hparm) {
+unrrdu_jhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd **nin, **npass;
   Nrrd *nout, *nwght;
-  size_t *bin;
+  size_t *bin, binLen;
   int type, clamp[NRRD_DIM_MAX], pret;
-  unsigned int minLen, maxLen, ninLen, binLen, ai, diceax;
+  unsigned int minLen, maxLen, ninLen, ai, diceax;
   airArray *mop;
   double *min, *max;
   NrrdRange **range;
@@ -72,11 +69,11 @@ unrrdu_jhistoMain(int argc, const char **argv, const char *me,
                "counts in the joint histogram).  Clamping is done on hit "
                "counts so that they never overflow a fixed-point type",
                "uint");
-  hestOptAdd(&opt, "i,input", "nin0 [nin1]", airTypeOther, 1, -1, &nin, "-",
+  hestOptAdd(&opt, "i,input", "nin0 [nin1]", airTypeOther, 1, -1, &nin, NULL,
              "list of nrrds (one for each axis of joint histogram), "
              "or, single nrrd that will be sliced along specified axis.",
              &ninLen, NULL, nrrdHestNrrd);
-  hestOptAdd(&opt, "a,axis", "axis", airTypeUInt, 1, 1, &diceax, "0",
+  hestOptAdd(&opt, "a,axis", "axis", airTypeUInt, 1, 1, &diceax, "0", 
              "axis to slice along when working with single nrrd. ");
   OPT_ADD_NOUT(out, "output nrrd");
 
@@ -91,7 +88,7 @@ unrrdu_jhistoMain(int argc, const char **argv, const char *me,
     /* Slice a nrrd on the fly */
     size_t asize;
     if (!( diceax <= nin[0]->dim-1 )) {
-      fprintf(stderr, "%s: slice axis %u not valid for single %u-D nrrd",
+      fprintf(stderr, "%s: slice axis %u not valid for single %u-D nrrd", 
               me, diceax, nin[0]->dim);
       airMopError(mop);
       return 1;
@@ -100,7 +97,7 @@ unrrdu_jhistoMain(int argc, const char **argv, const char *me,
     if (asize != binLen) {
       fprintf(stderr,
               "%s: size (%u) of slice axis %u != # bins given (%u)\n", me,
-              AIR_CAST(unsigned int, asize), diceax,
+              AIR_CAST(unsigned int, asize), diceax, 
               AIR_CAST(unsigned int, binLen));
       airMopError(mop);
       return 1;
@@ -108,7 +105,7 @@ unrrdu_jhistoMain(int argc, const char **argv, const char *me,
     /* create buffer for slices */
     if (!( npass = AIR_CALLOC(binLen, Nrrd*) )) {
       fprintf(stderr, "%s: couldn't allocate nrrd array (size %u)\n",
-              me, binLen);
+              me, ninLen);
       airMopError(mop); return 1;
     }
     airMopMem(mop, &npass, airMopAlways);
@@ -138,7 +135,7 @@ unrrdu_jhistoMain(int argc, const char **argv, const char *me,
     /* create buffer for slices (HEY copy and paste) */
     if (!( npass = AIR_CALLOC(binLen, Nrrd*) )) {
       fprintf(stderr, "%s: couldn't allocate nrrd array (size %u)\n",
-              me, binLen);
+              me, ninLen);
       airMopError(mop); return 1;
     }
     for (ai=0; ai<binLen; ai++) {
@@ -147,39 +144,38 @@ unrrdu_jhistoMain(int argc, const char **argv, const char *me,
   }
   range = AIR_CALLOC(binLen, NrrdRange*);
   airMopAdd(mop, range, airFree, airMopAlways);
-  for (ai=0; ai<binLen; ai++) {
+  for (ai=0; ai<ninLen; ai++) {
     range[ai] = nrrdRangeNew(AIR_NAN, AIR_NAN);
     airMopAdd(mop, range[ai], (airMopper)nrrdRangeNix, airMopAlways);
   }
   if (2 != minLen || (AIR_EXISTS(min[0]) || AIR_EXISTS(min[1]))) {
-    if (minLen != binLen) {
+    if (minLen != ninLen) {
       fprintf(stderr, "%s: # mins (%d) != # input nrrds (%d)\n", me,
-              minLen, binLen);
+              minLen, ninLen);
       airMopError(mop); return 1;
     }
-    for (ai=0; ai<binLen; ai++) {
+    for (ai=0; ai<ninLen; ai++) {
       range[ai]->min = min[ai];
     }
   }
   if (2 != maxLen || (AIR_EXISTS(max[0]) || AIR_EXISTS(max[1]))) {
-    if (maxLen != binLen) {
+    if (maxLen != ninLen) {
       fprintf(stderr, "%s: # maxs (%d) != # input nrrds (%d)\n", me,
-              maxLen, binLen);
+              maxLen, ninLen);
       airMopError(mop); return 1;
     }
-    for (ai=0; ai<binLen; ai++) {
+    for (ai=0; ai<ninLen; ai++) {
       range[ai]->max = max[ai];
     }
   }
-  for (ai=0; ai<binLen; ai++) {
+  for (ai=0; ai<ninLen; ai++) {
     clamp[ai] = 0;
   }
 
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  if (nrrdHistoJoint(nout, (const Nrrd*const*)npass,
-                     (const NrrdRange*const*)range,
+  if (nrrdHistoJoint(nout, (const Nrrd**)npass, (const NrrdRange**)range,
                      binLen, nwght, bin, type, clamp)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error doing joint histogram:\n%s", me, err);

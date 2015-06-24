@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -76,7 +75,7 @@ echoThreadStateInit(int threadIdx, echoThreadState *tstate,
                                                     ? airTime()
                                                     : threadIdx)));
   tstate->returnPtr = NULL;
-
+  
   return 0;
 }
 
@@ -179,7 +178,7 @@ echoRTRenderCheck(Nrrd *nraw, limnCamera *cam, echoScene *scene,
     biffAddf(ECHO, "%s: aperture doesn't exist", me);
     return 1;
   }
-
+  
   switch (parm->jitterType) {
   case echoJitterNone:
   case echoJitterRandom:
@@ -201,7 +200,7 @@ echoRTRenderCheck(Nrrd *nraw, limnCamera *cam, echoScene *scene,
     biffAddf(ECHO, "%s: ECHO_IMG_CHANNELS != 5", me);
     return 1;
   }
-
+  
   /* all is well */
   return 0;
 }
@@ -211,7 +210,7 @@ echoChannelAverage(echoCol_t *img,
                    echoRTParm *parm, echoThreadState *tstate) {
   int s;
   echoCol_t R, G, B, A, T;
-
+  
   R = G = B = A = T = 0;
   for (s=0; s<parm->numSamples; s++) {
     R += tstate->chanBuff[0 + ECHO_IMG_CHANNELS*s];
@@ -225,7 +224,7 @@ echoChannelAverage(echoCol_t *img,
   img[2] = B / parm->numSamples;
   img[3] = A / parm->numSamples;
   img[4] = T;
-
+  
   return;
 }
 
@@ -243,7 +242,7 @@ echoRayColor(echoCol_t *chan, echoRay *ray,
   static const char me[]="echoRayColor";
   echoCol_t rgba[4];
   echoIntx intx;
-
+  
   tstate->depth++;
   if (tstate->depth > parm->maxRecDepth) {
     /* we've exceeded the recursion depth, so no more rays for you */
@@ -262,7 +261,7 @@ echoRayColor(echoCol_t *chan, echoRay *ray,
                   scene->bkgr[0], scene->bkgr[1], scene->bkgr[2],
                   (parm->renderBoxes
                    ? 1.0 - pow(1.0 - parm->boxOpac, intx.boxhits)
-                   : 0.0));
+                   : 1.0));
     goto done;
   }
 
@@ -296,7 +295,7 @@ _echoRTRenderThreadBody(void *_arg) {
   echoRay ray;              /* (not a pointer) */
   echoThreadState *arg;
   echoCol_t *img, *chan;    /* current scanline of channel buffer array */
-  Nrrd *nraw;               /* copies of arguments to echoRTRender . . . */
+  Nrrd *nraw;               /* copies of arguments to echoRTRender ... */
   limnCamera *cam;
   echoScene *scene;
   echoRTParm *parm;
@@ -311,14 +310,14 @@ _echoRTRenderThreadBody(void *_arg) {
   if (arg->gstate->verbose > 2) {
     nrrdSave("jitt.nrrd", arg->njitt, NULL);
   }
-
+  
   /* set eye, U, V, N, imgOrig */
   ELL_3V_COPY(eye, arg->gstate->cam->from);
   ELL_4MV_ROW0_GET(U, cam->W2V);
   ELL_4MV_ROW1_GET(V, cam->W2V);
   ELL_4MV_ROW2_GET(N, cam->W2V);
   ELL_3V_SCALE_ADD2(imgOrig, 1.0, eye, cam->vspDist, N);
-
+  
   /* determine size of a single pixel (based on cell-centering) */
   pixUsz = (cam->uRange[1] - cam->uRange[0])/(parm->imgResU);
   pixVsz = (cam->vRange[1] - cam->vRange[0])/(parm->imgResV);
@@ -352,18 +351,18 @@ _echoRTRenderThreadBody(void *_arg) {
     for (imgUi=0; imgUi<parm->imgResU; imgUi++) {
       imgU = NRRD_POS(nrrdCenterCell, cam->uRange[0], cam->uRange[1],
                       parm->imgResU, imgUi);
-      img = ((echoCol_t *)nraw->data
+      img = ((echoCol_t *)nraw->data 
              + ECHO_IMG_CHANNELS*(imgUi + parm->imgResU*imgVi));
-
+      
       /* initialize things on first "scanline" */
       arg->jitt = (echoPos_t *)arg->njitt->data;
       chan = arg->chanBuff;
 
       /*
-      arg->verbose = ( (48 == imgUi && 13 == imgVi)
+      arg->verbose = ( (48 == imgUi && 13 == imgVi) 
                        || (49 == imgUi && 13 == imgVi) );
       */
-
+      
       if (arg->verbose) {
         fprintf(stderr, "\n");
         fprintf(stderr, "-----------------------------------------------\n");
@@ -381,7 +380,7 @@ _echoRTRenderThreadBody(void *_arg) {
           tmp1 = parm->aperture*(arg->jitt[1 + 2*echoJittableLens]);
           ELL_3V_SCALE_ADD3(ray.from, 1, ray.from, tmp0, U, tmp1, V);
         }
-
+        
         /* set at[] */
         tmp0 = imgU + pixUsz*(arg->jitt[0 + 2*echoJittablePixel]);
         tmp1 = imgV + pixVsz*(arg->jitt[1 + 2*echoJittablePixel]);
@@ -399,7 +398,7 @@ _echoRTRenderThreadBody(void *_arg) {
           echoRayColor(chan, &ray, scene, parm, arg);
         }
         chan[4] = AIR_CAST(echoCol_t, airTime() - time0);
-
+        
         /* move to next "scanline" */
         arg->jitt += 2*ECHO_JITTABLE_NUM;
         chan += ECHO_IMG_CHANNELS;
@@ -493,7 +492,7 @@ echoRTRender(Nrrd *nraw, limnCamera *cam, echoScene *scene,
 
   gstate->time = airTime() - gstate->time;
   fprintf(stderr, "\n%s: time = %g\n", me, gstate->time);
-
+  
   airMopOkay(mop);
   return 0;
 }

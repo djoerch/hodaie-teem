@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -24,24 +23,19 @@
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-#define INFO "Create image of 1-D value histogram"
-static const char *_unrrdu_dhistoInfoL =
-  (INFO
-   ". With \"-nolog\", this becomes a quick & dirty way of plotting a function.\n "
-   "* Uses nrrdHistoDraw");
+#define INFO "Create (PGM) image of 1-D value histogram"
+char *_unrrdu_dhistoInfoL = INFO;
 
 int
-unrrdu_dhistoMain(int argc, const char **argv, const char *me,
-                  hestParm *hparm) {
+unrrdu_dhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  int pret, nolog, notick;
-  unsigned int size;
+  int size, pret, nolog, notick;
   airArray *mop;
   double max;
 
-  hestOptAdd(&opt, "h,height", "height", airTypeUInt, 1, 1, &size, NULL,
+  hestOptAdd(&opt, "h,height", "height", airTypeInt, 1, 1, &size, NULL,
              "height of output image (horizontal size is determined by "
              "number of bins in input histogram).");
   hestOptAdd(&opt, "nolog", NULL, airTypeInt, 0, 0, &nolog, NULL,
@@ -69,8 +63,8 @@ unrrdu_dhistoMain(int argc, const char **argv, const char *me,
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  if (nrrdHistoDraw(nout, nin, size,
-                    nolog ? AIR_FALSE : (notick ? 2 : AIR_TRUE),
+  if (nrrdHistoDraw(nout, nin, size, 
+                    nolog ? AIR_FALSE : (notick ? 2 : AIR_TRUE), 
                     max)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error drawing histogram nrrd:\n%s", me, err);

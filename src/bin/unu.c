@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -23,18 +22,12 @@
 
 #include <teem/unrrdu.h>
 
-/* learning columns
-#include <sys/types.h>
-#include <sys/ioctl.h>
-*/
-
 #define UNU "unu"
 
 int
-main(int argc, const char **argv) {
+main(int argc, char **argv) {
   int i, ret;
-  const char *me;
-  char *argv0 = NULL;
+  char *me, *argv0 = NULL, *err;
   hestParm *hparm;
   airArray *mop;
 
@@ -58,7 +51,25 @@ main(int argc, const char **argv) {
   }
 
   /* no harm done in making sure we're sane */
-  nrrdSanityOrDie(me);
+  if (!nrrdSanity()) {
+    fprintf(stderr, "******************************************\n");
+    fprintf(stderr, "******************************************\n");
+    fprintf(stderr, "\n");
+    fprintf(stderr, "  %s: nrrd sanity check FAILED.\n", me);
+    fprintf(stderr, "\n");
+    fprintf(stderr, "  This means that either nrrd can't work on this "
+            "platform, or (more likely)\n");
+    fprintf(stderr, "  there was an error in the compilation options "
+            "and variable definitions\n");
+    fprintf(stderr, "  for how Teem was built here.\n");
+    fprintf(stderr, "\n");
+    fprintf(stderr, "  %s\n", err = biffGetDone(NRRD));
+    fprintf(stderr, "\n");
+    fprintf(stderr, "******************************************\n");
+    fprintf(stderr, "******************************************\n");
+    free(err);
+    return 1;
+  }
 
   mop = airMopNew();
   hparm = hestParmNew();
@@ -71,18 +82,10 @@ main(int argc, const char **argv) {
   hparm->elideSingleEmptyStringDefault = AIR_TRUE;
   hparm->elideMultipleEmptyStringDefault = AIR_TRUE;
   hparm->columns = unrrduDefNumColumns;
-  /* learning columns
-  if (1) {
-    struct winsize ws;
-    ioctl(1, TIOCGWINSZ, &ws);
-    hparm->columns = ws.ws_col - 1;
-  }
-  */
-  hparm->greedySingleString = AIR_TRUE;
 
   /* if there are no arguments, then we give general usage information */
   if (1 >= argc) {
-    unrrduUsageUnu("unu", hparm);
+    unrrduUsage("unu", hparm);
     airMopError(mop);
     exit(1);
   }
@@ -106,14 +109,14 @@ main(int argc, const char **argv) {
   if (unrrduCmdList[i]) {
     /* yes, we have that command */
     /* initialize variables used by the various commands */
-    argv0 = AIR_CALLOC(strlen(UNU) + strlen(argv[1]) + 2, char);
+    argv0 = (char *)calloc(strlen(UNU) + strlen(argv[1]) + 2, sizeof(char));
     airMopMem(mop, &argv0, airMopAlways);
     sprintf(argv0, "%s %s", UNU, argv[1]);
 
     /* run the individual unu program, saving its exit status */
     ret = unrrduCmdList[i]->main(argc-2, argv+2, argv0, hparm);
   } else {
-    fprintf(stderr, "%s: unrecognized command \"%s\"; type \"%s\" for "
+    fprintf(stderr, "%s: unrecognized command: \"%s\"; type \"%s\" for "
             "complete list\n", me, argv[1], me);
     ret = 1;
   }

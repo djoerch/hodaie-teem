@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -22,57 +21,41 @@
 */
 
 #include "air.h"
+#include <teemEndian.h>
 
 /*
-******** airMyEndian()
+******** int airMyEndian
 **
-** determine at run-time if we are little (1234) or big (4321) endian
+** it gets set to 1234 or 4321
 */
-int
-airMyEndian(void) {
-  int tmpI, ret;
-  char leastbyte;
+#if TEEM_ENDIAN == 1234
+const int airMyEndian = 1234;
+#else
+const int airMyEndian = 4321;
+#endif
 
-  /* set int to 1:
-     least signficant byte will be 1,
-     most signficant byte will be 0 */
-  tmpI = 1;
-  /* cast address of (4-byte) int to char*, and dereference,
-     which retrieves the byte at the low-address-end of int
-     (the "first" byte in memory ordering).
-     On big endian, we're getting the most significant byte (0);
-     on little endian, we're getting least significant byte (1) */
-  leastbyte = *(AIR_CAST(char*, &tmpI));
-  if (leastbyte) {
-    ret = airEndianLittle;
-  } else {
-    ret = airEndianBig;
-  }
-  return ret;
-}
-
-static const char *
+const char *
 _airEndianStr[] = {
   "(unknown endian)",
   "little",
   "big"
 };
 
-static const char *
+const char *
 _airEndianDesc[] = {
   "unknown endianness",
   "Intel and compatible",
   "Everyone besides Intel and compatible"
 };
 
-static const int
+const int
 _airEndianVal[] = {
   airEndianUnknown,
   airEndianLittle,
   airEndianBig,
 };
 
-static const airEnum
+const airEnum
 _airEndian = {
   "endian",
   2,

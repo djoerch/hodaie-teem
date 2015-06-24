@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -47,7 +46,7 @@ enum {
   flagSlabCacheAlloc,
   flagSclDerived,
   flagSpanSpaceHist,
-
+  
   flagResult,
   flagLast
 };
@@ -65,16 +64,16 @@ typedef struct {
 /* extract.c: This one is also needed in textract.c: */
 extern void
 _seekIdxProbe(seekContext *sctx, baggage *bag,
-              double xi, double yi, double zi);
+	      double xi, double yi, double zi);
 
 /* textract.c: Some routines that are also used in descend.c */
 extern void
 _seekHess2T(double *T, const double *evals, const double *evecs,
-            const double evalDiffThresh, const char ridge);
+	    const double evalDiffThresh, const char ridge);
 extern void
 _seekHessder2Tder(double *Tder, const double *hessder, const double *evals,
-                  const double *evecs, const double evalDiffThresh,
-                  const char ridge);
+		  const double *evecs, const double evalDiffThresh,
+		  const char ridge);
 
 extern int
 _seekShuffleProbeT(seekContext *sctx, baggage *bag);

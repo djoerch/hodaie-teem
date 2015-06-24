@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -36,11 +35,8 @@
 */
 
 /*
-** Teem trivia: "3P" stands for "3-pack", the kind of kernel set used (k00,
-** k11, and k22).  6-pack filtering is still unimplemented. The name
-** "3-pack" persists even with the possibility of higher derivatives, and
-** what would be called 10-pack filtering (ability to specify and use all
-** 10 kinds of spatial kernels) is also still unimplemented.
+** Teem trivia: "3P" stands for "3-pack", the kind of kernel set used
+** (k00, k11, and k22).  6-pack filtering is still unimplemented.
 */
 
 #define X 0
@@ -52,14 +48,10 @@ gageScl3PFilter2(gageShape *shape,
                  double *ivX, double *ivY, double *ivZ,
                  double *fw0, double *fw1, double *fw2,
                  double *val, double *gvec, double *hess,
-                 const int *needD) {
-  int doV, doD1, doD2;
-  doV = needD[0];
-  doD1 = needD[1];
-  doD2 = needD[2];
+                 int doV, int doD1, int doD2) {
 
   /* fw? + 2*?
-       |     |
+       |     |  
        |     +- along which axis (0:x, 1:y, 2:z)
        |
        + what information (0:value, 1:1st deriv, 2:2nd deriv)
@@ -101,7 +93,7 @@ gageScl3PFilter2(gageShape *shape,
     /* actually, there is no possible way in which it makes sense to
        try to measure a second derivative with only two samples, so
        all this "if (doD2)" code is basically bogus, but we'll keep it
-       around for generality . . . */
+       around for generality ... */
     /* x0y0z2 */
     hess[8] = D2_2(0,Z);                       /* h_zz */
   }
@@ -171,14 +163,10 @@ gageScl3PFilter4(gageShape *shape,
                  double *ivX, double *ivY, double *ivZ,
                  double *fw0, double *fw1, double *fw2,
                  double *val, double *gvec, double *hess,
-                 const int *needD) {
-  int doV, doD1, doD2;
-  doV = needD[0];
-  doD1 = needD[1];
-  doD2 = needD[2];
+                 int doV, int doD1, int doD2) {
 
   /* fw? + 4*?
-       |     |
+       |     |  
        |     +- along which axis (0:x, 1:y, 2:z)
        |
        + what information (0:value, 1:1st deriv, 2:2nd deriv)
@@ -332,17 +320,13 @@ gageScl3PFilter4(gageShape *shape,
 }
 
 void
-gageScl3PFilter6(gageShape *shape,
+gageScl3PFilter6(gageShape *shape, 
                  double *ivX, double *ivY, double *ivZ,
                  double *fw0, double *fw1, double *fw2,
                  double *val, double *gvec, double *hess,
-                 const int *needD) {
+                 int doV, int doD1, int doD2) {
   int i, j;
   double T;
-  int doV, doD1, doD2;
-  doV = needD[0];
-  doD1 = needD[1];
-  doD2 = needD[2];
 
 #define fd 6
 #include "scl3pfilterbody.c"
@@ -352,17 +336,13 @@ gageScl3PFilter6(gageShape *shape,
 }
 
 void
-gageScl3PFilter8(gageShape *shape,
+gageScl3PFilter8(gageShape *shape, 
                  double *ivX, double *ivY, double *ivZ,
                  double *fw0, double *fw1, double *fw2,
                  double *val, double *gvec, double *hess,
-                 const int *needD) {
+                 int doV, int doD1, int doD2) {
   int i, j;
   double T;
-  int doV, doD1, doD2;
-  doV = needD[0];
-  doD1 = needD[1];
-  doD2 = needD[2];
 
 #define fd 8
 #include "scl3pfilterbody.c"
@@ -376,13 +356,9 @@ gageScl3PFilterN(gageShape *shape, int fd,
                  double *ivX, double *ivY, double *ivZ,
                  double *fw0, double *fw1, double *fw2,
                  double *val, double *gvec, double *hess,
-                 const int *needD) {
+                 int doV, int doD1, int doD2) {
   int i, j;
   double T;
-  int doV, doD1, doD2;
-  doV = needD[0];
-  doD1 = needD[1];
-  doD2 = needD[2];
 
 #include "scl3pfilterbody.c"
 
@@ -407,20 +383,20 @@ _gageSclFilter(gageContext *ctx, gagePerVolume *pvl) {
   fw22 = ctx->fw + fd*3*gageKernel22;
   /* perform the filtering */
   if (fd <= 8) {
-    filter[ctx->radius](ctx->shape, pvl->iv3, pvl->iv2, pvl->iv1,
+    filter[ctx->radius](ctx->shape, pvl->iv3, pvl->iv2, pvl->iv1, 
                         fw00, fw11, fw22,
                         pvl->directAnswer[gageSclValue],
                         pvl->directAnswer[gageSclGradVec],
                         pvl->directAnswer[gageSclHessian],
-                        pvl->needD);
+                        pvl->needD[0], pvl->needD[1], pvl->needD[2]);
   } else {
     gageScl3PFilterN(ctx->shape, fd,
-                     pvl->iv3, pvl->iv2, pvl->iv1,
+                     pvl->iv3, pvl->iv2, pvl->iv1, 
                      fw00, fw11, fw22,
                      pvl->directAnswer[gageSclValue],
                      pvl->directAnswer[gageSclGradVec],
                      pvl->directAnswer[gageSclHessian],
-                     pvl->needD);
+                     pvl->needD[0], pvl->needD[1], pvl->needD[2]);
   }
 
   return;

@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -26,7 +25,8 @@
 int
 limnEnvMapFill(Nrrd *map, limnEnvMapCB cb, int qnMethod, void *data) {
   static const char me[]="limnEnvMapFill";
-  unsigned int sx, sy, qn;
+  int sx, sy;
+  int qn;
   float vec[3], *mapData;
 
   if (!(map && cb)) {
@@ -141,12 +141,13 @@ limnEnvMapCheck(Nrrd *envMap) {
   if (!(3 == envMap->axis[0].size
         && 256 == envMap->axis[1].size
         && 256 == envMap->axis[2].size)) {
-    char stmp[3][AIR_STRLEN_SMALL];
-    biffAddf(LIMN, "%s: dimension should be 3x256x256, not "
-             "%s x %s x %s", me,
-             airSprintSize_t(stmp[0], envMap->axis[0].size),
-             airSprintSize_t(stmp[1], envMap->axis[1].size),
-             airSprintSize_t(stmp[2], envMap->axis[2].size));
+    biffAddf(LIMN, "%s: dimension should be 3x256x256, not " 
+             _AIR_SIZE_T_CNV "x" 
+             _AIR_SIZE_T_CNV "x" 
+             _AIR_SIZE_T_CNV, me,
+             envMap->axis[0].size, 
+             envMap->axis[1].size, 
+             envMap->axis[2].size);
     return 1;
   }
   return 0;

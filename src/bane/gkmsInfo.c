@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,14 +24,13 @@
 #include "privateBane.h"
 
 #define INFO_INFO "Project histogram volume for opacity function generation"
-static const char *_baneGkms_infoInfoL =
+char *_baneGkms_infoInfoL =
   (INFO_INFO
    ". This distills the histogram volume down to the information required "
    "to create either 1-D or 2-D opacity functions.");
 
 int
-baneGkms_infoMain(int argc, const char **argv, const char *me,
-                  hestParm *hparm) {
+baneGkms_infoMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *outS, *perr;
   Nrrd *hvol, *nout;
@@ -54,7 +52,7 @@ baneGkms_infoMain(int argc, const char **argv, const char *me,
              NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&opt, "o", "infoOut", airTypeString, 1, 1, &outS, NULL,
              "output info file, used by \"gkms pvg\" and \"gkms opac\"");
-
+  
   mop = airMopNew();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
   USAGE(_baneGkms_infoInfoL);
@@ -72,7 +70,7 @@ baneGkms_infoMain(int argc, const char **argv, const char *me,
     biffMovef(BANE, NRRD, "%s: trouble saving info file", me);
     airMopError(mop); return 1;
   }
-
+  
   airMopOkay(mop);
   return 0;
 }

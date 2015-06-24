@@ -1,6 +1,5 @@
 #
 # Teem: Tools to process and visualize scientific data and images
-# Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
 # Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
 # Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 #
@@ -46,12 +45,11 @@ $(L).SEEN := true
 #### Describe library here
 ####
 ####
-$(L).NEED = ell nrrd biff air
+$(L).NEED = ell nrrd biff air 
 $(L).PUBLIC_HEADERS = tijk.h
-$(L).PRIVATE_HEADERS = privateTijk.h shtables.h convertQuietPush.h convertQuietPop.h
-$(L).OBJS = 2dTijk.o 3dTijk.o approxTijk.o enumsTijk.o fsTijk.o miscTijk.o \
-	nrrdTijk.o shTijk.o
-$(L).TESTS =
+$(L).PRIVATE_HEADERS = privateTijk.h
+$(L).OBJS = 2dTijk.o 3dTijk.o approxTijk.o miscTijk.o shTijk.o fsTijk.o
+$(L).TESTS = 
 ####
 ####
 ####

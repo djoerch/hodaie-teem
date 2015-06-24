@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,7 +24,7 @@
 #include "privateTen.h"
 
 #define INFO "Graph anisotropy metric in barycentric coords"
-static const char *_tend_anplotInfoL =
+char *_tend_anplotInfoL =
   (INFO
    ".  The metrics all vary from 0.0 to 1.0, and will be sampled "
    "in the lower right half of the image.  The plane on which they are "
@@ -37,8 +36,7 @@ static const char *_tend_anplotInfoL =
    "triangle.");
 
 int
-tend_anplotMain(int argc, const char **argv, const char *me,
-                hestParm *hparm) {
+tend_anplotMain(int argc, char **argv, char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;
@@ -80,7 +78,7 @@ tend_anplotMain(int argc, const char **argv, const char *me,
     fprintf(stderr, "%s: trouble making plot:\n%s\n", me, err);
     airMopError(mop); return 1;
   }
-
+  
   if (nrrdSave(outS, nout, NULL)) {
     airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble writing:\n%s\n", me, err);

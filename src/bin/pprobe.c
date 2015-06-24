@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -56,15 +55,13 @@ printans(FILE *file, const double *ans, int len) {
   }
 }
 
-static const char *probeInfo =
-("Uses gageProbe() to query scalar or vector volumes "
- "at a single probe location.");
+char *probeInfo = ("Uses gageProbe() to query scalar or vector volumes "
+                   "at a single probe location.");
 
 int
-main(int argc, const char *argv[]) {
+main(int argc, char *argv[]) {
   gageKind *kind;
-  const char *me;
-  char *whatS, *err, *outS, *stackSavePath;
+  char *me, *whatS, *err, *outS, *stackSavePath;
   hestParm *hparm;
   hestOpt *hopt = NULL;
   NrrdKernelSpec *k00, *k11, *k22, *kSS, *kSSblur;
@@ -112,7 +109,7 @@ main(int argc, const char *argv[]) {
   hestOptAdd(&hopt, "pln", "num", airTypeUInt, 1, 1, &lineStepNum, "0",
              "if non-zero, number of steps of probing to do along line, "
              "which overrides \"-p\" and \"-pi\"");
-  hestOptAdd(&hopt, "v", "verbosity", airTypeInt, 1, 1, &verbose, "1",
+  hestOptAdd(&hopt, "v", "verbosity", airTypeInt, 1, 1, &verbose, "1", 
              "verbosity level");
   hestOptAdd(&hopt, "q", "query", airTypeString, 1, 1, &whatS, NULL,
              "the quantity (scalar, vector, or matrix) to learn by probing");
@@ -161,8 +158,8 @@ main(int argc, const char *argv[]) {
              "0.0", "For curvature-based queries, use zero when gradient "
              "magnitude is below this");
   hestOptAdd(&hopt, "ofs", "ofs", airTypeInt, 0, 0, &orientationFromSpacing,
-             NULL, "If only per-axis spacing is available, use that to "
-             "guess orientation info");
+	     NULL, "If only per-axis spacing is available, use that to "
+	     "guess orientation info");
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
              "output array, when probing on polydata vertices");
   hestParseOrDie(hopt, argc-1, argv+1, hparm,
@@ -180,7 +177,7 @@ main(int argc, const char *argv[]) {
     airMopError(mop);
     return 1;
   }
-
+  
   if (ELL_4V_LEN(lineInfo) && !lineStepNum) {
     fprintf(stderr, "%s: gave line info (\"-pl\") but not "
             "# samples (\"-pln\")", me);
@@ -229,9 +226,8 @@ main(int argc, const char *argv[]) {
     }
     if (gageStackBlurParmScaleSet(sbp, numSS, rangeSS[0], rangeSS[1],
                                   SSuniform, AIR_FALSE)
-        || gageStackBlurParmKernelSet(sbp, kSSblur, AIR_TRUE)
-        || gageStackBlurParmBoundarySet(sbp, nrrdBoundaryBleed, AIR_NAN)
-        || gageStackBlurParmVerboseSet(sbp, verbose)
+        || gageStackBlurParmKernelSet(sbp, kSSblur, nrrdBoundaryBleed, 
+                                      AIR_TRUE, verbose)
         || gageStackBlur(ninSS, sbp, nin, kind)) {
       airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble pre-computing blurrings:\n%s\n", me, err);
@@ -252,7 +248,7 @@ main(int argc, const char *argv[]) {
     sbp = NULL;
     ninSS = NULL;
   }
-
+  
   ctx = gageContextNew();
   airMopAdd(mop, ctx, AIR_CAST(airMopper, gageContextNix), airMopAlways);
   gageParmSet(ctx, gageParmGradMagCurvMin, gmc);
@@ -263,7 +259,7 @@ main(int argc, const char *argv[]) {
   E = 0;
   if (!E) E |= !(pvl = gagePerVolumeNew(ctx, nin, kind));
   if (!E) E |= gageKernelSet(ctx, gageKernel00, k00->kernel, k00->parm);
-  if (!E) E |= gageKernelSet(ctx, gageKernel11, k11->kernel, k11->parm);
+  if (!E) E |= gageKernelSet(ctx, gageKernel11, k11->kernel, k11->parm); 
   if (!E) E |= gageKernelSet(ctx, gageKernel22, k22->kernel, k22->parm);
   if (numSS) {
     gagePerVolume **pvlSS;
@@ -274,7 +270,7 @@ main(int argc, const char *argv[]) {
                                     calloc(numSS, sizeof(gagePerVolume *))));
     if (!E) airMopAdd(mop, pvlSS, (airMopper)airFree, airMopAlways);
     if (!E) E |= gageStackPerVolumeNew(ctx, pvlSS,
-                                       AIR_CAST(const Nrrd*const*, ninSS),
+                                       AIR_CAST(const Nrrd**, ninSS),
                                        numSS, kind);
     if (!E) E |= gageStackPerVolumeAttach(ctx, pvl, pvlSS, sbp->scale, numSS);
     if (!E) E |= gageKernelSet(ctx, gageKernelStack, kSS->kernel, kSS->parm);
@@ -299,10 +295,10 @@ main(int argc, const char *argv[]) {
     nout = nrrdNew();
     airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
     if (1 == ansLen) {
-      E = nrrdAlloc_va(nout, nrrdTypeDouble, 1,
+      E = nrrdAlloc_va(nout, nrrdTypeDouble, 1, 
                        AIR_CAST(size_t, lpld->xyzwNum));
     } else {
-      E = nrrdAlloc_va(nout, nrrdTypeDouble, 2,
+      E = nrrdAlloc_va(nout, nrrdTypeDouble, 2, 
                        AIR_CAST(size_t, ansLen),
                        AIR_CAST(size_t, lpld->xyzwNum));
     }
@@ -341,10 +337,10 @@ main(int argc, const char *argv[]) {
     nout = nrrdNew();
     airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
     if (1 == ansLen) {
-      E = nrrdAlloc_va(nout, nrrdTypeDouble, 1,
+      E = nrrdAlloc_va(nout, nrrdTypeDouble, 1, 
                        AIR_CAST(size_t, lineStepNum));
     } else {
-      E = nrrdAlloc_va(nout, nrrdTypeDouble, 2,
+      E = nrrdAlloc_va(nout, nrrdTypeDouble, 2, 
                        AIR_CAST(size_t, ansLen),
                        AIR_CAST(size_t, lineStepNum));
     }

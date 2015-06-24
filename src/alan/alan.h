@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -99,12 +98,12 @@ enum {
 */
 #if 1
 typedef float alan_t;
-#  define alan_nt nrrdTypeFloat
-#  define ALAN_FLOAT 1
-#else
+#define alan_nt nrrdTypeFloat
+#define ALAN_FLOAT 1
+#else 
 typedef double alan_t;
-#  define alan_nt nrrdTypeDouble
-#  define ALAN_FLOAT 0
+#define alan_nt nrrdTypeDouble
+#define ALAN_FLOAT 0
 #endif
 
 typedef struct alanContext_t {
@@ -127,7 +126,7 @@ typedef struct alanContext_t {
     minAverageChange, /* min worthwhile "avergageChange" value (see below),
                          assume convergence if it falls below this */
     maxPixelChange,   /* maximum allowed change in the first morphogen (on
-                         any single pixels), assume unstable divergence if
+                         any single pixels), assume unstable divergence if 
                          this is exceeded */
     alpha, beta,      /* variables for turing */
     react,            /* additional scaling of reaction term */
@@ -145,12 +144,12 @@ typedef struct alanContext_t {
   Nrrd *_nlev[2],     /* levels of morphogens, alternating buffers */
     *nlev;            /* pointer to last iterations output */
   Nrrd *nparm;        /* alpha, beta values for all texels */
-  alan_t
+  alan_t 
     averageChange;    /* average amount of "change" in last iteration */
   int changeCount;    /* # of contributions to averageChange */
                       /* to control update of averageChange and changeCount */
-  airThreadMutex *changeMutex;
-                      /* to synchronize separate iterations of simulation */
+  airThreadMutex *changeMutex;  
+                      /* to synchronize seperate iterations of simulation */
   airThreadBarrier *iterBarrier;
 
   /* OUTPUT ---------------------------- */
@@ -158,9 +157,8 @@ typedef struct alanContext_t {
 } alanContext;
 
 /* methodsAlan.c */
-ALAN_EXPORT const int alanPresent;
 ALAN_EXPORT const char *alanBiffKey;
-ALAN_EXPORT alanContext *alanContextNew(void);
+ALAN_EXPORT alanContext *alanContextNew();
 ALAN_EXPORT alanContext *alanContextNix(alanContext *actx);
 ALAN_EXPORT int alanDimensionSet(alanContext *actx, int dim);
 ALAN_EXPORT int alan2DSizeSet(alanContext *actx, int sizeX, int sizeY);

@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -34,7 +33,7 @@
 **
 ** what a NrrdFormat has to do:
 ** -- respect nio->skipData to whatever extent makes sense on top of how the
-**    NrrdEncoding respects it (by making read and write no-ops).
+**    NrrdEncoding respects it (by making read and write no-ops).  
 **    nrrdFormatNRRD, for instance, won't create empty detached data files
 **    if nio->skipData.
 ** -- determine what NrrdEncoding to use, if there's a choice
@@ -43,7 +42,7 @@
 ** The "unknown" format is intended as a template for writing new formats.
 */
 
-static int
+int
 _nrrdFormatUnknown_available(void) {
 
   /* insert code here */
@@ -51,23 +50,23 @@ _nrrdFormatUnknown_available(void) {
   return AIR_FALSE;
 }
 
-static int
+int
 _nrrdFormatUnknown_nameLooksLike(const char *filename) {
-
+  
   /* insert code here */
   AIR_UNUSED(filename);
 
   return AIR_FALSE;
 }
 
-static int
+int
 _nrrdFormatUnknown_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
                             int useBiff) {
   static const char me[]="_nrrdFormatUnknown_fitsInto";
-
+  
   if (!(nrrd && encoding)) {
     biffMaybeAddf(useBiff, NRRD, "%s: got NULL nrrd (%p) or encoding (%p)",
-                  me, AIR_CVOIDP(nrrd), AIR_CVOIDP(encoding));
+                  me, AIR_CAST(void*, nrrd), AIR_CAST(void*, encoding)); 
     return AIR_FALSE;
   }
 
@@ -76,16 +75,16 @@ _nrrdFormatUnknown_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
   return AIR_FALSE;
 }
 
-static int
+int
 _nrrdFormatUnknown_contentStartsLike(NrrdIoState *nio) {
-
+  
   /* insert code here */
   AIR_UNUSED(nio);
 
   return AIR_FALSE;
 }
 
-static int
+int
 _nrrdFormatUnknown_read(FILE *file, Nrrd *nrrd,
                         NrrdIoState *nio) {
   static const char me[]="_nrrdFormatUnknown_read";
@@ -99,7 +98,7 @@ _nrrdFormatUnknown_read(FILE *file, Nrrd *nrrd,
   return 1;
 }
 
-static int
+int
 _nrrdFormatUnknown_write(FILE *file, const Nrrd *nrrd,
                          NrrdIoState *nio) {
   static const char me[]="_nrrdFormatUnknown_write";
@@ -113,7 +112,7 @@ _nrrdFormatUnknown_write(FILE *file, const Nrrd *nrrd,
   return 1;
 }
 
-static const NrrdFormat
+const NrrdFormat
 _nrrdFormatUnknown = {
   "unknown",
   AIR_FALSE,  /* isImage */

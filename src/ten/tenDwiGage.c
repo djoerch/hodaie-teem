@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -24,8 +23,10 @@
 #include "ten.h"
 #include "privateTen.h"
 
+#define TEEM_LEVMAR 1
+
 #if TEEM_LEVMAR
-#include <levmar.h>
+#include "levmar.h"
 #endif
 
 /* --------------------------------------------------------------------- */
@@ -167,7 +168,7 @@ _tenDwiGageTable[TEN_DWI_GAGE_ITEM_MAX+1] = {
   /* back to normal non-run-time items */
   {tenDwiGageConfidence,              1,  0,  {tenDwiGageTensor},                      tenDwiGageTensor,  0, AIR_TRUE},
   {tenDwiGageFA,                      1,  0,  {tenDwiGageTensor},                                     0,  0, AIR_TRUE},
-
+  
   {tenDwiGageTensorAllDWIError,       0,  0,  {tenDwiGageTensor, tenDwiGageJustDWI},                  0,  0, AIR_TRUE},
 
   /* it actually doesn't make sense for tenDwiGage2TensorQSegAndError to be the parent,
@@ -179,7 +180,7 @@ _tenDwiGageTable[TEN_DWI_GAGE_ITEM_MAX+1] = {
   {tenDwiGage2TensorPeled,           14,  0,  {tenDwiGageAll},                                        0,  0, AIR_TRUE},
   {tenDwiGage2TensorPeledError,       1,  0,  {tenDwiGageAll, tenDwiGage2TensorPeled},                0,  0, AIR_TRUE},
   {tenDwiGage2TensorPeledAndError,   15,  0,  {tenDwiGage2TensorPeled, tenDwiGage2TensorPeledError},  0,  0, AIR_TRUE},
-
+  
   {tenDwiGage2TensorPeledLevmarInfo,  5,  0,  {tenDwiGage2TensorPeled},                               0,  0, AIR_TRUE}
 };
 
@@ -197,28 +198,26 @@ void
 _tenDwiGageFilter(gageContext *ctx, gagePerVolume *pvl) {
   static const char me[]="_tenDwiGageFilter";
   double *fw00, *fw11, *fw22, *dwi;
-  int fd, needD[3]={AIR_TRUE, AIR_FALSE, AIR_FALSE};
-  /* tenDwiGageKindData *kindData; */
+  int fd;
+  tenDwiGageKindData *kindData;
   gageScl3PFilter_t *filter[5] = {NULL, gageScl3PFilter2, gageScl3PFilter4,
                                   gageScl3PFilter6, gageScl3PFilter8};
   unsigned int J, dwiNum;
 
   fd = 2*ctx->radius;
   dwi = pvl->directAnswer[tenDwiGageAll];
-  /* kindData = AIR_CAST(tenDwiGageKindData *, pvl->kind->data); */
+  kindData = AIR_CAST(tenDwiGageKindData *, pvl->kind->data);
   dwiNum = pvl->kind->valLen;
   if (!ctx->parm.k3pack) {
-    fprintf(stderr, "%s: sorry, 6pack filtering not implemented\n", me);
+    fprintf(stderr, "!%s: sorry, 6pack filtering not implemented\n", me);
     return;
   }
   fw00 = ctx->fw + fd*3*gageKernel00;
   fw11 = ctx->fw + fd*3*gageKernel11;
   fw22 = ctx->fw + fd*3*gageKernel22;
   /* HEY: these will have to be updated if there is ever any use for
-     derivatives in DWIs: can't pass NULL pointers for gradient info.
-     The unusual use of a hard-coded local needD is because there
-     currently isn't allocated space in the tenDwiGage kind (which is
-     unusual for its dynamic allocation) for DWI derivatives */
+     derivatives in DWIs: can't pass NULL pointers for gradient info,
+     and the needD[1] has to be passed */
   if (fd <= 8) {
     for (J=0; J<dwiNum; J++) {
       filter[ctx->radius](ctx->shape, pvl->iv3 + J*fd*fd*fd,
@@ -226,7 +225,7 @@ _tenDwiGageFilter(gageContext *ctx, gagePerVolume *pvl) {
                           pvl->iv1 + J*fd,
                           fw00, fw11, fw22,
                           dwi + J, NULL, NULL,
-                          needD);
+                          pvl->needD[0], AIR_FALSE, AIR_FALSE);
     }
   } else {
     for (J=0; J<dwiNum; J++) {
@@ -234,7 +233,7 @@ _tenDwiGageFilter(gageContext *ctx, gagePerVolume *pvl) {
                        pvl->iv2 + J*fd*fd, pvl->iv1 + J*fd,
                        fw00, fw11, fw22,
                        dwi + J, NULL, NULL,
-                       needD);
+                       pvl->needD[0], AIR_FALSE, AIR_FALSE);
     }
   }
 
@@ -243,12 +242,12 @@ _tenDwiGageFilter(gageContext *ctx, gagePerVolume *pvl) {
 
 /* Returns the Akaike Information Criterion */
 
-/*
+/* 
 ** residual: is the variance
 ** n: number of observations: number of DWI's in our case
 ** k: number of parameters: number of tensor components in our case
 */
-double
+double 
 _tenComputeAIC(double residual, int n, int k) {
    double AIC = 0;
 
@@ -284,7 +283,7 @@ _tenPeledRotate2D(double ten[7], double lam1, double lam3, double phi) {
 /* The main callback function that is iterated during levmar */
 
 /* vector pp of parameters is as follows:
-** pp[0]: principal eigenvalue
+** pp[0]: principal eigenvalue 
 ** pp[1]: fraction of 1st tensor
 ** pp[2]: phi for 1st tensor
 ** pp[3]: phi for 2nd tensor
@@ -296,7 +295,7 @@ _tenLevmarPeledCB(double *pp, double *xx, int mm, int nn, void *_pvlData) {
   int ii;
   tenDwiGagePvlData *pvlData;
   double *egrad;
-
+ 
   AIR_UNUSED(mm);
   pvlData = AIR_CAST(tenDwiGagePvlData *, _pvlData);
 
@@ -306,7 +305,7 @@ _tenLevmarPeledCB(double *pp, double *xx, int mm, int nn, void *_pvlData) {
 
   egrad = AIR_CAST(double *, pvlData->nten1EigenGrads->data);
   /* skip past b0 gradient, HEY: not general purpose */
-  egrad += 3;
+  egrad += 3; 
   for (ii=0; ii<nn; ii++) {
     double argA, argB, sigA, sigB;
     argA = -pvlData->tec1->bValue*TEN_T3V_CONTR(tenA, egrad + 3*ii);
@@ -378,7 +377,7 @@ _tenDwiGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     pvl->directAnswer[tenDwiGageMeanDWIValue][0] = dwiMean;
   }
 
-  /* note: the gage interface to tenEstimate functionality
+  /* note: the gage interface to tenEstimate functionality 
      allows you exactly one kind of tensor estimation (per kind),
      so the function call to do the estimation is actually
      repeated over and over again; the copy into the answer
@@ -389,11 +388,11 @@ _tenDwiGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenDwiGageTensorLLSError)) {
     pvl->directAnswer[tenDwiGageTensorLLSError][0] = pvlData->tec1->errorDwi;
-  }
+  }  
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenDwiGageTensorLLSErrorLog)) {
-    pvl->directAnswer[tenDwiGageTensorLLSErrorLog][0]
+    pvl->directAnswer[tenDwiGageTensorLLSErrorLog][0] 
       = pvlData->tec1->errorLogDwi;
-  }
+  }  
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenDwiGageTensorWLS)) {
     tenEstimate1TensorSingle_d(pvlData->tec1, tentmp, dwiAll);
     TEN_T_COPY(pvl->directAnswer[tenDwiGageTensorWLS], tentmp);
@@ -447,13 +446,13 @@ _tenDwiGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     int gradcount;
     double *ten, d;
     int i;
-
+    
     /* HEY: should switch to tenEstimate-based DWI simulation */
     ten = pvl->directAnswer[tenDwiGageTensor];
     gradcount = pvl->kind->valLen -1; /* Dont count b0 */
     grads = ((const double*) kindData->ngrad->data) +3; /* Ignore b0 grad */
     for( i=0; i < gradcount; i++ ) {
-      d = dwiAll[0]*exp(- pvlData->tec1->bValue
+      d = dwiAll[0]*exp(- pvlData->tec1->bValue 
                         * TEN_T3V_CONTR(ten, grads + 3*i));
       pvl->directAnswer[tenDwiGageTensorAllDWIError][i] = dwiAll[i+1] - d;
     }
@@ -464,9 +463,9 @@ _tenDwiGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     int gradcount;
     double *twoten;
     unsigned int valIdx, E;
-
+    
     twoten = pvl->directAnswer[tenDwiGage2TensorQSeg];
-
+    
     gradcount = pvl->kind->valLen -1; /* Dont count b0 */
     grads = ((const double*) kindData->ngrad->data) +3; /* Ignore b0 grad */
     if (dwiAll[0] != 0) { /*  S0 = 0 */
@@ -481,7 +480,7 @@ _tenDwiGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
         pvlData->wght[valIdx] = valIdx % 2;
       }
     }
-
+    
     E = 0;
     for (valIdx=1; valIdx<pvl->kind->valLen; valIdx++) {
       if (!E) E |= tenEstimateSkipSet(pvlData->tec2, valIdx,
@@ -498,37 +497,34 @@ _tenDwiGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     if (!E) E |= tenEstimate1TensorSingle_d(pvlData->tec2,
                                             twoten + 7, dwiAll);
     if (E) {
-      char *terr;
-      terr = biffGetDone(TEN);
-      fprintf(stderr, "%s: (trouble) %s\n", me, terr);
-      free(terr);
+      fprintf(stderr, "!%s: (trouble) %s\n", me, biffGetDone(TEN));
     }
-
+    
     /* hack: confidence for two-tensor fit */
     twoten[0] = (twoten[0] + twoten[7])/2;
     twoten[7] = 0.5; /* fraction that is the first tensor (initial value) */
     /* twoten[1 .. 6] = first tensor */
     /* twoten[8 .. 13] = second tensor */
-
+    
     /* Compute fraction between tensors if not garbage in this voxel */
     if (twoten[0] > 0.5) {
       double exp0,exp1,d,e=0,g=0, a=0,b=0;
       int i;
-
+      
       for( i=0; i < gradcount; i++ ) {
         exp0 = exp(-pvlData->tec2->bValue * TEN_T3V_CONTR(twoten + 0,
                                                           grads + 3*i));
         exp1 = exp(-pvlData->tec2->bValue * TEN_T3V_CONTR(twoten + 7,
                                                           grads + 3*i));
-
+        
         d = dwiAll[i+1] / dwiAll[0];
         e = exp0 - exp1;
         g = d - exp1;
-
+        
         a += .5*e*e;
         b += e*g;
       }
-
+      
       twoten[7] = AIR_CLAMP(0, 0.5*(b/a), 1);
     }
   }
@@ -537,23 +533,23 @@ _tenDwiGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     int gradcount;
     double *twoten, d;
     int i;
-
+    
     /* HEY: should switch to tenEstimate-based DWI simulation */
     if (dwiAll[0] != 0) { /* S0 = 0 */
       twoten = pvl->directAnswer[tenDwiGage2TensorQSeg];
       gradcount = pvl->kind->valLen -1; /* Dont count b0 */
       grads = ((const double*) kindData->ngrad->data) +3; /* Ignore b0 grad */
-
+      
       pvl->directAnswer[tenDwiGage2TensorQSegError][0] = 0;
       for( i=0; i < gradcount; i++ ) {
         d = twoten[7]*exp(-pvlData->tec2->bValue * TEN_T3V_CONTR(twoten + 0,
                                                                  grads + 3*i));
-        d += (1 - twoten[7])*exp(-pvlData->tec2->bValue
+        d += (1 - twoten[7])*exp(-pvlData->tec2->bValue 
                                  *TEN_T3V_CONTR(twoten + 7, grads + 3*i));
         d = dwiAll[i+1]/dwiAll[0] - d;
         pvl->directAnswer[tenDwiGage2TensorQSegError][0] += d*d;
       }
-      pvl->directAnswer[tenDwiGage2TensorQSegError][0] =
+      pvl->directAnswer[tenDwiGage2TensorQSegError][0] = 
         sqrt( pvl->directAnswer[tenDwiGage2TensorQSegError][0] );
     } else {
       /* HEY: COMPLETELY WRONG!! An error is not defined! */
@@ -563,7 +559,7 @@ _tenDwiGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenDwiGage2TensorQSegAndError)) {
     double *twoten, *err, *twotenerr;
-
+    
     twoten = pvl->directAnswer[tenDwiGage2TensorQSeg];
     err = pvl->directAnswer[tenDwiGage2TensorQSegError];
     twotenerr = pvl->directAnswer[tenDwiGage2TensorQSegAndError];
@@ -582,7 +578,7 @@ _tenDwiGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
       matA[9], matB[9], matTmp[9], rott[9];
     unsigned int gi;
     int lmret;
-
+    
     /* Pointer to the location where the two tensor will be written */
     twoTen = pvl->directAnswer[tenDwiGage2TensorPeled];
     /* Estimate the DWI error, error is given as standard deviation */
@@ -593,7 +589,7 @@ _tenDwiGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     tenEigensolve_d(pvlData->ten1Eval, pvlData->ten1Evec, pvlData->ten1);
     /* Get westins Cp */
     Cp = tenAnisoEval_d(pvlData->ten1Eval, tenAniso_Cp1);
-
+    
     /* Only do two-tensor fitting if CP is greater or equal to than a
        user-defined threshold */
     if (Cp >= pvlData->levmarMinCp) {
@@ -603,7 +599,7 @@ _tenDwiGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
       /* AICSingFit = _tenComputeAIC(residual, pvlData->tec1->dwiNum, 6); */
 
       /* the CP-based test is gone; caller's responsibility */
-
+      
       /* rotate DW gradients by inverse of eigenvector column matrix
          and place into pvlData->nten1EigenGrads (which has been
          allocated by _tenDwiGagePvlDataNew()) */
@@ -616,10 +612,10 @@ _tenDwiGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
         grad += 3;
         egrad += 3;
       }
-
+    
       /* Lower and upper bounds for the NLLS routine */
       loBnd[0] = 0.0;
-      loBnd[1] = 0.0;
+      loBnd[1] = 0.0;       
       loBnd[2] = -AIR_PI/2;
       loBnd[3] = -AIR_PI/2;
       upBnd[0] = pvlData->ten1Eval[0]*5;
@@ -638,7 +634,7 @@ _tenDwiGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
         guess[3] = AIR_AFFINE(0, airDrandMT_r(pvlData->randState), 1,
         -AIR_PI/6, -AIR_PI/3);
       */
-      /* Fill in the constraints for the LM optimization,
+      /* Fill in the constraints for the LM optimization, 
          the threshold of error difference */
       opts[0] = pvlData->levmarTau;
       opts[1] = pvlData->levmarEps1;
@@ -647,12 +643,12 @@ _tenDwiGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
       /* Very imp to set this opt, note that only forward
          differences are used to approx Jacobian */
       opts[4] = pvlData->levmarDelta;
-
+    
       /* run NLLS, results are stored back into guess[] */
       pvlData->levmarUseFastExp = AIR_FALSE;
       lmret = dlevmar_bc_dif(_tenLevmarPeledCB, guess, pvlData->tec1->dwi,
                              PARAMS, pvlData->tec1->dwiNum, loBnd, upBnd,
-                             NULL, pvlData->levmarMaxIter, opts,
+                             pvlData->levmarMaxIter, opts,
                              pvlData->levmarInfo,
                              NULL, NULL, pvlData);
       if (-1 == lmret) {
@@ -670,13 +666,13 @@ _tenDwiGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
         _tenPeledRotate2D(tenB, guess[0], pvlData->ten1Eval[2], guess[3]);
         TEN_T2M(matA, tenA);
         TEN_T2M(matB, tenB);
-
+      
         ELL_3M_TRANSPOSE(rott, pvlData->ten1Evec);
         ELL_3M_MUL(matTmp, matA, pvlData->ten1Evec);
         ELL_3M_MUL(matA, rott, matTmp);
         ELL_3M_MUL(matTmp, matB, pvlData->ten1Evec);
         ELL_3M_MUL(matB, rott, matTmp);
-
+        
         /* Copy two two tensors */
         /* guess[1] is population fraction of first tensor */
         if (guess[1] > 0.5) {
@@ -713,7 +709,7 @@ _tenDwiGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
 
     if (info[1] > 0) {
       /* Returning the standard deviation */
-      pvl->directAnswer[tenDwiGage2TensorPeledError][0] =
+      pvl->directAnswer[tenDwiGage2TensorPeledError][0] = 
         sqrt(info[1]/pvlData->tec1->dwiNum);
     }
   }
@@ -752,14 +748,15 @@ _tenDwiGagePvlDataNew(const gageKind *kind) {
   const int segcount = 2;
   unsigned int num;
   int E;
-
+  
   if (tenDwiGageKindCheck(kind)) {
     biffMovef(GAGE, TEN, "%s: kindData not ready for use", me);
     return NULL;
   }
   kindData = AIR_CAST(tenDwiGageKindData *, kind->data);
-
-  pvlData = AIR_CALLOC(1, tenDwiGagePvlData);
+  
+  pvlData = AIR_CAST(tenDwiGagePvlData *,
+                     malloc(sizeof(tenDwiGagePvlData)));
   if (!pvlData) {
     biffAddf(GAGE, "%s: couldn't allocate pvl data!", me);
     return NULL;
@@ -771,7 +768,7 @@ _tenDwiGagePvlDataNew(const gageKind *kind) {
     tec = (1 == num ? pvlData->tec1 : pvlData->tec2);
     E = 0;
     if (!E) tenEstimateVerboseSet(tec, 0);
-    if (!E) tenEstimateNegEvalShiftSet(tec, AIR_FALSE);
+    if (!E) tenEstimateNegEvalShiftSet(tec, AIR_TRUE);
     if (!E) E |= tenEstimateMethodSet(tec, 1 == num
                                       ? kindData->est1Method
                                       : kindData->est2Method);
@@ -783,7 +780,7 @@ _tenDwiGagePvlDataNew(const gageKind *kind) {
       if (!E) E |= tenEstimateBMatricesSet(tec, kindData->nbmat,
                                            kindData->bval, AIR_FALSE);
     }
-    if (!E) E |= tenEstimateThresholdSet(tec,
+    if (!E) E |= tenEstimateThresholdSet(tec, 
                                          kindData->thresh, kindData->soft);
     if (!E) E |= tenEstimateUpdate(tec);
     if (E) {
@@ -791,15 +788,23 @@ _tenDwiGagePvlDataNew(const gageKind *kind) {
       return NULL;
     }
   }
-  pvlData->vbuf = AIR_CALLOC(kind->valLen, double);
-  pvlData->wght = AIR_CALLOC(kind->valLen, unsigned int);
+  pvlData->vbuf = AIR_CAST(double *,
+                           calloc(kind->valLen, sizeof(double)));
+  pvlData->wght = AIR_CAST(unsigned int *,
+                           calloc(kind->valLen, sizeof(unsigned int)));
   /* HEY: this is where we act on the the assumption about
      having val[0] be T2 baseline and all subsequent val[i] be DWIs */
   pvlData->wght[0] = 1;
-  pvlData->qvals = AIR_CALLOC(kind->valLen-1, double);
-  pvlData->qpoints = AIR_CALLOC(3*(kind->valLen-1),  double);
-  pvlData->dists = AIR_CALLOC(segcount*(kind->valLen-1), double);
-  pvlData->weights = AIR_CALLOC(segcount*(kind->valLen-1), double);
+  pvlData->qvals = AIR_CAST(double *,
+                            calloc(kind->valLen-1, sizeof(double)));
+  pvlData->qpoints = AIR_CAST(double *,
+                              calloc(kind->valLen-1,  3*sizeof(double)));
+  pvlData->dists = AIR_CAST(double *,
+                            calloc(segcount*(kind->valLen-1), 
+                                   sizeof(double)));
+  pvlData->weights = AIR_CAST(double *,
+                              calloc(segcount*(kind->valLen-1),
+                                     sizeof(double)));
 
   if (kindData->ngrad->data) {
     pvlData->nten1EigenGrads = nrrdNew();
@@ -821,7 +826,7 @@ _tenDwiGagePvlDataNew(const gageKind *kind) {
   ELL_3V_SET(pvlData->ten1Evec + 6, AIR_NAN, AIR_NAN, AIR_NAN);
   ELL_3V_SET(pvlData->ten1Eval, AIR_NAN, AIR_NAN, AIR_NAN);
 
-  /* here's an okay spot to check our compile-time assumptions
+  /* here's an okay spot to check our compile-time assumptions 
      about the levmar library */
 #if TEEM_LEVMAR
   /* this is needed to make sure that the tenDwiGage2TensorPeledLevmarInfo
@@ -910,7 +915,7 @@ _tenDwiGagePvlDataUpdate(const gageKind *kind,
     pvlData->tec1->recordLikelihoodDwi = AIR_FALSE;
   }
   /*
-  fprintf(stderr, "%s: record %d %d %d\n", me,
+  fprintf(stderr, "!%s: record %d %d %d\n", me,
           pvlData->tec1->recordErrorDwi,
           pvlData->tec1->recordErrorLogDwi,
           pvlData->tec1->recordLikelihoodDwi);
@@ -921,7 +926,7 @@ _tenDwiGagePvlDataUpdate(const gageKind *kind,
 void *
 _tenDwiGagePvlDataNix(const gageKind *kind, void *_pvlData) {
   tenDwiGagePvlData *pvlData;
-
+  
   AIR_UNUSED(kind);
   pvlData = AIR_CAST(tenDwiGagePvlData *, _pvlData);
   if (pvlData) {
@@ -943,10 +948,10 @@ _tenDwiGagePvlDataNix(const gageKind *kind, void *_pvlData) {
 /* --------------------- kindData */
 
 tenDwiGageKindData*
-tenDwiGageKindDataNew(void) {
+tenDwiGageKindDataNew() {
   tenDwiGageKindData *ret;
-
-  ret = AIR_CALLOC(1, tenDwiGageKindData);
+  
+  ret = AIR_CAST(tenDwiGageKindData *, malloc(sizeof(tenDwiGageKindData)));
   if (ret) {
     /* it may be that only one of these is actually filled */
     ret->ngrad = nrrdNew();
@@ -961,7 +966,7 @@ tenDwiGageKindDataNew(void) {
 
 tenDwiGageKindData*
 tenDwiGageKindDataNix(tenDwiGageKindData *kindData) {
-
+  
   if (kindData) {
     nrrdNuke(kindData->ngrad);
     nrrdNuke(kindData->nbmat);
@@ -975,9 +980,6 @@ tenDwiGageKindDataNix(tenDwiGageKindData *kindData) {
 /*
 ** Because this kind has to be dynamically allocated,
 ** this is not the kind, but just the template for it
-** HEY: having a const public version of this could be a
-** nice way of having a way of referring to the dwiKind
-** without having to allocate it each time
 */
 gageKind
 _tenDwiGageKindTmpl = {
@@ -1004,8 +1006,8 @@ _tenDwiGageKindTmpl = {
 gageKind *
 tenDwiGageKindNew() {
   gageKind *kind;
-
-  kind = AIR_CALLOC(1, gageKind);
+  
+  kind = AIR_CAST(gageKind *, malloc(sizeof(gageKind)));
   if (kind) {
     memcpy(kind, &_tenDwiGageKindTmpl, sizeof(gageKind));
     kind->valLen = 0; /* still has to be set later */
@@ -1019,7 +1021,7 @@ tenDwiGageKindNew() {
 
 gageKind *
 tenDwiGageKindNix(gageKind *kind) {
-
+  
   if (kind) {
     airFree(kind->table);
     tenDwiGageKindDataNix(AIR_CAST(tenDwiGageKindData *, kind->data));
@@ -1055,16 +1057,6 @@ tenDwiGageKindSet(gageKind *dwiKind,
     biffAddf(TEN, "%s: sorry, B-matrices temporarily disabled", me);
     return 1;
   }
-  /* (used for detecting errors in losslessly writing/reading
-      a gradient set)
-  {
-    fprintf(stderr, "!%s: saving ngrad.nrrd\n", me);
-    if (ngrad) {
-      nrrdSave("ngrad.nrrd", ngrad, NULL);
-    }
-  }
-  */
-
   if (tenGradientCheck(ngrad, nrrdTypeDefault, 7)) {
     biffAddf(TEN, "%s: problem with given gradients", me);
     return 1;
@@ -1090,12 +1082,12 @@ tenDwiGageKindSet(gageKind *dwiKind,
     }
   }
   if (airEnumValCheck(tenEstimate1Method, e1method)) {
-    biffAddf(TEN, "%s: e1method %d is not a valid %s", me,
+    biffAddf(TEN, "%s: e1method %d is not a valid %s", me, 
              e1method, tenEstimate1Method->name);
     return 1;
   }
   if (airEnumValCheck(tenEstimate2Method, e2method)) {
-    biffAddf(TEN, "%s: emethod %d is not a valid %s", me,
+    biffAddf(TEN, "%s: emethod %d is not a valid %s", me, 
              e2method, tenEstimate2Method->name);
     return 1;
   }
@@ -1117,9 +1109,9 @@ tenDwiGageKindSet(gageKind *dwiKind,
   case tenEstimate1MethodLLS:
     dwiKind->table[tenDwiGageTensor].prereq[0]
       = tenDwiGageTensorLLS;
-    dwiKind->table[tenDwiGageTensorError].prereq[0]
+    dwiKind->table[tenDwiGageTensorError].prereq[0] 
       = tenDwiGageTensorLLSError;
-    dwiKind->table[tenDwiGageTensorErrorLog].prereq[0]
+    dwiKind->table[tenDwiGageTensorErrorLog].prereq[0] 
       = tenDwiGageTensorLLSErrorLog;
     dwiKind->table[tenDwiGageTensorLikelihood].prereq[0]
       = tenDwiGageTensorLLSLikelihood;
@@ -1127,9 +1119,9 @@ tenDwiGageKindSet(gageKind *dwiKind,
   case tenEstimate1MethodWLS:
     dwiKind->table[tenDwiGageTensor].prereq[0]
       = tenDwiGageTensorWLS;
-    dwiKind->table[tenDwiGageTensorError].prereq[0]
+    dwiKind->table[tenDwiGageTensorError].prereq[0] 
       = tenDwiGageTensorWLSError;
-    dwiKind->table[tenDwiGageTensorErrorLog].prereq[0]
+    dwiKind->table[tenDwiGageTensorErrorLog].prereq[0] 
       = tenDwiGageTensorWLSErrorLog;
     dwiKind->table[tenDwiGageTensorLikelihood].prereq[0]
       = tenDwiGageTensorWLSLikelihood;
@@ -1137,9 +1129,9 @@ tenDwiGageKindSet(gageKind *dwiKind,
   case tenEstimate1MethodNLS:
     dwiKind->table[tenDwiGageTensor].prereq[0]
       = tenDwiGageTensorNLS;
-    dwiKind->table[tenDwiGageTensorError].prereq[0]
+    dwiKind->table[tenDwiGageTensorError].prereq[0] 
       = tenDwiGageTensorNLSError;
-    dwiKind->table[tenDwiGageTensorErrorLog].prereq[0]
+    dwiKind->table[tenDwiGageTensorErrorLog].prereq[0] 
       = tenDwiGageTensorNLSErrorLog;
     dwiKind->table[tenDwiGageTensorLikelihood].prereq[0]
       = tenDwiGageTensorNLSLikelihood;
@@ -1147,9 +1139,9 @@ tenDwiGageKindSet(gageKind *dwiKind,
   case tenEstimate1MethodMLE:
     dwiKind->table[tenDwiGageTensor].prereq[0]
       = tenDwiGageTensorMLE;
-    dwiKind->table[tenDwiGageTensorError].prereq[0]
+    dwiKind->table[tenDwiGageTensorError].prereq[0] 
       = tenDwiGageTensorMLEError;
-    dwiKind->table[tenDwiGageTensorErrorLog].prereq[0]
+    dwiKind->table[tenDwiGageTensorErrorLog].prereq[0] 
       = tenDwiGageTensorMLEErrorLog;
     dwiKind->table[tenDwiGageTensorLikelihood].prereq[0]
       = tenDwiGageTensorMLELikelihood;
@@ -1174,7 +1166,7 @@ tenDwiGageKindSet(gageKind *dwiKind,
 int
 tenDwiGageKindCheck(const gageKind *kind) {
   static const char me[]="tenDwiGageKindCheck";
-
+  
   if (!kind) {
     biffAddf(TEN, "%s: got NULL pointer", me);
     return 1;

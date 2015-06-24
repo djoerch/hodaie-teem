@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -51,7 +50,6 @@ pullVolumeNew() {
     /* this is turned OFF in volumes that have infos that aren't seedthresh,
        see pullInfoSpecAdd() */
     vol->seedOnly = AIR_TRUE;
-    vol->forSeedPreThresh = AIR_FALSE;
   }
   return vol;
 }
@@ -60,7 +58,7 @@ pullVolume *
 pullVolumeNix(pullVolume *vol) {
 
   if (vol) {
-    airFree(vol->name);
+    vol->name = airFree(vol->name);
     airFree(vol->scalePos);
     vol->ksp00 = nrrdKernelSpecNix(vol->ksp00);
     vol->ksp11 = nrrdKernelSpecNix(vol->ksp11);
@@ -86,11 +84,11 @@ pullVolumeNix(pullVolume *vol) {
 */
 int
 _pullVolumeSet(pullContext *pctx, pullVolume *vol,
-               const gageKind *kind,
+               const gageKind *kind, 
                int verbose, const char *name,
                const Nrrd *ninSingle,
-               const Nrrd *const *ninScale,
-               double *scalePos,
+               const Nrrd *const *ninScale, 
+               double *scalePos, 
                unsigned int ninNum,
                int scaleDerivNorm,
                double scaleDerivNormBias,
@@ -113,8 +111,7 @@ _pullVolumeSet(pullContext *pctx, pullVolume *vol,
   if (pctx) {
     for (vi=0; vi<pctx->volNum; vi++) {
       if (pctx->vol[vi] == vol) {
-        biffAddf(PULL, "%s: already got vol %p as vol[%u]", me,
-                 AIR_VOIDP(vol), vi);
+        biffAddf(PULL, "%s: already got vol %p as vol[%u]", me, vol, vi);
         return 1;
       }
     }
@@ -152,7 +149,7 @@ _pullVolumeSet(pullContext *pctx, pullVolume *vol,
   if (!E) E |= gageKernelSet(vol->gctx, gageKernel00,
                              ksp00->kernel, ksp00->parm);
   if (!E) E |= gageKernelSet(vol->gctx, gageKernel11,
-                             ksp11->kernel, ksp11->parm);
+                             ksp11->kernel, ksp11->parm); 
   if (!E) E |= gageKernelSet(vol->gctx, gageKernel22,
                              ksp22->kernel, ksp22->parm);
   if (ninScale) {
@@ -191,12 +188,8 @@ _pullVolumeSet(pullContext *pctx, pullVolume *vol,
     return 1;
   }
   if (vol->verbose) {
-    printf("%s: ---- vol=%p, name = %p = |%s|\n", me, AIR_VOIDP(vol),
-           AIR_VOIDP(vol->name), vol->name);
-    if (0 != vol->scaleDerivNormBias) {
-      printf("%s: ---- scale deriv norm bias = %g\n", me,
-             vol->scaleDerivNormBias);
-    }
+    printf("%s: vol=%p, name = %p = |%s|\n", me, vol, 
+           vol->name, vol->name);
   }
   nrrdKernelSpecSet(vol->ksp00, ksp00->kernel, ksp00->parm);
   nrrdKernelSpecSet(vol->ksp11, ksp11->kernel, ksp11->parm);
@@ -220,7 +213,7 @@ _pullVolumeSet(pullContext *pctx, pullVolume *vol,
     vol->scaleNum = 0;
     /* leave kspSS as is (unset) */
   }
-
+  
   return 0;
 }
 
@@ -228,7 +221,7 @@ _pullVolumeSet(pullContext *pctx, pullVolume *vol,
 ** the effect is to give pctx ownership of the vol
 */
 int
-pullVolumeSingleAdd(pullContext *pctx,
+pullVolumeSingleAdd(pullContext *pctx, 
                     const gageKind *kind,
                     char *name, const Nrrd *nin,
                     const NrrdKernelSpec *ksp00,
@@ -249,8 +242,7 @@ pullVolumeSingleAdd(pullContext *pctx,
 
   /* add this volume to context */
   if (pctx->verbose) {
-    printf("%s: adding pctx->vol[%u] = %p\n", me, pctx->volNum,
-           AIR_VOIDP(vol));
+    printf("%s: adding pctx->vol[%u] = %p\n", me, pctx->volNum, vol);
   }
   pctx->vol[pctx->volNum] = vol;
   pctx->volNum++;
@@ -279,7 +271,7 @@ pullVolumeStackAdd(pullContext *pctx,
 
   vol = pullVolumeNew();
   if (_pullVolumeSet(pctx, vol, kind, pctx->verbose, name,
-                     nin,
+                     nin, 
                      ninSS, scalePos, ninNum,
                      scaleDerivNorm, scaleDerivNormBias,
                      ksp00, ksp11, ksp22, kspSS)) {
@@ -304,9 +296,9 @@ _pullVolumeCopy(const pullVolume *volOrig) {
 
   volNew = pullVolumeNew();
   if (_pullVolumeSet(NULL, volNew, volOrig->kind,
-                     volOrig->verbose, volOrig->name,
+                     volOrig->verbose, volOrig->name, 
                      volOrig->ninSingle,
-                     volOrig->ninScale,
+                     volOrig->ninScale, 
                      volOrig->scalePos,
                      volOrig->scaleNum,
                      volOrig->scaleDerivNorm,
@@ -317,7 +309,6 @@ _pullVolumeCopy(const pullVolume *volOrig) {
     return NULL;
   }
   volNew->seedOnly = volOrig->seedOnly;
-  volNew->forSeedPreThresh = volOrig->forSeedPreThresh;
   /* _pullVolumeSet just created a new (per-task) gageContext, and
      it will not learn the items from the info specs, so we have to
      add query here */
@@ -385,7 +376,7 @@ _pullVolumeSetup(pullContext *pctx) {
       if (!gageShapeEqual(pctx->vol[0]->gctx->shape, pctx->vol[0]->name,
                           pctx->vol[ii]->gctx->shape, pctx->vol[ii]->name)) {
         biffMovef(PULL, GAGE,
-                  "%s: need equal shapes, but vol 0 and %u different",
+                  "%s: need equal shapes, but vol 0 and %u different", 
                   me, ii);
         return 1;
       }
@@ -403,23 +394,11 @@ _pullVolumeSetup(pullContext *pctx) {
       unsigned int si;
       numScale ++;
       sclMin = pctx->vol[ii]->scalePos[0];
-      if (pctx->flag.scaleIsTau) {
-        sclMin = gageTauOfSig(sclMin);
-      }
       sclMax = pctx->vol[ii]->scalePos[pctx->vol[ii]->scaleNum-1];
-      if (pctx->flag.scaleIsTau) {
-        sclMax = gageTauOfSig(sclMax);
-      }
       sclStep = 0;
       for (si=0; si<pctx->vol[ii]->scaleNum-1; si++) {
-        double scl0, scl1;
-        scl1 = pctx->vol[ii]->scalePos[si+1];
-        scl0 = pctx->vol[ii]->scalePos[si];
-        if (pctx->flag.scaleIsTau) {
-          scl1 = gageTauOfSig(scl1);
-          scl0 = gageTauOfSig(scl0);
-        }
-        sclStep += (scl1 - scl0);
+        sclStep += (pctx->vol[ii]->scalePos[si+1]
+                    - pctx->vol[ii]->scalePos[si]);
       }
       sclStep /= pctx->vol[ii]->scaleNum-1;
       pctx->voxelSizeScale += sclStep;
@@ -443,7 +422,7 @@ _pullVolumeSetup(pullContext *pctx) {
            pctx->bboxMin[2], pctx->bboxMin[3],
            pctx->bboxMax[0], pctx->bboxMax[1],
            pctx->bboxMax[2], pctx->bboxMax[3]);
-    printf("%s: voxelSizeSpace %g Scale %g\n", me,
+    printf("%s: voxelSizeSpace %g Scale %g\n", me, 
            pctx->voxelSizeSpace, pctx->voxelSizeScale);
   }
 
@@ -484,7 +463,7 @@ _pullVolumeIndex(const pullContext *pctx,
                  const char *volName) {
   static const char me[]="_pullVolumeIndex";
   unsigned int vi;
-
+  
   if (!( pctx && volName )) {
     biffAddf(PULL, "%s: got NULL pointer", me);
     return UINT_MAX;
@@ -517,38 +496,4 @@ pullVolumeLookup(const pullContext *pctx,
     return NULL;
   }
   return pctx->vol[vi];
-}
-
-int
-pullConstraintScaleRange(pullContext *pctx, double ssrange[2]) {
-  static const char me[]="pullConstraintScaleRange";
-  pullVolume *cvol;
-
-  if (!(pctx && ssrange)) {
-    biffAddf(PULL, "%s: got NULL pointer", me);
-    return 1;
-  }
-  if (!(pctx->constraint)) {
-    biffAddf(PULL, "%s: given context doesn't have constraint set", me);
-    return 1;
-  }
-  if (!(pctx->ispec[pctx->constraint])) {
-    biffAddf(PULL, "%s: info %s not set for constriant", me,
-             airEnumStr(pullInfo, pctx->constraint));
-    return 1;
-  }
-  cvol = pctx->vol[pctx->ispec[pctx->constraint]->volIdx];
-  if (!cvol->ninScale) {
-    biffAddf(PULL, "%s: volume \"%s\" has constraint but no scale-space",
-             me, cvol->name);
-    return 1;
-  }
-  ssrange[0] = cvol->scalePos[0];
-  ssrange[1] = cvol->scalePos[cvol->scaleNum-1];
-  if (pctx->flag.scaleIsTau) {
-    ssrange[0] = gageTauOfSig(ssrange[0]);
-    ssrange[1] = gageTauOfSig(ssrange[1]);
-  }
-
-  return 0;
 }

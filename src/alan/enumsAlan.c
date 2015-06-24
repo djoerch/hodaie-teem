@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -38,7 +37,7 @@ _alanStopDesc[ALAN_STOP_MAX+1] = {
   "unknown_stop",
   "there is no reason to stop",
   "hit the maximum number of iterations",
-  "got non-existent values",
+  "got non-existant values",
   "simulation converged",
   "simulation hit divergent instability"
 };

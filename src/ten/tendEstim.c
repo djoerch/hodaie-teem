@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,7 +24,7 @@
 #include "privateTen.h"
 
 #define INFO "Estimate tensors from a set of DW images"
-static const char *_tend_estimInfoL =
+char *_tend_estimInfoL =
   (INFO
    ". The tensor coefficient weightings associated with "
    "each of the DWIs, the B-matrix, is given either as a separate array, "
@@ -85,7 +84,7 @@ tend_estimThresholdFind(double *threshP, Nrrd *nbmat, Nrrd *nin4d) {
     biffAddf(TEN, "%s: somehow got zero DWIs", me);
     airMopError(mop); return 1;
   }
-  ndwi = AIR_CALLOC(dwiNum, Nrrd *);
+  ndwi = AIR_CAST(Nrrd **, calloc(dwiNum, sizeof(Nrrd *)));
   airMopAdd(mop, ndwi, (airMopper)airFree, airMopAlways);
   bmat = AIR_CAST(double *, nbmat->data);
   dwiIdx = -1;
@@ -111,14 +110,13 @@ tend_estimThresholdFind(double *threshP, Nrrd *nbmat, Nrrd *nin4d) {
     biffAddf(TEN, "%s: trouble finding thresh", me);
     airMopError(mop); return 1;
   }
-
+  
   airMopOkay(mop);
   return 0;
 }
 
 int
-tend_estimMain(int argc, const char **argv, const char *me,
-               hestParm *hparm) {
+tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;
@@ -376,9 +374,9 @@ tend_estimMain(int argc, const char **argv, const char *me,
       airMopError(mop); return 1;
     }
     if (tenEstimate1TensorVolume4D(tec, nout, &nB0,
-                                   airStrlen(terrS)
-                                   ? &nterr
-                                   : NULL,
+                                   airStrlen(terrS) 
+                                   ? &nterr 
+                                   : NULL, 
                                    nin4d, nrrdTypeFloat)) {
       airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble doing estimation:\n%s\n", me, err);
@@ -394,7 +392,7 @@ tend_estimMain(int argc, const char **argv, const char *me,
                                nin4d, nbmat, knownB0, thresh, soft, bval);
     } else {
       EE = tenEstimateLinear3D(nout, airStrlen(terrS) ? &nterr : NULL, &nB0,
-                               (const Nrrd*const*)nin, ninLen, nbmat,
+                               (const Nrrd**)nin, ninLen, nbmat,
                                knownB0, thresh, soft, bval);
     }
     if (EE) {

@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -36,8 +35,8 @@ int
 nrrdCommentAdd(Nrrd *nrrd, const char *_str) {
   /* static const char me[]="nrrdCommentAdd";*/
   char *str;
-  unsigned int ii;
-
+  int i;
+  
   if (!(nrrd && _str)) {
     /*
     sprintf(err, "%s: got NULL pointer", me);
@@ -65,7 +64,7 @@ nrrdCommentAdd(Nrrd *nrrd, const char *_str) {
   }
   /* clean out carraige returns that would screw up reader */
   airOneLinify(str);
-  ii = airArrayLenIncr(nrrd->cmtArr, 1);
+  i = airArrayLenIncr(nrrd->cmtArr, 1);
   if (!nrrd->cmtArr->data) {
     /*
     sprintf(err, "%s: couldn't lengthen comment array", me);
@@ -73,7 +72,7 @@ nrrdCommentAdd(Nrrd *nrrd, const char *_str) {
     */
     return 1;
   }
-  nrrd->cmt[ii] = str;
+  nrrd->cmt[i] = str;
   return 0;
 }
 
@@ -101,8 +100,7 @@ nrrdCommentClear(Nrrd *nrrd) {
 int
 nrrdCommentCopy(Nrrd *nout, const Nrrd *nin) {
   /* static const char me[]="nrrdCommentCopy"; */
-  int E;
-  unsigned int numc, ii;
+  int numc, i, E;
 
   if (!(nout && nin)) {
     /*
@@ -118,8 +116,8 @@ nrrdCommentCopy(Nrrd *nout, const Nrrd *nin) {
   nrrdCommentClear(nout);
   numc = nin->cmtArr->len;
   E = 0;
-  for (ii=0; ii<numc; ii++) {
-    if (!E) E |= nrrdCommentAdd(nout, nin->cmt[ii]);
+  for (i=0; i<numc; i++) {
+    if (!E) E |= nrrdCommentAdd(nout, nin->cmt[i]);
   }
   if (E) {
     /*

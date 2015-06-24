@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -45,19 +44,18 @@ _pullInfoLen[PULL_INFO_MAX+1] = {
   1, /* pullInfoLiveThresh3 */
   3, /* pullInfoTangent1 */
   3, /* pullInfoTangent2 */
-  3, /* pullInfoNegativeTangent1 */
-  3, /* pullInfoNegativeTangent2 */
+  1, /* pullInfoTangentMode */
   1, /* pullInfoIsovalue */
   3, /* pullInfoIsovalueGradient */
   9, /* pullInfoIsovalueHessian */
   1, /* pullInfoStrength */
   1, /* pullInfoQuality */
-};
+}; 
 
 unsigned int
 pullInfoLen(int info) {
   unsigned int ret;
-
+  
   if (!airEnumValCheck(pullInfo, info)) {
     ret = _pullInfoLen[info];
   } else {
@@ -69,7 +67,7 @@ pullInfoLen(int info) {
 unsigned int
 pullPropLen(int prop) {
   unsigned int ret;
-
+  
   switch (prop) {
   case pullPropIdtag:
   case pullPropIdCC:
@@ -95,7 +93,7 @@ pullPropLen(int prop) {
   case pullPropNeighTanCovar:
     ret = 6;
     break;
-  default:
+  default: 
     ret = 0;
     break;
   }
@@ -125,7 +123,7 @@ pullInfoSpec *
 pullInfoSpecNix(pullInfoSpec *ispec) {
 
   if (ispec) {
-    airFree(ispec->volName);
+    ispec->volName = airFree(ispec->volName);
     airFree(ispec);
   }
   return NULL;
@@ -136,7 +134,7 @@ pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec) {
   static const char me[]="pullInfoSpecAdd";
   unsigned int ii, vi, haveLen, needLen;
   const gageKind *kind;
-
+  
   if (!( pctx && ispec )) {
     biffAddf(PULL, "%s: got NULL pointer", me);
     return 1;
@@ -152,20 +150,16 @@ pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec) {
     return 1;
   }
   if (pctx->ispec[ispec->info]) {
-    biffAddf(PULL, "%s: already set info %s (%d)", me,
+    biffAddf(PULL, "%s: already set info %s (%d)", me, 
              airEnumStr(pullInfo, ispec->info), ispec->info);
     return 1;
   }
   for (ii=0; ii<=PULL_INFO_MAX; ii++) {
     if (pctx->ispec[ii] == ispec) {
       biffAddf(PULL, "%s(%s): already got ispec %p as ispec[%u]", me,
-               airEnumStr(pullInfo, ispec->info), AIR_VOIDP(ispec), ii);
+               airEnumStr(pullInfo, ispec->info), ispec, ii);
       return 1;
     }
-  }
-  if (pctx->verbose) {
-    printf("%s: ispec %s from vol %s\n", me,
-           airEnumStr(pullInfo, ispec->info), ispec->volName);
   }
   needLen = pullInfoLen(ispec->info);
   if (pullSourceGage == ispec->source) {
@@ -177,7 +171,7 @@ pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec) {
     }
     kind = pctx->vol[vi]->kind;
     if (airEnumValCheck(kind->enm, ispec->item)) {
-      biffAddf(PULL, "%s(%s): %d not a valid \"%s\" item", me,
+      biffAddf(PULL, "%s(%s): %d not a valid \"%s\" item", me, 
                airEnumStr(pullInfo, ispec->info), ispec->item, kind->name);
       return 1;
     }
@@ -191,19 +185,10 @@ pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec) {
     /* very tricky: seedOnly is initialized to true for everything */
     if (pullInfoSeedThresh != ispec->info
         && pullInfoSeedPreThresh != ispec->info) {
-      /* if the info is neither seedthresh nor seedprethresh, then the
+      /* if the info is neither seedthreh nor seedprethresh, then the
          volume will have to be probed after the first iter, so turn
-         *off* seedOnly */
+         off seedOnly */
       pctx->vol[vi]->seedOnly = AIR_FALSE;
-    }
-    /* less tricky: turn on forSeedPreThresh as needed;
-       its initialized to false */
-    if (pullInfoSeedPreThresh == ispec->info) {
-      pctx->vol[vi]->forSeedPreThresh = AIR_TRUE;
-      if (pctx->verbose) {
-        printf("%s: volume %u %s used for %s\n", me, vi, pctx->vol[vi]->name,
-               airEnumStr(pullInfo, pullInfoSeedPreThresh));
-      }
     }
     /* now set item in gage query */
     if (gageQueryItemOn(pctx->vol[vi]->gctx, pctx->vol[vi]->gpvl,
@@ -217,11 +202,11 @@ pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec) {
     haveLen = pullPropLen(ispec->prop);
     if (needLen != haveLen) {
       biffAddf(PULL, "%s: need len %u, but \"%s\" \"%s\" has len %u",
-               me, needLen, pullProp->name,
+               me, needLen, pullProp->name, 
                airEnumStr(pullProp, ispec->prop), haveLen);
       return 1;
     }
-
+    
   } else {
     biffAddf(PULL, "%s: sorry, source %s unsupported", me,
              airEnumStr(pullSource, ispec->source));
@@ -234,7 +219,7 @@ pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec) {
   }
 
   pctx->ispec[ispec->info] = ispec;
-
+  
   return 0;
 }
 
@@ -267,32 +252,32 @@ _pullInfoSetup(pullContext *pctx) {
         return 1;
       }
       if (pctx->ispec[ii]->constraint) {
-        /* pullVolume *cvol; */
+        pullVolume *cvol;
         pctx->constraint = ii;
-        /* cvol = pctx->vol[pctx->ispec[ii]->volIdx]; */
+        cvol = pctx->vol[pctx->ispec[ii]->volIdx];
       }
     }
   }
   if (pctx->constraint) {
-    pctx->constraintDim = _pullConstraintDim(pctx);
-    if (-1 == pctx->constraintDim) {
-      biffAddf(PULL, "%s: problem learning constraint dimension", me);
-      return 1;
-    }
-    if (!pctx->flag.allowCodimension3Constraints && !pctx->constraintDim) {
-      biffAddf(PULL, "%s: got constr dim 0 but co-dim 3 not allowed", me);
-      return 1;
+    if (pctx->ispec[pullInfoTangentMode]) {
+      pctx->constraintDim = 1.5;
+    } else {
+      pctx->constraintDim = _pullConstraintDim(pctx, NULL, NULL);
+      if (!pctx->flag.allowCodimension3Constraints) {
+        if (!pctx->constraintDim) {
+          biffAddf(PULL, "%s: got constr dim 0.0", me);
+          return 1;
+        }
+      }
     }
     if (pctx->haveScale) {
       double *parmS, denS,
         (*evalS)(double *, double, const double parm[PULL_ENERGY_PARM_NUM]);
       switch (pctx->interType) {
       case pullInterTypeUnivariate:
-        pctx->targetDim = 1 + pctx->constraintDim;
-        break;
       case pullInterTypeSeparable:
-        /* HEY! need to check if this is true given enr and ens! */
-        pctx->targetDim = pctx->constraintDim;
+        /* assume repulsive along both r and s */
+        pctx->targetDim = 1 + pctx->constraintDim;
         break;
       case pullInterTypeAdditive:
         parmS = pctx->energySpecS->parm;
@@ -307,7 +292,7 @@ _pullInfoSetup(pullContext *pctx) {
         }
         break;
       default:
-        biffAddf(PULL, "%s: sorry, intertype %s not handled here", me,
+        biffAddf(PULL, "%s: sorry, intertype %s not handled here", me, 
                  airEnumStr(pullInterType, pctx->interType));
         break;
       }
@@ -319,7 +304,7 @@ _pullInfoSetup(pullContext *pctx) {
     pctx->targetDim = 0;
   }
   if (pctx->verbose) {
-    printf("!%s: infoTotalLen=%u, constr=%d, constr,targetDim = %d,%d\n",
+    printf("!%s: infoTotalLen=%u, constr=%d, constr,targetDim = %g,%g\n", 
            me, pctx->infoTotalLen, pctx->constraint,
            pctx->constraintDim, pctx->targetDim);
   }
@@ -328,7 +313,7 @@ _pullInfoSetup(pullContext *pctx) {
 
 static void
 _infoCopy1(double *dst, const double *src) {
-  dst[0] = src[0];
+  dst[0] = src[0]; 
 }
 
 static void
@@ -429,57 +414,6 @@ pullInfoGet(Nrrd *ninfo, int info, pullContext *pctx) {
       outIdx += alen;
     }
   }
-
+  
   return 0;
 }
-
-/* HEY this was written in a hurry;
-** needs to be checked against parsing code */
-int
-pullInfoSpecSprint(char str[AIR_STRLEN_LARGE],
-                   const pullContext *pctx, const pullInfoSpec *ispec) {
-  static const char me[]="pullInfoSpecSprint";
-  const pullVolume *pvol;
-  char stmp[AIR_STRLEN_LARGE];
-
-  if (!( str && pctx && ispec )) {
-    biffAddf(PULL, "%s: got NULL pointer", me);
-    return 1;
-  }
-  strcpy(str, "");
-  /* HEY: no bounds checking! */
-  strcat(str, airEnumStr(pullInfo, ispec->info));
-  if (ispec->constraint) {
-    strcat(str, "-c");
-  }
-  strcat(str, ":");
-  if (pullSourceGage == ispec->source) {
-    if (UINT_MAX == ispec->volIdx) {
-      biffAddf(PULL, "%s: never learned volIdx for \"%s\"", me,
-               ispec->volName);
-      return 1;
-    }
-    strcat(str, ispec->volName);
-    strcat(str, ":");
-    pvol = pctx->vol[ispec->volIdx];
-    strcat(str, airEnumStr(pvol->kind->enm, ispec->item));
-  } else if (pullSourceProp == ispec->source) {
-    strcat(str, airEnumStr(pullProp, ispec->prop));
-  } else {
-    biffAddf(PULL, "%s: unexplained source %d", me, ispec->source);
-    return 1;
-  }
-  if ( (pullSourceGage == ispec->source
-        && 1 == pullInfoLen(ispec->info))
-       ||
-       (pullSourceProp == ispec->source
-        && 1 == pullPropLen(ispec->prop)) ) {
-    sprintf(stmp, "%g", ispec->zero);
-    strcat(str, stmp);
-    strcat(str, ":");
-    sprintf(stmp, "%g", ispec->scale);
-    strcat(str, stmp);
-  }
-  return 0;
-}
-

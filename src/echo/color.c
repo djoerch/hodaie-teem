@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -99,7 +98,7 @@ echoIntxMaterialColor(echoCol_t rgba[4], echoIntx *intx, echoRTParm *parm) {
 void
 echoIntxLightColor(echoCol_t ambi[3], echoCol_t diff[3], echoCol_t spec[3],
                    echoCol_t sp,
-                   echoIntx *intx, echoScene *scene, echoRTParm *parm,
+                   echoIntx *intx, echoScene *scene, echoRTParm *parm, 
                    echoThreadState *tstate) {
   unsigned int Lidx;
   int blocked;
@@ -118,10 +117,10 @@ echoIntxLightColor(echoCol_t ambi[3], echoCol_t diff[3], echoCol_t spec[3],
        has to be adjusted according to the instancing matrix */
     shadRay.neer = 30*ECHO_EPSILON;
   }
-
+  
   /* set ambient (easy) */
   ELL_3V_COPY(ambi, scene->ambi);
-
+  
   /* environment contributes only to diffuse */
   if (scene->envmap) {
     echoEnvmapLookup(diff, intx->norm, scene->envmap);
@@ -139,7 +138,7 @@ echoIntxLightColor(echoCol_t ambi[3], echoCol_t diff[3], echoCol_t spec[3],
     ELL_3V_NORM(Ldir, Ldir, Ldist);
     Ldot = ELL_3V_DOT(Ldir, intx->norm);
     /* HEY: HACK: we have to general per-object-type flag that says,
-       this kind of object has no notion of in-versus-out facing . . . */
+       this kind of object has no notion of in-versus-out facing ... */
     if (echoTypeRectangle == intx->obj->type) {
       Ldot = AIR_ABS(Ldot);
     }
@@ -258,17 +257,17 @@ _echoIntxColorMetal(INTXCOLOR_ARGS) {
 */
 int
 _echoRefract(echoPos_t T[3], echoPos_t V[3],
-             echoPos_t N[3], echoCol_t indexr, echoThreadState *tstate) {
+             echoPos_t N[3], echoCol_t index, echoThreadState *tstate) {
   echoPos_t cosTh, cosPh, sinPhSq, cosPhSq, tmp1, tmp2;
 
   cosTh = ELL_3V_DOT(V, N);
-  sinPhSq = (1 - cosTh*cosTh)/(indexr*indexr);
+  sinPhSq = (1 - cosTh*cosTh)/(index*index);
   cosPhSq = 1 - sinPhSq;
   if (cosPhSq < 0) {
     if (tstate->verbose) {
       fprintf(stderr, "%s%s: cosTh = %g --%g--> TIR!!\n",
               _echoDot(tstate->depth), "_echoRefract",
-              cosTh, indexr);
+              cosTh, index);
     }
     return AIR_FALSE;
   }
@@ -277,9 +276,9 @@ _echoRefract(echoPos_t T[3], echoPos_t V[3],
   if (tstate->verbose) {
     fprintf(stderr, "%s%s: cosTh = %g --%g--> cosPh = %g\n",
             _echoDot(tstate->depth), "_echoRefract",
-            cosTh, indexr, cosPh);
+            cosTh, index, cosPh);
   }
-  tmp1 = -1.0/indexr; tmp2 = cosTh/indexr - cosPh;
+  tmp1 = -1.0/index; tmp2 = cosTh/index - cosPh; 
   ELL_3V_SCALE_ADD2(T, tmp1, V, tmp2, N);
   ELL_3V_NORM(T, T, tmp1);
   return AIR_TRUE;
@@ -291,7 +290,7 @@ _echoIntxColorGlass(INTXCOLOR_ARGS) {
   echoCol_t
     ambi[3], diff[3],
     ka, kd, RP, RS, RT, R0,
-    indexr,        /* (index of material we're going into) /
+    index,         /* (index of material we're going into) /
                       (index of material we're leaving) */
     k[3],          /* attenuation of color due to travel through medium */
     matlCol[4],    /* inherent color */
@@ -312,7 +311,7 @@ _echoIntxColorGlass(INTXCOLOR_ARGS) {
   tranRay.shadow = reflRay.shadow = AIR_FALSE;
   ELL_3V_COPY(reflRay.dir, intx->refl);
   /* tranRay.dir set below */
-  indexr = intx->obj->mat[echoMatterGlassIndex];
+  index = intx->obj->mat[echoMatterGlassIndex];
 
   RS = 0.0;  /* this is a flag meaning: "AFAIK, there's no total int refl" */
   tmp = ELL_3V_DOT(intx->norm, intx->view);
@@ -320,12 +319,12 @@ _echoIntxColorGlass(INTXCOLOR_ARGS) {
     /* "d.n < 0": we're coming from outside the glass, and we
        assume this means that we're going into a HIGHER index material,
        which means there is NO total internal reflection */
-    _echoRefract(tranRay.dir, intx->view, intx->norm, indexr, tstate);
+    _echoRefract(tranRay.dir, intx->view, intx->norm, index, tstate);
     if (tstate->verbose) {
       fprintf(stderr, "%s%s: V=(%g,%g,%g),N=(%g,%g,%g),n=%g -> T=(%g,%g,%g)\n",
               _echoDot(tstate->depth), me,
               intx->view[0], intx->view[1], intx->view[2],
-              intx->norm[0], intx->norm[1], intx->norm[2], indexr,
+              intx->norm[0], intx->norm[1], intx->norm[2], index,
               tranRay.dir[0], tranRay.dir[1], tranRay.dir[2]);
     }
     c = tmp;
@@ -344,7 +343,7 @@ _echoIntxColorGlass(INTXCOLOR_ARGS) {
               _echoDot(tstate->depth), me, intx->t, k[0], k[1], k[2]);
     }
     ELL_3V_SCALE(negnorm, -1, intx->norm);
-    if (_echoRefract(tranRay.dir, intx->view, negnorm, 1/indexr, tstate)) {
+    if (_echoRefract(tranRay.dir, intx->view, negnorm, 1/index, tstate)) {
       c = -ELL_3V_DOT(tranRay.dir, negnorm);
     } else {
       /* its total internal reflection time! */
@@ -357,7 +356,7 @@ _echoIntxColorGlass(INTXCOLOR_ARGS) {
     /* total internal reflection */
     RT = 0;
   } else {
-    R0 = (indexr - 1)/(indexr + 1);
+    R0 = (index - 1)/(index + 1);
     R0 *= R0;
     c = 1 - c;
     c = c*c*c*c*c;
@@ -410,7 +409,7 @@ _echoIntxColorLight(INTXCOLOR_ARGS) {
 
 void
 _echoIntxColorUnknown(INTXCOLOR_ARGS) {
-
+  
   AIR_UNUSED(rgba);
   AIR_UNUSED(intx);
   AIR_UNUSED(scene);
@@ -435,29 +434,29 @@ _echoIntxColor[ECHO_MATTER_MAX+1] = {
 */
 void
 echoIntxFuzzify(echoIntx *intx, echoCol_t fuzz, echoThreadState *tstate) {
-  echoPos_t tmp, *jitt, oldNorm[3], perp0[3], perp1[3], jj0, jj1;
+  echoPos_t tmp, *jitt, oldNorm[3], perp0[3], perp1[3], j0, j1;
   int side;
 
   /* at some point I thought this was important to avoid bias when
-     going through glass, but now I'm not so sure . . . It is likely
+     going through glass, but now I'm not so sure ... It is likely
      totally moot if jitter vectors are NOT reused between pixels. */
   if (ELL_3V_DOT(intx->norm, intx->view) > 0) {
     jitt = tstate->jitt + 2*echoJittableNormalA;
   } else {
     jitt = tstate->jitt + 2*echoJittableNormalB;
   }
-  jj0 = fuzz*jitt[0];
-  jj1 = fuzz*jitt[1];
+  j0 = fuzz*jitt[0];
+  j1 = fuzz*jitt[1];
   ELL_3V_COPY(oldNorm, intx->norm);
   side = ELL_3V_DOT(intx->refl, oldNorm) > 0;
   ell_3v_PERP(perp0, oldNorm);
   ELL_3V_NORM(perp0, perp0, tmp);
   ELL_3V_CROSS(perp1, perp0, oldNorm);
-  ELL_3V_SCALE_ADD3(intx->norm, 1, oldNorm, jj0, perp0, jj1, perp1);
+  ELL_3V_SCALE_ADD3(intx->norm, 1, oldNorm, j0, perp0, j1, perp1);
   ELL_3V_NORM(intx->norm, intx->norm, tmp);
   _ECHO_REFLECT(intx->refl, intx->norm, intx->view, tmp);
   if (side != (ELL_3V_DOT(intx->refl, oldNorm) > 0)) {
-    ELL_3V_SCALE_ADD3(intx->norm, 1, oldNorm, -jj0, perp0, -jj1, perp1);
+    ELL_3V_SCALE_ADD3(intx->norm, 1, oldNorm, -j0, perp0, -j1, perp1);
     ELL_3V_NORM(intx->norm, intx->norm, tmp);
     _ECHO_REFLECT(intx->refl, intx->norm, intx->view, tmp);
   }
@@ -474,7 +473,7 @@ void
 echoIntxColor(echoCol_t rgba[4], echoIntx *intx,
               echoScene *scene, echoRTParm *parm, echoThreadState *tstate) {
   echoCol_t fuzz;
-
+  
   switch(intx->obj->matter) {
   case echoMatterGlass:
     fuzz = intx->obj->mat[echoMatterGlassFuzzy];

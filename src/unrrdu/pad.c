@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,13 +24,10 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Pad along each axis to make a bigger nrrd"
-static const char *_unrrdu_padInfoL =
-  (INFO ".\n "
-   "* Uses nrrdPad_nva");
+char *_unrrdu_padInfoL = INFO;
 
 int
-unrrdu_padMain(int argc, const char **argv, const char *me,
-               hestParm *hparm) {
+unrrdu_padMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -42,14 +38,13 @@ unrrdu_padMain(int argc, const char **argv, const char *me,
   double padVal;
   airArray *mop;
 
-  OPT_ADD_BOUND("min,minimum", 1, minOff, NULL,
+  OPT_ADD_BOUND("min,minimum", minOff,
                 "low corner of bounding box.\n "
                 "\b\bo <int> gives 0-based index\n "
                 "\b\bo M, M+<int>, M-<int> give index relative "
                 "to the last sample on the axis (M == #samples-1).",
                 minLen);
-  OPT_ADD_BOUND("max,maximum", 1, maxOff, NULL,
-                "high corner of bounding box.  "
+  OPT_ADD_BOUND("max,maximum", maxOff, "high corner of bounding box.  "
                 "Besides the specification styles described above, "
                 "there's also:\n "
                 "\b\bo m+<int> give index relative to minimum.",
@@ -58,8 +53,7 @@ unrrdu_padMain(int argc, const char **argv, const char *me,
              "How to handle samples beyond the input bounds:\n "
              "\b\bo \"pad\": use some specified value\n "
              "\b\bo \"bleed\": extend border values outward\n "
-             "\b\bo \"mirror\": repeated reflections\n "
-             "\b\bo \"wrap\": wrap-around to other side",
+             "\b\bo \"wrap\": wrap-around to other side", 
              NULL, nrrdBoundary);
   hestOptAdd(&opt, "v,value", "val", airTypeDouble, 1, 1, &padVal, "0.0",
              "for \"pad\" boundary behavior, pad with this value");

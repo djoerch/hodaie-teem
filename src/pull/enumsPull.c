@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -66,8 +65,7 @@ _pullInfoStr[] = {
   "livethresh3",
   "tan1",
   "tan2",
-  "negtan1",
-  "negtan2",
+  "tanmode",
   "isoval",
   "isogradvec",
   "isohessian",
@@ -89,13 +87,12 @@ _pullInfoVal[] = {
   pullInfoHeightLaplacian,    /* [1]  */
   pullInfoSeedPreThresh,      /* [1] */
   pullInfoSeedThresh,         /* [1] scalar for thresholding seeding */
-  pullInfoLiveThresh,         /* [1] */
-  pullInfoLiveThresh2,        /* [1] */
-  pullInfoLiveThresh3,        /* [1] */
+  pullInfoLiveThresh,         /* [1] */ 
+  pullInfoLiveThresh2,        /* [1] */ 
+  pullInfoLiveThresh3,        /* [1] */ 
   pullInfoTangent1,           /* [3] first tangent to constraint surf */
   pullInfoTangent2,           /* [3] second tangent to constraint surf */
-  pullInfoNegativeTangent1,   /* [3] */
-  pullInfoNegativeTangent2,   /* [3] */
+  pullInfoTangentMode,        /* [1] for morphing between co-dim 1 and 2 */
   pullInfoIsovalue,           /* [1] */
   pullInfoIsovalueGradient,   /* [3] */
   pullInfoIsovalueHessian,    /* [9] */
@@ -121,8 +118,7 @@ _pullInfoStrEqv[] = {
   "livethresh3", "lthr3",
   "tan1",
   "tan2",
-  "ntan1", "negtan1",
-  "ntan2", "negtan2",
+  "tanmode", "tmode",
   "isoval", "iso",
   "isogradvec", "isogvec",
   "isohessian", "isohess",
@@ -149,8 +145,7 @@ _pullInfoValEqv[] = {
   pullInfoLiveThresh3, pullInfoLiveThresh3,
   pullInfoTangent1,
   pullInfoTangent2,
-  pullInfoNegativeTangent1, pullInfoNegativeTangent1,
-  pullInfoNegativeTangent2, pullInfoNegativeTangent2,
+  pullInfoTangentMode, pullInfoTangentMode,
   pullInfoIsovalue, pullInfoIsovalue,
   pullInfoIsovalueGradient, pullInfoIsovalueGradient,
   pullInfoIsovalueHessian, pullInfoIsovalueHessian,
@@ -175,23 +170,20 @@ pullInfo = &_pullInfo;
 const char *
 _pullPropStr[] = {
   "(unknown_prop)",
-  "idtag",            /* pullPropIdtag */
-  "idcc",             /* pullPropIdCC */
-  "energy",           /* pullPropEnergy */
-  "stepEnergy",       /* pullPropStepEnergy */
-  "stepConstr",       /* pullPropStepConstr */
-  "stuck",            /* pullPropStuck */
-  "position",         /* pullPropPosition */
-  "force",            /* pullPropForce */
-  "neighDistMean",    /* pullPropNeighDistMean */
-  "scale",            /* pullPropScale */
-  "neighCovar",       /* pullPropNeighCovar */
-  "neighCovar7Ten",   /* pullPropNeighCovar7Ten */
-  "neighTanCovar",    /* pullPropNeighTanCovar */
-  "internum",         /* pullPropNeighInterNum */
-  "neighCovarTrace",  /* pullPropNeighCovarTrace */
-  "neighCovarDet",    /* pullPropNeighCovarDet */
-  "stability"         /* pullPropStability */
+  "idtag",
+  "idcc",
+  "energy",
+  "stepEnergy",
+  "stepConstr",
+  "stuck",
+  "position",
+  "force",
+  "neighDistMean",
+  "scale",
+  "neighCovar",
+  "neighCovar7Ten",
+  "neighTanCovar",
+  "stability"
 };
 
 static const airEnum
@@ -231,29 +223,6 @@ pullProcessMode = &_pullProcessMode;
 /* --------------------------------------------------------- */
 
 const char *
-_pullTraceStopStr[] = {
-  "(unknown_trace_stop)",
-  "speeding",
-  "constrfail",
-  "bounds",
-  "length",
-  "stub"
-};
-
-const airEnum
-_pullTraceStop = {
-  "trace stop",
-  PULL_TRACE_STOP_MAX,
-  _pullTraceStopStr,  NULL,
-  NULL, NULL, NULL,
-  AIR_FALSE
-};
-const airEnum *const
-pullTraceStop = &_pullTraceStop;
-
-/* --------------------------------------------------------- */
-
-const char *
 _pullCountStr[] = {
   "(unknown_countable)",
   "descent",
@@ -282,27 +251,4 @@ _pullCount = {
 };
 const airEnum *const
 pullCount = &_pullCount;
-
-/* --------------------------------------------------------- */
-
-const char *
-_pullConstraintFailStr[PULL_CONSTRAINT_FAIL_MAX+1] = {
-  "(unknown or no contraint fail)",
-  "projected gradient 0 (A)",
-  "projected gradient 0 (B)",
-  "iter max exceeded",
-  "travel exceeded"
-};
-
-const airEnum
-_pullConstraintFail = {
-  "constraint fail",
-  PULL_CONSTRAINT_FAIL_MAX,
-  _pullConstraintFailStr, NULL,
-  NULL, NULL, NULL,
-  AIR_FALSE
-};
-const airEnum *const
-pullConstraintFail = &_pullConstraintFail;
-
 

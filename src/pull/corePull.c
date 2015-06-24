@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -24,14 +23,11 @@
 #include "pull.h"
 #include "privatePull.h"
 
-int
-_pullVerbose = 0;
-
 #define _DECREASE(ell, enn) (           \
-  2*((ell) - (enn))                     \
-  / ( (AIR_ABS(ell) + AIR_ABS(enn))     \
-      ? (AIR_ABS(ell) + AIR_ABS(enn))   \
-      : 1 )                             \
+  2*((ell) - (enn))            \
+  / ( (AIR_ABS(ell) + AIR_ABS(enn))          \
+      ? (AIR_ABS(ell) + AIR_ABS(enn))          \
+      : 1 )				       \
   )
 /*
 ** this is the core of the worker threads: as long as there are bins
@@ -62,10 +58,6 @@ _pullProcess(pullTask *task) {
       /* no more bins to process! */
       break;
     }
-    if (task->pctx->verbose > 1) {
-      fprintf(stderr, "%s(%u): calling pullBinProcess(%u)\n",
-              me, task->threadIdx, binIdx);
-    }
     if (pullBinProcess(task, binIdx)) {
       biffAddf(PULL, "%s(%u): had trouble on bin %u", me,
                task->threadIdx, binIdx);
@@ -80,33 +72,33 @@ void *
 _pullWorker(void *_task) {
   static const char me[]="_pushWorker";
   pullTask *task;
-
+  
   task = (pullTask *)_task;
 
   while (1) {
     if (task->pctx->verbose > 1) {
-      fprintf(stderr, "%s(%u): waiting on barrier A\n",
-              me, task->threadIdx);
+      printf("%s(%u): waiting on barrier A\n",
+             me, task->threadIdx);
     }
     /* pushFinish sets finished prior to the barriers */
     airThreadBarrierWait(task->pctx->iterBarrierA);
     if (task->pctx->finished) {
       if (task->pctx->verbose > 1) {
-        fprintf(stderr, "%s(%u): done!\n", me, task->threadIdx);
+        printf("%s(%u): done!\n", me, task->threadIdx);
       }
       break;
     }
-    /* else there's work to do . . . */
+    /* else there's work to do ... */    
     if (task->pctx->verbose > 1) {
-      fprintf(stderr, "%s(%u): starting to process\n", me, task->threadIdx);
+      printf("%s(%u): starting to process\n", me, task->threadIdx);
     }
     if (_pullProcess(task)) {
-      /* HEY clearly not threadsafe to have errors . . . */
+      /* HEY clearly not threadsafe to have errors ... */
       biffAddf(PULL, "%s: thread %u trouble", me, task->threadIdx);
       task->pctx->finished = AIR_TRUE;
     }
     if (task->pctx->verbose > 1) {
-      fprintf(stderr, "%s(%u): waiting on barrier B\n",
+      printf("%s(%u): waiting on barrier B\n",
              me, task->threadIdx);
     }
     airThreadBarrierWait(task->pctx->iterBarrierB);
@@ -121,7 +113,7 @@ pullStart(pullContext *pctx) {
   unsigned int tidx;
 
   if (pctx->verbose) {
-    fprintf(stderr, "%s: hello %p\n", me, AIR_VOIDP(pctx));
+    printf("%s: hello %p\n", me, pctx);
   }
   pctx->iter = 0; /* have to initialize this here because of seedOnly hack */
 
@@ -129,17 +121,12 @@ pullStart(pullContext *pctx) {
      to be set up (_pullVolumeSetup) by before its copied (_pullTaskSetup) */
   if (_pullContextCheck(pctx)
       || _pullVolumeSetup(pctx)
-      || _pullInfoSetup(pctx)
+      || _pullInfoSetup(pctx) 
       || _pullTaskSetup(pctx)
-      || _pullBinSetup(pctx)) {
-    biffAddf(PULL, "%s: trouble starting to set up context", me);
+      || _pullBinSetup(pctx)
+      || _pullPointSetup(pctx)) {
+    biffAddf(PULL, "%s: trouble setting up context", me);
     return 1;
-  }
-  if (!(pctx->flag.startSkipsPoints)) {
-    if (_pullPointSetup(pctx)) {
-      biffAddf(PULL, "%s: trouble setting up points", me);
-      return 1;
-    }
   }
 
   if (pctx->threadNum > 1) {
@@ -149,7 +136,7 @@ pullStart(pullContext *pctx) {
     /* start threads 1 and up running; they'll all hit iterBarrierA  */
     for (tidx=1; tidx<pctx->threadNum; tidx++) {
       if (pctx->verbose > 1) {
-        fprintf(stderr, "%s: spawning thread %d\n", me, tidx);
+        printf("%s: spawning thread %d\n", me, tidx);
       }
       airThreadStart(pctx->task[tidx]->thread, _pullWorker,
                      (void *)(pctx->task[tidx]));
@@ -160,7 +147,7 @@ pullStart(pullContext *pctx) {
     pctx->iterBarrierB = NULL;
   }
   if (pctx->verbose) {
-    fprintf(stderr, "%s: setup for %u threads done\n", me, pctx->threadNum);
+    printf("%s: setup for %u threads done\n", me, pctx->threadNum);
   }
 
   pctx->timeIteration = 0;
@@ -187,7 +174,7 @@ pullFinish(pullContext *pctx) {
   pctx->finished = AIR_TRUE;
   if (pctx->threadNum > 1) {
     if (pctx->verbose > 1) {
-      fprintf(stderr, "%s: finishing workers\n", me);
+      printf("%s: finishing workers\n", me);
     }
     airThreadBarrierWait(pctx->iterBarrierA);
     /* worker threads now pass barrierA and see that finished is AIR_TRUE,
@@ -244,28 +231,16 @@ _pullIterate(pullContext *pctx, int mode) {
     pctx->sysParm.energyIncreasePermit *= pctx->eipScale;
   }
 
-#if PULL_HINTER
-  /* zero-out/alloc hinter if need be */
-  if (pullProcessModeDescent == mode && pctx->nhinter) {
-    if (nrrdMaybeAlloc_va(pctx->nhinter, nrrdTypeFloat, 2,
-                          AIR_CAST(size_t, _PULL_HINTER_SIZE),
-                          AIR_CAST(size_t, _PULL_HINTER_SIZE))) {
-      biffMovef(PULL, NRRD, "%s: setting up nhinter", me);
-      return 1;
-    }
-  }
-#endif
-
   /* tell all tasks what mode they're in */
   for (ti=0; ti<pctx->threadNum; ti++) {
     pctx->task[ti]->processMode = mode;
   }
   if (pctx->verbose) {
-    fprintf(stderr, "%s(%s): iter %d goes w/ eip %g, %u pnts, enr %g%s\n",
-            me, airEnumStr(pullProcessMode, mode),
-            pctx->iter, pctx->sysParm.energyIncreasePermit,
-            pullPointNumber(pctx), _pullEnergyTotal(pctx),
-            (pctx->flag.permuteOnRebin ? " (por)" : ""));
+    printf("%s(%s): iter %d goes w/ eip %g, %u pnts, enr %g%s\n",
+	   me, airEnumStr(pullProcessMode, mode),
+	   pctx->iter, pctx->sysParm.energyIncreasePermit,
+           pullPointNumber(pctx), _pullEnergyTotal(pctx),
+           (pctx->flag.permuteOnRebin ? " (por)" : ""));
   }
 
   time0 = airTime();
@@ -298,7 +273,7 @@ _pullIterate(pullContext *pctx, int mode) {
   }
   if (pctx->verbose) {
     if (pctx->pointNum > _PULL_PROGRESS_POINT_NUM_MIN) {
-      fprintf(stderr, ".\n"); /* finishing line of progress indicators */
+      printf(".\n"); /* finishing line of period progress indicators */
     }
   }
 
@@ -309,7 +284,7 @@ _pullIterate(pullContext *pctx, int mode) {
     E = _pullIterFinishDescent(pctx); /* includes rebinning */
     break;
   case pullProcessModeNeighLearn:
-    E = _pullIterFinishNeighLearn(pctx);
+    /* nothing extra to do */
     break;
   case pullProcessModeAdding:
     E = _pullIterFinishAdding(pctx);
@@ -322,24 +297,8 @@ _pullIterate(pullContext *pctx, int mode) {
     return 1;
     break;
   }
-  if (E) {
-    pctx->finished = AIR_TRUE;
-    biffAddf(PULL, "%s: trouble finishing iter %u", me, pctx->iter);
-    return 1;
-  }
 
   pctx->timeIteration = airTime() - time0;
-
-#if PULL_HINTER
-  if (pullProcessModeDescent == mode && pctx->nhinter) {
-    char fname[AIR_STRLEN_SMALL];
-    sprintf(fname, "hinter-%05u.nrrd", pctx->iter);
-    if (nrrdSave(fname, pctx->nhinter, NULL)) {
-      biffMovef(PULL, NRRD, "%s: saving hinter to %s", me, fname);
-      return 1;
-    }
-  }
-#endif
 
   return 0;
 }
@@ -353,15 +312,15 @@ pullRun(pullContext *pctx) {
     enrNew=AIR_NAN, enrDecrease=AIR_NAN, enrDecreaseAvg=AIR_NAN;
   int converged;
   unsigned firstIter;
-
+  
   if (pctx->verbose) {
-    fprintf(stderr, "%s: hello\n", me);
+    printf("%s: hello\n", me);
   }
   time0 = airTime();
   firstIter = pctx->iter;
   if (pctx->verbose) {
-    fprintf(stderr, "%s: doing priming iteration (iter now %u)\n", me,
-            pctx->iter);
+    printf("%s: doing priming iteration (iter now %u)\n", me,
+           pctx->iter);
   }
   if (_pullIterate(pctx, pullProcessModeDescent)) {
     biffAddf(PULL, "%s: trouble on priming iter %u", me, pctx->iter);
@@ -370,11 +329,11 @@ pullRun(pullContext *pctx) {
   pctx->iter += 1;
   enrLast = enrNew = _pullEnergyTotal(pctx);
   if (pctx->verbose) {
-    fprintf(stderr, "%s: starting system energy = %g\n", me, enrLast);
+    printf("%s: starting system energy = %g\n", me, enrLast);
   }
   enrDecrease = enrDecreaseAvg = 0;
   converged = AIR_FALSE;
-  while ((pctx->iterParm.min && pctx->iter <= pctx->iterParm.min)
+  while ((pctx->iterParm.min && pctx->iter <= pctx->iterParm.min) 
          ||
          ((!pctx->iterParm.max || pctx->iter < pctx->iterParm.max)
           && !converged)) {
@@ -404,7 +363,7 @@ pullRun(pullContext *pctx) {
     if (firstIter + 1 == pctx->iter) {
       /* we need some way of artificially boosting enrDecreaseAvg when
          we're just starting, so that we thwart the convergence test,
-         which we do because we don't have the history of iterations
+         which we do because we don't have the history of iterations 
          that enrDecreaseAvg is supposed to describe.  Using some scaling
          of enrDecrease is one possible hack. */
       enrDecreaseAvg = 3*enrDecrease;
@@ -412,22 +371,21 @@ pullRun(pullContext *pctx) {
       enrDecreaseAvg = (2*enrDecreaseAvg + enrDecrease)/3;
     }
     if (pctx->verbose) {
-      fprintf(stderr, "%s: ___ done iter %u: "
-              "e=%g,%g, de=%g,%g (%g), s=%g,%g\n",
-              me, pctx->iter, enrLast, enrNew, enrDecrease, enrDecreaseAvg,
-              pctx->sysParm.energyDecreaseMin,
-              _pullStepInterAverage(pctx), _pullStepConstrAverage(pctx));
+      printf("%s: ___ done iter %u: "
+             "e=%g,%g, de=%g,%g (%g), s=%g,%g\n",
+             me, pctx->iter, enrLast, enrNew, enrDecrease, enrDecreaseAvg,
+             pctx->sysParm.energyDecreaseMin,
+             _pullStepInterAverage(pctx), _pullStepConstrAverage(pctx));
     }
     if (pctx->iterParm.popCntlPeriod) {
-      if ((pctx->iterParm.popCntlPeriod - 1)
+      if ((pctx->iterParm.popCntlPeriod - 1) 
           == (pctx->iter % pctx->iterParm.popCntlPeriod)
           && enrDecreaseAvg < pctx->sysParm.energyDecreasePopCntlMin
-          && (pctx->sysParm.alpha != 0
+          && (pctx->sysParm.alpha != 0 
               || !pctx->flag.noPopCntlWithZeroAlpha)) {
         if (pctx->verbose) {
-          fprintf(stderr, "%s: ***** enr decrease %g < %g: "
-                  "trying pop cntl ***** \n",
-                  me, enrDecreaseAvg, pctx->sysParm.energyDecreasePopCntlMin);
+          printf("%s: ***** enr decrease %g < %g: trying pop cntl ***** \n",
+                 me, enrDecreaseAvg, pctx->sysParm.energyDecreasePopCntlMin);
         }
         if (_pullIterate(pctx, pullProcessModeNeighLearn)
             || _pullIterate(pctx, pullProcessModeAdding)
@@ -439,16 +397,16 @@ pullRun(pullContext *pctx) {
         }
       } else {
         if (pctx->verbose > 2) {
-          fprintf(stderr, "%s: ***** no pop cntl:\n", me);
-          fprintf(stderr, "    iter=%u %% period=%u = %u != %u\n",
-                  pctx->iter, pctx->iterParm.popCntlPeriod,
-                  pctx->iter % pctx->iterParm.popCntlPeriod,
-                  pctx->iterParm.popCntlPeriod - 1);
-          fprintf(stderr, "    en dec avg = %g >= %g\n",
-                  enrDecreaseAvg, pctx->sysParm.energyDecreasePopCntlMin);
-          fprintf(stderr, "    npcwza %s && alpha = %g\n",
-                  pctx->flag.noPopCntlWithZeroAlpha ? "true" : "false",
-                  pctx->sysParm.alpha);
+          printf("%s: ***** no pop cntl:\n", me);
+          printf("    iter=%u %% period=%u = %u != %u\n",
+                 pctx->iter, pctx->iterParm.popCntlPeriod,
+                 pctx->iter % pctx->iterParm.popCntlPeriod,
+                 pctx->iterParm.popCntlPeriod - 1);
+          printf("    en dec avg = %g >= %g\n",
+                 enrDecreaseAvg, pctx->sysParm.energyDecreasePopCntlMin);
+          printf("    npcwza %s && alpha = %g\n",
+                 pctx->flag.noPopCntlWithZeroAlpha ? "true" : "false",
+                 pctx->sysParm.alpha);
         }
       }
     }
@@ -459,16 +417,15 @@ pullRun(pullContext *pctx) {
                  && AIR_IN_OP(0, enrDecreaseAvg,
                               pctx->sysParm.energyDecreaseMin));
     if (pctx->verbose) {
-      fprintf(stderr, "%s: converged %d = (%d || (%d && %d)) "
-              "&& (0 < %g < %g)=%d\n",
-              me, converged, !pctx->iterParm.popCntlPeriod,
-              !pctx->addNum, !pctx->nixNum,
-              enrDecreaseAvg, pctx->sysParm.energyDecreaseMin,
-              AIR_IN_OP(0, enrDecreaseAvg, pctx->sysParm.energyDecreaseMin));
+      printf("%s: converged %d = (%d || (%d && %d)) && (0 < %g < %g)=%d\n",
+             me, converged, !pctx->iterParm.popCntlPeriod,
+             !pctx->addNum, !pctx->nixNum, 
+             enrDecreaseAvg, pctx->sysParm.energyDecreaseMin,
+             AIR_IN_OP(0, enrDecreaseAvg, pctx->sysParm.energyDecreaseMin));
     }
     if (converged && pctx->verbose) {
-      printf("%s: enrDecreaseAvg %g < %g: converged!!\n", me,
-             enrDecreaseAvg, pctx->sysParm.energyDecreaseMin);
+      printf("%s: enrDecreaseAvg %g < %g: converged!!\n", me, 
+	     enrDecreaseAvg, pctx->sysParm.energyDecreaseMin);
     }
     _pullPointStepEnergyScale(pctx, pctx->sysParm.opporStepScale);
     /* call the callback */
@@ -498,7 +455,7 @@ pullRun(pullContext *pctx) {
     airRandMTState *rng;
     rng = pctx->task[0]->rng;
     nout = nrrdNew();
-    nrrdMaybeAlloc_va(nout, nrrdTypeDouble, 3,
+    nrrdMaybeAlloc_va(nout, nrrdTypeDouble, 3, 
                       AIR_CAST(size_t, 3),
                       AIR_CAST(size_t, szimg),
                       AIR_CAST(size_t, szimg));
@@ -521,7 +478,7 @@ pullRun(pullContext *pctx) {
         ELL_3V_SCALE_ADD2(pb->pos, 1.0, pa->pos, r, rdir);
         pb->pos[3] = pa->pos[3] + s;
         /* now points are in desired test positions */
-        enr = _pullEnergyInterParticle(pctx, pa, pb,
+        enr = _pullEnergyInterParticle(pctx, pa, pb, 
                                        AIR_ABS(r), AIR_ABS(s), egrad);
         ELL_3V_SET(out + 3*(ri + szimg*si),
                    enr, ELL_3V_DOT(egrad, rdir), egrad[3]);

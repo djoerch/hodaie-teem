@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,7 +24,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Convert to another type (as if by cast, w/ optional clamp)"
-static const char *_unrrdu_convertInfoL =
+char *_unrrdu_convertInfoL = 
 (INFO ". By default this does not transform, scale, or intelligently "
  "quantize values; it just copies them from one type to another, which "
  "replicates exactly what you'd get in C when you assign from a variable "
@@ -33,12 +32,10 @@ static const char *_unrrdu_convertInfoL =
  "clamping values to the representable range of the output type is possible. "
  "with \"-clamp\". "
  "See also \"unu quantize\","
- "\"unu 2op x\", and \"unu 3op clamp\".\n "
- "* Uses nrrdConvert or nrrdClampConvert");
+ "\"unu 2op x\", and \"unu 3op clamp\".");
 
 int
-unrrdu_convertMain(int argc, const char **argv, const char *me,
-                   hestParm *hparm) {
+unrrdu_convertMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;

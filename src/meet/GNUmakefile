@@ -1,6 +1,5 @@
 #
 # Teem: Tools to process and visualize scientific data and images
-# Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
 # Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
 # Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 #
@@ -45,11 +44,11 @@ $(L).SEEN := true
 
 #### Describe library here
 ####
-#### TEEM_LIB_LIST (except meet)
-$(L).NEED = air hest biff nrrd ell unrrdu alan moss tijk gage dye bane limn echo hoover seek ten elf pull coil push mite
+####
+$(L).NEED = air hest biff nrrd ell unrrdu dye moss alan gage bane limn seek hoover echo ten mite coil push pull
 $(L).PUBLIC_HEADERS = meet.h
-$(L).OBJS = enumall.o meetNrrd.o meetGage.o meetPull.o
-$(L).TESTS = test/strace test/tenums
+$(L).OBJS = enumall.o meetGage.o meetPull.o
+$(L).TESTS = 
 ####
 ####
 ####

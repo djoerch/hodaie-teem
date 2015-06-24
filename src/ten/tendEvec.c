@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,13 +24,12 @@
 #include "privateTen.h"
 
 #define INFO "Calculate one or more eigenvectors in a DT volume"
-static const char *_tend_evecInfoL =
+char *_tend_evecInfoL =
   (INFO
    ". ");
 
 int
-tend_evecMain(int argc, const char **argv, const char *me,
-              hestParm *hparm) {
+tend_evecMain(int argc, char **argv, char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;
@@ -73,7 +71,7 @@ tend_evecMain(int argc, const char **argv, const char *me,
     fprintf(stderr, "%s: didn't get a valid DT volume:\n%s\n", me, err);
     airMopError(mop); return 1;
   }
-
+  
   sx = nin->axis[1].size;
   sy = nin->axis[2].size;
   sz = nin->axis[3].size;

@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,15 +24,14 @@
 #include "privateTen.h"
 
 #define INFO "Generate barycentric histograms of anisotropy"
-static const char *_tend_anhistInfoL =
+char *_tend_anhistInfoL =
   (INFO
    ".  The barycentric space used is either one of Westin's "
    "triple of spherical, linear, and planar anisotropy.  The bin "
    "counts in the histogram are weighted by the confidence value.");
 
 int
-tend_anhistMain(int argc, const char **argv, const char *me,
-                hestParm *hparm) {
+tend_anhistMain(int argc, char **argv, char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;

@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -37,7 +36,7 @@ gageDeconvolve(Nrrd *_nout, double *lastDiffP,
   const double *ans[2];
   Nrrd *nout[2];
   airArray *mop;
-  unsigned int sx, sy, sz, xi, yi, zi, anslen, thiz=0, last, inIdx, iter;
+  unsigned int sx, sy, sz, xi, yi, zi, anslen, this, last, inIdx, iter;
   int E, valItem;
 
   if (!(_nout && lastDiffP && nin && kind && ksp)) {
@@ -57,7 +56,7 @@ gageDeconvolve(Nrrd *_nout, double *lastDiffP,
     biffAddf(GAGE, "%s: need epsilon >= 0.0 (not %g)", me, epsilon);
     return 1;
   }
-
+  
   /* this once changed from 0 to 1, but is unlikely to change again */
   valItem = 1;
 
@@ -86,7 +85,7 @@ gageDeconvolve(Nrrd *_nout, double *lastDiffP,
     out[iter] = AIR_CAST(double*, nout[iter]->data);
     ans[iter] = gageAnswerPointer(ctx[iter], pvl[iter], valItem);
   }
-
+  
   anslen = kind->table[valItem].answerLength;
   lup = nrrdDLookup[nin->type];
 
@@ -94,11 +93,11 @@ gageDeconvolve(Nrrd *_nout, double *lastDiffP,
   sx = ctx[0]->shape->size[0];
   sy = ctx[0]->shape->size[1];
   sz = ctx[0]->shape->size[2];
-
+  
   for (iter=0; iter<maxIter; iter++) {
-    thiz = (iter+1) % 2;
+    this = (iter+1) % 2;
     last = (iter+0) % 2;
-    val[thiz] = out[thiz];
+    val[this] = out[this];
     val[last] = out[last];
     inIdx = 0;
     meandiff = 0;
@@ -111,10 +110,10 @@ gageDeconvolve(Nrrd *_nout, double *lastDiffP,
           for (ai=0; ai<anslen; ai++) {
             in = lup(nin->data, ai + anslen*inIdx);
             aa = ans[last][ai];
-            val[thiz][ai] = val[last][ai] + step*(in - aa)/alpha;
+            val[this][ai] = val[last][ai] + step*(in - aa)/alpha;
             meandiff += 2*(in - aa)*(in - aa)/(DBL_EPSILON + in*in + aa*aa);
           }
-          val[thiz] += anslen;
+          val[this] += anslen;
           val[last] += anslen;
           ++inIdx;
         }
@@ -142,7 +141,7 @@ gageDeconvolve(Nrrd *_nout, double *lastDiffP,
     }
   }
 
-  if (nrrdClampConvert(_nout, nout[thiz], (nrrdTypeDefault == typeOut
+  if (nrrdClampConvert(_nout, nout[this], (nrrdTypeDefault == typeOut
                                            ? nin->type
                                            : typeOut))) {
     biffAddf(GAGE, "%s: couldn't create output", me);
@@ -157,11 +156,11 @@ gageDeconvolve(Nrrd *_nout, double *lastDiffP,
 /*
 *******************************
 ** all the following functionality should at some point be
-** pushed down to nrrd . . .
+** pushed down to nrrd ...
 */
 
 static void
-deconvLine(double *line, size_t llen, const NrrdKernelSpec *ksp) {
+deconvLine(double *line, unsigned int len, const NrrdKernelSpec *ksp) {
 
   /* Add as many other parameters to this as you want,
      like number and location of poles, or whatever other
@@ -170,7 +169,7 @@ deconvLine(double *line, size_t llen, const NrrdKernelSpec *ksp) {
 
   /* comment these out when there is a real function body */
   AIR_UNUSED(line);
-  AIR_UNUSED(llen);
+  AIR_UNUSED(len);
   AIR_UNUSED(ksp);
 
   return;
@@ -180,8 +179,6 @@ static int
 deconvTrivial(const NrrdKernelSpec *ksp) {
   int ret;
 
-  /* HEY this will be much easier once kernels have a way of
-     advertising whether or not they interpolate */
   if (1 == ksp->parm[0] &&
       (ksp->kernel == nrrdKernelHann ||
        ksp->kernel == nrrdKernelBlackman ||
@@ -233,12 +230,12 @@ gageDeconvolveSeparable(Nrrd *nout, const Nrrd *nin,
     return 1;
   }
   if (!gageDeconvolveSeparableKnown(ksp)) {
-    biffAddf(GAGE, "%s: separable deconv not known for %s kernel",
+    biffAddf(GAGE, "%s: seperable deconv not known for %s kernel",
              me, ksp->kernel->name);
     return 1;
   }
   if (gageKindVolumeCheck(kind, nin)) {
-    biffAddf(GAGE, "%s: given volume doesn't fit %s kind",
+    biffAddf(GAGE, "%s: given volume doesn't fit %s kind", 
              me, kind->name);
     return 1;
   }
@@ -253,7 +250,7 @@ gageDeconvolveSeparable(Nrrd *nout, const Nrrd *nin,
        copying the values we're already done; bye */
     return 0;
   }
-
+  
   valLen = kind->valLen;
   sx = nin->axis[kind->baseDim + 0].size;
   sy = nin->axis[kind->baseDim + 1].size;
@@ -263,7 +260,7 @@ gageDeconvolveSeparable(Nrrd *nout, const Nrrd *nin,
   lineLen = AIR_MAX(lineLen, sz);
   lup = nrrdDLookup[nin->type];
   ins = nrrdDInsert[nout->type];
-
+  
   mop = airMopNew();
   line = AIR_CALLOC(lineLen*valLen, double);
   airMopAdd(mop, line, airFree, airMopAlways);

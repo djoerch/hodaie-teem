@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -108,43 +107,35 @@ ell_4mv_mul_d(double v2[4], const double m[16], const double v1[4]) {
   ELL_4V_COPY(v2, tmp);
 }
 
-/*
-** hat tip to http://www.plunk.org/~hatch/rightway.php
-*/
 float
-ell_3v_angle_f(const float _uu[3], const float _vv[3]) {
-  float tmp[3], len, uu[3], vv[3], ret;
+ell_3v_angle_f(float u[3], float v[3]) {
+  float tmp[3], ret;
 
-  ELL_3V_NORM_TT(uu, float, _uu, len);
-  ELL_3V_NORM_TT(vv, float, _vv, len);
-  if (ELL_3V_DOT(uu, vv) < 0.0) {
-    ELL_3V_ADD2(tmp, uu, vv);
+  if (ELL_3V_DOT(u, v) < 0.0) {
+    ELL_3V_ADD2(tmp, u, v);
     ret = AIR_CAST(float, AIR_PI - 2*asin(ELL_3V_LEN(tmp)/2.0));
   } else {
-    ELL_3V_SUB(tmp, uu, vv);
+    ELL_3V_SUB(tmp, u, v);
     ret = AIR_CAST(float, 2*asin(ELL_3V_LEN(tmp)/2.0));
   }
   return ret;
 }
 
-/* HEY: copy and paste */
 double
-ell_3v_angle_d(const double _uu[3], const double _vv[3]) {
-  double tmp[3], len, uu[3], vv[3], ret;
+ell_3v_angle_d(double u[3], double v[3]) {
+  double tmp[3], ret;
 
-  ELL_3V_NORM(uu, _uu, len);
-  ELL_3V_NORM(vv, _vv, len);
-  if (ELL_3V_DOT(uu, vv) < 0.0) {
-    ELL_3V_ADD2(tmp, uu, vv);
+  if (ELL_3V_DOT(u, v) < 0.0) {
+    ELL_3V_ADD2(tmp, u, v);
     ret = AIR_PI - 2*asin(ELL_3V_LEN(tmp)/2.0);
   } else {
-    ELL_3V_SUB(tmp, uu, vv);
+    ELL_3V_SUB(tmp, u, v);
     ret = 2*asin(ELL_3V_LEN(tmp)/2.0);
   }
   return ret;
 }
 
-/*
+/* 
 ** input vectors have to be normalized!
 */
 double
@@ -175,7 +166,7 @@ ell_3v_barycentric_spherical_d(double bary[3],
                                const double cv[3],
                                const double vv[3]) {
   double sum;
-
+  
   bary[0] = ell_3v_area_spherical_d(vv, bv, cv);
   bary[1] = ell_3v_area_spherical_d(vv, cv, av);
   bary[2] = ell_3v_area_spherical_d(vv, av, bv);

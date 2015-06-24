@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,7 +24,7 @@
 #include "privateTen.h"
 
 #define INFO "Calculate B-matrix given gradient directions"
-static const char *_tend_bmatInfoL =
+char *_tend_bmatInfoL =
   (INFO
    ", assuming no diffusion weighting from the other imaging gradients. "
    "The input is a 3-by-N array of floats or doubles, each row being "
@@ -39,8 +38,7 @@ static const char *_tend_bmatInfoL =
    "elements NOT pre-multiplied by 2.");
 
 int
-tend_bmatMain(int argc, const char **argv, const char *me,
-              hestParm *hparm) {
+tend_bmatMain(int argc, char **argv, char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;

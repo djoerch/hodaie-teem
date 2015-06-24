@@ -1,9 +1,6 @@
 # This variable will help provide a master list of all the sources.
 # Add new source files here.
 SET(UNRRDU_SOURCES
-  fft.c
-  i2w.c
-  w2i.c
   1op.c
   2op.c
   3op.c
@@ -22,9 +19,7 @@ SET(UNRRDU_SOURCES
   cmedian.c
   convert.c
   crop.c
-  acrop.c
   data.c
-  dering.c
   dhisto.c
   dice.c
   dist.c
@@ -44,10 +39,6 @@ SET(UNRRDU_SOURCES
   lut2.c
   make.c
   minmax.c
-  cksum.c
-  diff.c
-  dnorm.c
-  vidicon.c
   mlut.c
   mrmap.c
   pad.c

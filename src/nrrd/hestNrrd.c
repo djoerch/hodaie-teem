@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -39,7 +38,7 @@ _nrrdHestNrrdParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   char me[] = "_nrrdHestNrrdParse", *nerr;
   Nrrd **nrrdP;
   airArray *mop;
-
+  
   if (!(ptr && str)) {
     sprintf(err, "%s: got NULL pointer", me);
     return 1;
@@ -51,7 +50,7 @@ _nrrdHestNrrdParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
     airMopAdd(mop, *nrrdP, (airMopper)nrrdNuke, airMopOnError);
     if (nrrdLoad(*nrrdP, str, NULL)) {
       airMopAdd(mop, nerr = biffGetDone(NRRD), airFree, airMopOnError);
-      airStrcpy(err, AIR_STRLEN_HUGE, nerr);
+      strncpy(err, nerr, AIR_STRLEN_HUGE-1);
       airMopError(mop);
       return (strstr(err, "EOF") ? 2 : 1);
     }
@@ -70,7 +69,7 @@ _nrrdHestNrrd = {
   "nrrd",
   _nrrdHestNrrdParse,
   (airMopper)nrrdNuke
-};
+}; 
 
 hestCB *
 nrrdHestNrrd = &_nrrdHestNrrd;
@@ -90,7 +89,7 @@ _nrrdHestKernelSpecParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   *ksP = nrrdKernelSpecNew();
   if (nrrdKernelParse(&((*ksP)->kernel), (*ksP)->parm, str)) {
     nerr = biffGetDone(NRRD);
-    airStrcpy(err, AIR_STRLEN_HUGE, nerr);
+    strncpy(err, nerr, AIR_STRLEN_HUGE-1);
     free(nerr);
     return 1;
   }
@@ -112,6 +111,7 @@ nrrdHestKernelSpec = &_nrrdHestKernelSpec;
 
 int
 _nrrdLooksLikeANumber(char *str) {
+  char c;
   /* 0: -+                (no restriction, but that's a little daft)
      1: 0123456789        n > 0
      2: .                 0 <= n <= 1
@@ -119,12 +119,11 @@ _nrrdLooksLikeANumber(char *str) {
      4: everything else   0 == n
   */
   int count[5];
-
+  
   count[0] = count[1] = count[2] = count[3] = count[4] = 0;
   while (*str) {
-    int lwc, cc = *str;
-    lwc = tolower(cc);
-    switch (lwc) {
+    c = tolower(*str);
+    switch (c) {
     case '-': case '+':
       count[0]++;
       break;
@@ -162,7 +161,7 @@ _nrrdHestIterParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   airArray *mop;
   double val;
   int ret;
-
+  
   if (!(ptr && str)) {
     sprintf(err, "%s: got NULL pointer", me);
     return 1;
@@ -185,7 +184,7 @@ _nrrdHestIterParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
      not that test.  In any case, if there are to be improved smarts
      about this matter, they need to be implemented below and nowhere
      else. */
-
+  
   nrrd = nrrdNew();
   ret = nrrdLoad(nrrd, str, NULL);
   if (!ret) {
@@ -199,15 +198,14 @@ _nrrdHestIterParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
     if (2 != ret) {
       /* it failed because of something besides the fopen(), so complain */
       nerr = biffGetDone(NRRD);
-      airStrcpy(err, AIR_STRLEN_HUGE, nerr);
+      strncpy(err, nerr, AIR_STRLEN_HUGE-1);
       airMopError(mop); return 1;
     } else {
       /* fopen() failed, so it probably wasn't meant to be a filename */
       free(biffGetDone(NRRD));
       ret = airSingleSscanf(str, "%lf", &val);
       if (_nrrdLooksLikeANumber(str)
-          || (1 == ret && (!AIR_EXISTS(val)
-                           || AIR_ABS(AIR_PI - val) < 0.0001))) {
+          || (1 == ret && !AIR_EXISTS(val))) {
         /* either it patently looks like a number, or,
            it already parsed as a number and it is a special value */
         if (1 == ret) {
@@ -222,7 +220,7 @@ _nrrdHestIterParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
            we'll let it fail again and pass back the error messages */
         if (nrrdLoad(nrrd = nrrdNew(), str, NULL)) {
           nerr = biffGetDone(NRRD);
-          airStrcpy(err, AIR_STRLEN_HUGE, nerr);
+          strncpy(err, nerr, AIR_STRLEN_HUGE-1);
           airMopError(mop); return 1;
         } else {
           /* what the hell? */
@@ -243,7 +241,7 @@ _nrrdHestIter = {
   "nrrd/value",
   _nrrdHestIterParse,
   (airMopper)nrrdIterNix
-};
+}; 
 
 hestCB *
 nrrdHestIter = &_nrrdHestIter;

@@ -1,6 +1,5 @@
 #
 # Teem: Tools to process and visualize scientific data and images
-# Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
 # Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
 # Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 #
@@ -57,7 +56,7 @@ $(L).OBJS = defaultsLimn.o qn.o light.o envmap.o cam.o methodsLimn.o \
 	lpu_verts.o lpu_meas.o lpu_sort.o
 $(L).TESTS = test/map test/light test/tcam test/tps test/tspline test/tbc \
 	test/tcamanim test/soid test/off2eps test/triimg test/plot test/intx \
-	test/tio test/clip test/lpu test/tqn
+	test/tio test/clip test/lpu
 ####
 ####
 ####

@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -30,7 +29,7 @@
 void
 _hestSetBuff(char *B, hestOpt *O, hestParm *P, int showshort, int showlong) {
   char copy[AIR_STRLEN_HUGE], *sep;
-  int max; unsigned int len;
+  int max, len;
 
   max = _hestMax(O->max);
   if (O->flag) {
@@ -43,7 +42,7 @@ _hestSetBuff(char *B, hestOpt *O, hestParm *P, int showshort, int showlong) {
       }
       if (showlong) {
         if (showshort) {
-          len = AIR_UINT(strlen(B));
+          len = strlen(B);
           B[len] = P->multiFlagSep;
           B[len+1] = '\0';
         }
@@ -92,10 +91,10 @@ _hestSetBuff(char *B, hestOpt *O, hestParm *P, int showshort, int showlong) {
 ** not a useful function.  Do not use.
 */
 void
-_hestPrintStr(FILE *f, unsigned int indent, unsigned int already,
-              unsigned int width, const char *_str, int bslash) {
+_hestPrintStr(FILE *f, int indent, int already, int width, const char *_str,
+              int bslash) {
   char *str, *ws, *last;
-  int newed=AIR_FALSE; unsigned int wrd, nwrd, ii, pos;
+  int nwrd, wrd, pos, s, newed=AIR_FALSE;
 
   str = airStrdup(_str);
   nwrd = airStrntok(str, " ");
@@ -105,11 +104,11 @@ _hestPrintStr(FILE *f, unsigned int indent, unsigned int already,
     ws = airStrtok(!wrd ? str : NULL, " ", &last);
     /* ... but then convert tabs to spaces */
     airStrtrans(ws, '\t', ' ');
-    if (pos + 1 + AIR_UINT(strlen(ws)) <= width - !!bslash) {
+    if ((int)(pos + 1 + strlen(ws)) <= width - !!bslash) {
       /* if this word would still fit on the current line */
       if (wrd && !newed) fprintf(f, " ");
       fprintf(f, "%s", ws);
-      pos += 1 + AIR_UINT(strlen(ws));
+      pos += 1 + strlen(ws);
       newed = AIR_FALSE;
     } else {
       /* else we start a new line and print the indent */
@@ -117,15 +116,15 @@ _hestPrintStr(FILE *f, unsigned int indent, unsigned int already,
         fprintf(f, " \\");
       }
       fprintf(f, "\n");
-      for (ii=0; ii<indent; ii++) {
+      for (s=0; s<indent; s++) {
         fprintf(f, " ");
       }
-      fprintf(f, "%s", ws);
-      pos = indent + AIR_UINT(strlen(ws));
+      fprintf(f, "%s", ws); 
+      pos = indent + strlen(ws);
     }
     /* if the last character of the word was a newline, then indent */
     if ('\n' == ws[strlen(ws)-1]) {
-      for (ii=0; ii<indent; ii++) {
+      for (s=0; s<indent; s++) {
         fprintf(f, " ");
       }
       pos = indent;
@@ -147,11 +146,11 @@ _hestPrintStr(FILE *f, unsigned int indent, unsigned int already,
 **
 ** Because hest is strictly agnostic with respect to how many command-line
 ** arguments actually constitute the command itself ("rmdir": one argument,
-** "cvs checkout": two arguments), it only concerns itself with the
+** "cvs checkout": two arguments), it only concerns itself with the 
 ** command-line arguments following the command.
 **
 ** Thus, hestMinMinArgs() returns the minimum number of command-line
-** arguments (following the command) that could be valid.  If your
+** arguments (following the command) that could be valid.  If your 
 ** command is only one argument (like "rmdir"), then you might use
 ** the true argc passed by the OS to main() as such:
 **
@@ -173,7 +172,7 @@ _hestPrintStr(FILE *f, unsigned int indent, unsigned int already,
 ** we find:
 **
 **   if ( (hparm->respFileEnable && !argc) ||
-**        (!hparm->respFileEnable && argc < hestMinNumArgs(opt)) ) {
+**        (!hparm->respFileEnable && argc < hestMinNumArgs(opt)) ) { 
 **     ... usage ...
 **   }
 **
@@ -197,7 +196,7 @@ hestMinNumArgs(hestOpt *opt) {
         count += !!opt[i].flag;
       }
     }
-  }
+  }  
   parm = hestParmFree(parm);
   return count;
 }
@@ -208,13 +207,8 @@ hestInfo(FILE *file, const char *argv0, const char *info, hestParm *_parm) {
 
   parm = !_parm ? hestParmNew() : _parm;
   if (info) {
-    if (argv0) {
-      fprintf(file, "\n%s: ", argv0);
-      _hestPrintStr(file, 0, AIR_UINT(strlen(argv0)) + 2,
-                    parm->columns, info, AIR_FALSE);
-    } else {
-      fprintf(file, "ERROR: hestInfo got NULL argv0\n");
-    }
+    fprintf(file, "\n%s: ", argv0);
+    _hestPrintStr(file, 0, strlen(argv0) + 2, parm->columns, info, AIR_FALSE);
   }
   parm = !_parm ? hestParmFree(parm) : NULL;
 }
@@ -232,7 +226,7 @@ hestUsage(FILE *f, hestOpt *opt, const char *argv0, hestParm *_parm) {
     parm = !_parm ? hestParmFree(parm) : NULL;
     return;
   }
-
+    
   numOpts = _hestNumOpts(opt);
   fprintf(f, "\n");
   strcpy(buff, "Usage: ");
@@ -250,8 +244,7 @@ hestUsage(FILE *f, hestOpt *opt, const char *argv0, hestParm *_parm) {
       strcat(buff, "]");
   }
 
-  _hestPrintStr(f, AIR_UINT(strlen("Usage: ")), 0,
-                parm->columns, buff, AIR_TRUE);
+  _hestPrintStr(f, strlen("Usage: "), 0, parm->columns, buff, AIR_TRUE);
 
   parm = !_parm ? hestParmFree(parm) : NULL;
   return;
@@ -259,7 +252,7 @@ hestUsage(FILE *f, hestOpt *opt, const char *argv0, hestParm *_parm) {
 
 void
 hestGlossary(FILE *f, hestOpt *opt, hestParm *_parm) {
-  int i, j, maxlen, numOpts; unsigned int len;
+  int i, j, len, maxlen, numOpts;
   char buff[2*AIR_STRLEN_HUGE], tmpS[AIR_STRLEN_HUGE];
   hestParm *parm;
 
@@ -270,7 +263,7 @@ hestGlossary(FILE *f, hestOpt *opt, hestParm *_parm) {
     parm = !_parm ? hestParmFree(parm) : NULL;
     return;
   }
-
+    
   numOpts = _hestNumOpts(opt);
 
   maxlen = 0;
@@ -284,7 +277,7 @@ hestGlossary(FILE *f, hestOpt *opt, hestParm *_parm) {
   }
   if (parm && parm->respFileEnable) {
     sprintf(buff, "%cfile ...", parm->respFileFlag);
-    len = AIR_UINT(strlen(buff));
+    len = strlen(buff);
     for (j=len; j<maxlen; j++) {
       fprintf(f, " ");
     }
@@ -296,7 +289,7 @@ hestGlossary(FILE *f, hestOpt *opt, hestParm *_parm) {
     strcpy(buff, "");
     _hestSetBuff(buff, opt + i, parm, AIR_TRUE, AIR_FALSE);
     airOneLinify(buff);
-    len = AIR_UINT(strlen(buff));
+    len = strlen(buff);
     for (j=len; j<maxlen; j++) {
       fprintf(f, " ");
     }
@@ -320,11 +313,11 @@ hestGlossary(FILE *f, hestOpt *opt, hestParm *_parm) {
     }
     if ((opt[i].min || _hestMax(opt[i].max))
         && (!( 2 == opt[i].kind
-               && airTypeEnum == opt[i].type
-               && parm->elideSingleEnumType ))
+               && airTypeEnum == opt[i].type 
+               && parm->elideSingleEnumType )) 
         && (!( 2 == opt[i].kind
-               && airTypeOther == opt[i].type
-               && parm->elideSingleOtherType ))
+               && airTypeOther == opt[i].type 
+               && parm->elideSingleOtherType )) 
         ) {
       /* if there are newlines in the info, then we want to clarify the
          type by printing it on its own line */
@@ -353,17 +346,17 @@ hestGlossary(FILE *f, hestOpt *opt, hestParm *_parm) {
           strcat(buff, tmpS);
         }
       }
-      sprintf(tmpS, "%s%s",
+      sprintf(tmpS, "%s%s", 
               (airTypeEnum == opt[i].type
                ? opt[i].enm->name
                : (airTypeOther == opt[i].type
                   ? opt[i].CB->type
                   : airTypeStr[opt[i].type])),
-              (_hestMax(opt[i].max) > 1
+              (_hestMax(opt[i].max) > 1 
                ? (airTypeOther == opt[i].type
                   && 'y' == opt[i].CB->type[airStrlen(opt[i].CB->type)-1]
                   && parm->cleverPluralizeOtherY
-                  ? "\bies"
+                  ? "\bies" 
                   : "s")
                : ""));
       strcat(buff, tmpS);
@@ -373,26 +366,26 @@ hestGlossary(FILE *f, hestOpt *opt, hestParm *_parm) {
     fprintf(stderr, "!%s: parm->elideSingleOtherDefault = %d\n",
             "hestGlossary", parm->elideSingleOtherDefault);
     */
-    if (opt[i].dflt
+    if (opt[i].dflt 
         && (opt[i].min || _hestMax(opt[i].max))
         && (!( 2 == opt[i].kind
                && (airTypeFloat == opt[i].type || airTypeDouble == opt[i].type)
-               && !AIR_EXISTS(airAtod(opt[i].dflt))
+               && !AIR_EXISTS(airAtod(opt[i].dflt)) 
                && parm->elideSingleNonExistFloatDefault ))
-        && (!( (3 == opt[i].kind || 5 == opt[i].kind)
+        && (!( (3 == opt[i].kind || 5 == opt[i].kind) 
                && (airTypeFloat == opt[i].type || airTypeDouble == opt[i].type)
-               && !AIR_EXISTS(airAtod(opt[i].dflt))
+               && !AIR_EXISTS(airAtod(opt[i].dflt)) 
                && parm->elideMultipleNonExistFloatDefault ))
         && (!( 2 == opt[i].kind
                && airTypeOther == opt[i].type
                && parm->elideSingleOtherDefault ))
         && (!( 2 == opt[i].kind
                && airTypeString == opt[i].type
-               && parm->elideSingleEmptyStringDefault
+               && parm->elideSingleEmptyStringDefault 
                && 0 == airStrlen(opt[i].dflt) ))
-        && (!( (3 == opt[i].kind || 5 == opt[i].kind)
+        && (!( (3 == opt[i].kind || 5 == opt[i].kind) 
                && airTypeString == opt[i].type
-               && parm->elideMultipleEmptyStringDefault
+               && parm->elideMultipleEmptyStringDefault 
                && 0 == airStrlen(opt[i].dflt) ))
         ) {
       /* if there are newlines in the info, then we want to clarify the

@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,19 +24,17 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Map nrrd through a univariate substitution table"
-static const char *_unrrdu_substInfoL =
+char *_unrrdu_substInfoL =
 (INFO
  " (itself represented as a nrrd). The substitution table "
  "is a 2-by-N table: a list of pairs giving the old value (to replace) "
  "and the the new value (to change to), in that order.  A plain text file "
  "makes this easy.  Unlike with \"unu lut\", \"unu rmap\", and \"unu imap\", "
  "the output type is the same as the input type, rather than the type of "
- "the lut or map.\n "
- "* Uses nrrdApply1DSubstitution");
+ "the lut or map. ");
 
 int
-unrrdu_substMain(int argc, const char **argv, const char *me,
-                 hestParm *hparm) {
+unrrdu_substMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   int pret;

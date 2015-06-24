@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -23,41 +22,41 @@
 
 #include "air.h"
 
-static const char *
+const char *
 _airBoolStr[] = {
   "(unknown bool)",
   "false",
   "true"
 };
 
-static const char *
+const char *
 _airBoolDesc[] = {
   "unknown boolean",
   "false",
   "true"
 };
 
-static const int
+const int
 _airBoolVal[] = {
   -1,
   AIR_FALSE,
   AIR_TRUE
 };
 
-static const char *
+const char *
 _airBoolStrEqv[] = {
   "0", "no", "n", "false", "f", "off", "nope",
   "1", "yes", "y", "true", "t", "on", "yea",
   ""
 };
 
-static const int
+const int
 _airBoolValEqv[] = {
   AIR_FALSE, AIR_FALSE, AIR_FALSE, AIR_FALSE, AIR_FALSE, AIR_FALSE, AIR_FALSE,
   AIR_TRUE, AIR_TRUE, AIR_TRUE, AIR_TRUE, AIR_TRUE, AIR_TRUE, AIR_TRUE
 };
 
-static const airEnum
+const airEnum
 _airBool = {
   "boolean",
   2,
@@ -75,7 +74,7 @@ airBool = &_airBool;
 double
 airAtod(const char *str) {
   double val = 0.0;
-
+  
   airSingleSscanf(str, "%lf", &val);
   return val;
 }
@@ -85,7 +84,7 @@ airSingleSscanf(const char *str, const char *fmt, void *ptr) {
   char *tmp;
   double val;
   int ret;
-
+  
   if (!strcmp(fmt, "%e") || !strcmp(fmt, "%f") || !strcmp(fmt, "%g")
       || !strcmp(fmt, "%le") || !strcmp(fmt, "%lf") || !strcmp(fmt, "%lg")) {
     tmp = airStrdup(str);
@@ -96,11 +95,6 @@ airSingleSscanf(const char *str, const char *fmt, void *ptr) {
     if (strstr(tmp, "nan")) {
       val = AIR_NAN;
     }
-/* ---- BEGIN non-NrrdIO */
-    else if (strstr(tmp, "pi")) {
-      val = AIR_PI;
-    }
-/* ---- END non-NrrdIO */
     else if (strstr(tmp, "-inf")) {
       val = AIR_NEG_INF;
     }
@@ -124,24 +118,9 @@ airSingleSscanf(const char *str, const char *fmt, void *ptr) {
     }
     free(tmp);
     return 1;
-  } else if (!strcmp(fmt, "%z")) {
-    /* its a size_t */
-    size_t tsz = 0;  /* tmp size_t */
-    const char *chh = str; /* char here */
-    while (chh) {
-      int dig;
-      dig = AIR_CAST(int, *chh - '0');
-      if (AIR_IN_CL(0, dig, 9)) {
-        tsz = 10*tsz + AIR_CAST(size_t, dig);
-      } else {
-        break;
-      }
-      chh++;
-    }
-    *((size_t *)(ptr)) = tsz;
-    return 1;
-  } else {
-    /* not a float, double, or size_t, let sscanf handle it */
+  }
+  else {
+    /* this is neither a float nor double */
     return sscanf(str, fmt, ptr);
   }
 }
@@ -181,7 +160,7 @@ airSingleSscanf(const char *str, const char *fmt, void *ptr) {
 ** given string "s"; try to parse "n" of them, as delimited by
 ** characters in "ct", and put the results in "out".
 **
-** Returns the number of things succesfully parsed- should be n;
+** Returns the number of things succesfully parsed- should be n; 
 ** there's been an error if return is < n.
 **
 ** The embarrassing reason for the var-args ("...") is that I want the
@@ -201,10 +180,7 @@ unsigned int
 airParseStrLI(_PARSE_STR_ARGS(long int)) { _PARSE_STR_BODY("%ld") }
 
 unsigned int
-airParseStrULI(_PARSE_STR_ARGS(unsigned long int)) { _PARSE_STR_BODY("%lu") }
-
-unsigned int
-airParseStrZ(_PARSE_STR_ARGS(size_t)) { _PARSE_STR_BODY("%z") }
+airParseStrZ(_PARSE_STR_ARGS(size_t))     { _PARSE_STR_BODY(_AIR_SIZE_T_CNV) }
 
 unsigned int
 airParseStrF(_PARSE_STR_ARGS(float))         { _PARSE_STR_BODY("%f") }
@@ -356,10 +332,7 @@ airParseStrE(int *out, const char *_s, const char *ct, unsigned int n, ...) {
         return i;
       }
       out[i] = airEnumVal(enm, tmp);
-      if (airEnumUnknown(enm) == out[i]
-          /* getting the unknown value is not a parse failure if the
-             string was actually the string for the unknown value! */
-          && strcmp(tmp, enm->str[0])) {
+      if (airEnumUnknown(enm) == out[i]) {
         airMopError(mop);
         return i;
       }
@@ -381,8 +354,6 @@ unsigned int
                     unsigned int, ...))airParseStrUI,
   (unsigned int (*)(void *, const char *, const char *,
                     unsigned int, ...))airParseStrLI,
-  (unsigned int (*)(void *, const char *, const char *,
-                    unsigned int, ...))airParseStrULI,
   (unsigned int (*)(void *, const char *, const char *,
                     unsigned int, ...))airParseStrZ,
   (unsigned int (*)(void *, const char *, const char *,

@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -23,14 +23,13 @@
 
 #include "../limn.h"
 
-const char *info = ("dumb little demonstration of calculating the "
-                    "world-to-view and view-to-world transforms given "
-                    "from, at, and up locations.");
+char *info = ("dumb little demonstration of calculating the "
+              "world-to-view and view-to-world transforms given "
+              "from, at, and up locations.");
 
 int
-main(int argc, const char *argv[]) {
-  const char *me;
-  char *err;
+main(int argc, char *argv[]) {
+  char *me, *err;
   limnCamera *cam;
   float mat[16];
   hestOpt *hopt=NULL;
@@ -39,7 +38,7 @@ main(int argc, const char *argv[]) {
   mop = airMopNew();
   cam = limnCameraNew();
   airMopAdd(mop, cam, (airMopper)limnCameraNix, airMopAlways);
-
+  
   me = argv[0];
   hestOptAdd(&hopt, "fr", "eye pos", airTypeDouble, 3, 3, cam->from,
              NULL, "camera eye point");
@@ -53,7 +52,7 @@ main(int argc, const char *argv[]) {
                  me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
-
+  
   cam->neer = -1;
   cam->dist = 0;
   cam->faar = 1;
@@ -64,7 +63,7 @@ main(int argc, const char *argv[]) {
     free(err);
     return 1;
   }
-
+  
   printf("%s: W2V:\n", me);
   ELL_4M_COPY(mat, cam->W2V);
   ell_4m_print_f(stdout, mat);

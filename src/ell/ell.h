@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -65,7 +64,7 @@ enum {
 
 #define ELL_CUBIC_ROOT_MAX           4
 
-/*
+/* 
 ** Note: *** PRE-TEEM 1.7 *** matrix element ordering was:
 **
 **     0   3   6
@@ -92,7 +91,6 @@ enum {
 */
 
 /* miscEll.c */
-ELL_EXPORT const int ellPresent;
 ELL_EXPORT const char *ell_biff_key;
 ELL_EXPORT const airEnum *const ell_cubic_root;
 ELL_EXPORT int ell_debug;
@@ -117,8 +115,8 @@ ELL_EXPORT void ell_4mv_mul_f(float v2[4],
                               const float m[16], const float v1[4]);
 ELL_EXPORT void ell_4mv_mul_d(double v2[4],
                               const double m[16], const double v1[4]);
-ELL_EXPORT float ell_3v_angle_f(const float u[3], const float v[3]);
-ELL_EXPORT double ell_3v_angle_d(const double u[3], const double v[3]);
+ELL_EXPORT float ell_3v_angle_f(float u[3], float v[3]);
+ELL_EXPORT double ell_3v_angle_d(double u[3], double v[3]);
 ELL_EXPORT double ell_3v_area_spherical_d(const double avec[3],
                                           const double bvec[3],
                                           const double cvec[3]);
@@ -158,7 +156,7 @@ ELL_EXPORT void ell_6m_mul_d(double AB[36],
 ELL_EXPORT void ell_3m_rotate_between_d(double rot[9], double from[3],
                                         double to[3]);
 
-/*
+/* 
 ** Note: quaternion element ordering is:
 **
 **   w  x  y  z
@@ -167,7 +165,7 @@ ELL_EXPORT void ell_3m_rotate_between_d(double rot[9], double from[3],
 ** where w is the real component and (x,y,z) is the imaginary component
 **
 ** Nowhere in ell is there the assumption that any given quaternion is
-** a unit-length quaternion.  Sometimes returned quaternions will be
+** a unit-length quaternion.  Sometimes returned quaternions will be 
 ** unit-length, and sometimes given quaternions must be normalized internally
 ** prior to doing some operation, but its not something that ell users
 ** need worry about.
@@ -227,7 +225,7 @@ ELL_EXPORT void ell_q_4v_rotate_d(double v2[4],
 ELL_EXPORT int ell_q_avg4_d(double m[4], unsigned int *iterP,
                             const double _q1[4], const double _q2[4],
                             const double _q3[4], const double _q4[4],
-                            const double _wght[4],
+                            const double _wght[4], 
                             const double eps, const unsigned int maxIter);
 ELL_EXPORT int ell_q_avgN_d(double mm[4], unsigned int *iterP,
                             const double *qq, double *qbuff,
@@ -251,11 +249,11 @@ ELL_EXPORT int ell_cubic(double root[3],
 ELL_EXPORT void ell_3m_1d_nullspace_d(double ans[3], const double n[9]);
 ELL_EXPORT void ell_3m_2d_nullspace_d(double ans0[3],
                                       double ans1[3], const double n[9]);
-ELL_EXPORT int ell_3m_eigenvalues_d(double eval[3],
+ELL_EXPORT int ell_3m_eigenvalues_d(double eval[3], 
                                     const double m[9], const int newton);
 ELL_EXPORT int ell_3m_eigensolve_d(double eval[3], double evec[9],
                                    const double m[9], const int newton);
-ELL_EXPORT int ell_3m_svd_d(double uu[9], double sval[3], double vv[9],
+ELL_EXPORT int ell_3m_svd_d(double uu[9], double sval[3], double vv[9], 
                             const double mat[9], const int newton);
 ELL_EXPORT int ell_6ms_eigensolve_d(double eval[6], double evec[36],
                                     const double mat[21], const double eps);

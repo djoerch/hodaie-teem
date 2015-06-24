@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,7 +24,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Print data segment of a nrrd file"
-static const char *_unrrdu_dataInfoL =
+char *_unrrdu_dataInfoL = 
 (INFO  ".  The value of this is to pass the data segment in isolation to a "
  "stand-alone decoder, in case this Teem build lacks an optional "
  "data encoding required for a given nrrd file.  Caveats: "
@@ -36,14 +35,10 @@ static const char *_unrrdu_dataInfoL =
  "skip bytes (as per \"byte skip:\") if the encoding is NOT a compression. "
  "\n \n "
  "To make vol.raw contain the uncompressed data from vol.nrrd "
- "which uses \"gz\" encoding: \"unu data vol.nrrd | gunzip > vol.raw\"\n "
- "\n "
- "* Uses nrrdLoad with nio->skipData and nio->keepNrrdDataFileOpen both "
- "true in the NrrdIoState nio.");
+ "which uses \"gz\" encoding: \"unu data vol.nrrd | gunzip > vol.raw\"");
 
 int
-unrrdu_dataMain(int argc, const char **argv, const char *me,
-                hestParm *hparm) {
+unrrdu_dataMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *err, *inS=NULL;
   Nrrd *nin;
@@ -85,7 +80,7 @@ unrrdu_dataMain(int argc, const char **argv, const char *me,
   }
   car = fgetc(nio->dataFile);
 #ifdef _MSC_VER
-  /* needed because otherwise printing a carraige return will
+  /* needed because otherwise printing a carraige return will 
      automatically also produce a newline */
   _setmode(_fileno(stdout), _O_BINARY);
 #endif
@@ -94,7 +89,7 @@ unrrdu_dataMain(int argc, const char **argv, const char *me,
     car = fgetc(nio->dataFile);
   }
   airFclose(nio->dataFile);
-
+  
   airMopOkay(mop);
   return 0;
 }

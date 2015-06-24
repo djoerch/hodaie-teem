@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -24,16 +23,13 @@
 #include "gage.h"
 #include "privateGage.h"
 
-const int
-gagePresent = 42;
-
 /*
 ******** gageZeroNormal[]
 **
 ** this is the vector to supply when someone wants the normalized
 ** version of a vector with zero length.  We could be nasty and
 ** set this to {AIR_NAN, AIR_NAN, AIR_NAN}, but simply passing
-** NANs around can make things fantastically slow . . .
+** NANs around can make things fantastically slow ...
 */
 double
 gageZeroNormal[3] = {0,0,0};
@@ -47,8 +43,6 @@ _gageKernelStr[] = {
   "20",
   "21",
   "22",
-  /* "33", */
-  /* "44", */
   "stack"
 };
 
@@ -61,8 +55,6 @@ _gageKernelDesc[] = {
   "kernel for reconstruction values when doing 2nd derivatives",
   "kernel for measuring 1st derivatives when doing 2nd derivatives",
   "kernel for measuring 2nd derivatives when doing 2nd derivatives",
-  /* "kernel for measuring 3rd derivatives when doing 3rd derivatives", */
-  /* "kernel for measuring 4th derivatives when doing 4th derivatives", */
   "kernel for reconstruction across a stack"
 };
 
@@ -74,8 +66,6 @@ _gageKernelStrEqv[] = {
   "20", "k20",
   "21", "k21",
   "22", "k22",
-  /* "33", "k33", */
-  /* "44", "k44", */
   "stack", "ss", "kss",
   ""
 };
@@ -88,8 +78,6 @@ _gageKernelValEqv[] = {
   gageKernel20, gageKernel20,
   gageKernel21, gageKernel21,
   gageKernel22, gageKernel22,
-  /* gageKernel33, gageKernel33, */
-  /* gageKernel44, gageKernel44, */
   gageKernelStack, gageKernelStack, gageKernelStack
 };
 
@@ -121,7 +109,6 @@ gageParmReset(gageParm *parm) {
     parm->stackNormalizeDeriv = gageDefStackNormalizeDeriv;
     parm->stackNormalizeDerivBias = gageDefStackNormalizeDerivBias;
     parm->orientationFromSpacing = gageDefOrientationFromSpacing;
-    parm->generateErrStr = gageDefGenerateErrStr;
   }
   return;
 }
@@ -131,11 +118,11 @@ gagePointReset(gagePoint *point) {
 
   if (point) {
     unsigned int big;
-    /* learned: can't initialize the floating point to AIR_NAN,
+    /* learned: can't initialize the floating point to AIR_NAN, 
        non-dot-net windows compilers proclaim that QNAN == x
-       for any existent x!!!  For some reason though, infinity
+       for any existant x!!!  For some reason though, infinity
        is handled correctly */
-    ELL_4V_SET(point->frac,
+    ELL_4V_SET(point->frac, 
                AIR_POS_INF, AIR_POS_INF, AIR_POS_INF, AIR_POS_INF);
     big = AIR_CAST(unsigned int, -1);
     ELL_4V_SET(point->idx, big, big, big, big);
@@ -179,8 +166,7 @@ _gageErrStr[GAGE_ERR_MAX+1] = {
   "space bounds",
   "stack bounds",
   "stack integral",
-  "stack search",
-  "stack unused"
+  "stack search"
 };
 
 const airEnum
@@ -194,79 +180,3 @@ _gageErr = {
 };
 const airEnum *const
 gageErr = &_gageErr;
-
-const char *
-_gageItemPackPartStr[] = {
-  "(unknown_pack_part)",
-  "scalar",
-  "gradvec",
-  "gradmag",
-  "normal",
-  "hessian",
-  "hesseval0",
-  "hesseval1",
-  "hesseval2",
-  "hessevec0",
-  "hessevec1",
-  "hessevec2"
-};
-
-const char *
-_gageItemPackPartDesc[] = {
-  "unknown pack part",
-  "the base scalar F",
-  "gradient (vector) of F",
-  "magnitude of the gradient of F",
-  "normalized gradient (vector) of F",
-  "Hessian of F",
-  "1st eigenvalue of Hessian of F",
-  "2nd eigenvalue of Hessian of F",
-  "3rd eigenvalue of Hessian of F",
-  "1st eigenvector of Hessian of F",
-  "2nd eigenvector of Hessian of F",
-  "3rd eigenvector of Hessian of F"
-};
-
-const char *
-_gageItemPackPartStrEqv[] = {
-  "scalar", "scl",
-  "gradvec", "gvec",
-  "gradmag", "gmag",
-  "normal", "norm",
-  "hessian", "hess",
-  "hesseval0", "heval0",
-  "hesseval1", "heval1",
-  "hesseval2", "heval2",
-  "hessevec0", "hevec0",
-  "hessevec1", "hevec1",
-  "hessevec2", "hevec2",
-  ""
-};
-
-const int
-_gageItemPackPartValEqv[] = {
-  gageItemPackPartScalar,      gageItemPackPartScalar,
-  gageItemPackPartGradVec,     gageItemPackPartGradVec,
-  gageItemPackPartGradMag,     gageItemPackPartGradMag,
-  gageItemPackPartNormal,      gageItemPackPartNormal,
-  gageItemPackPartHessian,     gageItemPackPartHessian,
-  gageItemPackPartHessEval0,   gageItemPackPartHessEval0,
-  gageItemPackPartHessEval1,   gageItemPackPartHessEval1,
-  gageItemPackPartHessEval2,   gageItemPackPartHessEval2,
-  gageItemPackPartHessEvec0,   gageItemPackPartHessEvec0,
-  gageItemPackPartHessEvec1,   gageItemPackPartHessEvec1,
-  gageItemPackPartHessEvec2,   gageItemPackPartHessEvec2,
-};
-
-const airEnum
-_gageItemPackPart_enum = {
-  "pack part",
-  GAGE_ITEM_PACK_PART_MAX,
-  _gageItemPackPartStr, NULL,
-  _gageItemPackPartDesc,
-  _gageItemPackPartStrEqv, _gageItemPackPartValEqv,
-  AIR_FALSE
-};
-const airEnum *const
-gageItemPackPart = &_gageItemPackPart_enum;
-

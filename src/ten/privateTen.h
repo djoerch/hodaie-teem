@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -32,7 +31,7 @@ extern "C" {
 unrrduCmd tend_##name##Cmd = { #name, info, tend_##name##Main }
 
 /* USAGE, PARSE: both copied verbatim from unrrdu/privateUnrrdu.h, but
-** then some hacking was added . . .
+** then some hacking was added ... 
 */
 #define USAGE(info) \
   if (!argc) { \
@@ -40,7 +39,7 @@ unrrduCmd tend_##name##Cmd = { #name, info, tend_##name##Main }
     hestUsage(stdout, hopt, me, hparm); \
     hestGlossary(stdout, hopt, hparm); \
     airMopError(mop); \
-    return 0; \
+    return 2; \
   }
 
 /* JUSTPARSE is called by the tend functions that do *not* take an
@@ -54,12 +53,13 @@ unrrduCmd tend_##name##Cmd = { #name, info, tend_##name##Main }
       airMopError(mop);                                         \
       return 2;                                                 \
     } else {                                                    \
+      /* ... like tears ... in rain. Time ... to die. */        \
       exit(1);                                                  \
     }                                                           \
   }
-
-/*
-** PARSE is called by tend functions that do take a 7-component tensor
+  
+/* 
+** PARSE is called by tend functions that do take a 7-component tensor 
 ** volume, so that as a hack, we can process 6-component volumes as well,
 ** by padding on the confidence channel (fixed at 1.0)
 */
@@ -68,27 +68,27 @@ unrrduCmd tend_##name##Cmd = { #name, info, tend_##name##Main }
   if (4 == nin->dim                                                     \
       && 6 == nin->axis[0].size                                         \
       && nrrdTypeBlock != nin->type) {                                  \
-    ptrdiff_t padmin[4], padmax[4];                                     \
-    Nrrd *npadtmp;                                                      \
+    ptrdiff_t min[4], max[4];                                           \
+    Nrrd *ntmp;                                                         \
     /* create a confidence channel by padding on 1s */                  \
-    padmin[0] = -1; padmin[1] = padmin[2] = padmin[3] = 0;              \
-    padmax[0] = nin->axis[0].size-1;                                    \
-    padmax[1] = nin->axis[1].size-1;                                    \
-    padmax[2] = nin->axis[2].size-1;                                    \
-    padmax[3] = nin->axis[3].size-1;                                    \
-    npadtmp = nrrdNew();                                                \
-    if (nrrdPad_nva(npadtmp, nin, padmin, padmax, nrrdBoundaryPad, 1.0) \
-        || nrrdCopy(nin, npadtmp)) {                                    \
-      char *paderr;                                                     \
-      airMopAdd(mop, paderr = biffGetDone(NRRD), airFree, airMopAlways);\
-      fprintf(stderr, "%s: can't pad 6-comp tensor:\n%s", me, paderr);  \
+    min[0] = -1; min[1] = min[2] = min[3] = 0;                          \
+    max[0] = nin->axis[0].size-1;                                       \
+    max[1] = nin->axis[1].size-1;                                       \
+    max[2] = nin->axis[2].size-1;                                       \
+    max[3] = nin->axis[3].size-1;                                       \
+    ntmp = nrrdNew();                                                   \
+    if (nrrdPad_nva(ntmp, nin, min, max, nrrdBoundaryPad, 1.0)          \
+        || nrrdCopy(nin, ntmp)) {                                       \
+      char *err;                                                        \
+      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);   \
+      fprintf(stderr, "%s: can't pad 6-comp tensor:\n%s", me, err);     \
       airMopError(mop);                                                 \
-      nrrdNuke(npadtmp);                                                \
+      nrrdNuke(ntmp);                                                   \
       return 2;                                                         \
     }                                                                   \
-    nrrdNuke(npadtmp);                                                  \
+    nrrdNuke(ntmp);                                                     \
   }
-
+  
 /* qseg.c: 2-tensor estimation */
 extern void _tenQball(const double b, const int gradcount,
                       const double svals[], const double grads[],
@@ -109,7 +109,7 @@ extern void _tenSeg2weights(const int gradcount, const int seg[],
 extern void _tenQvals2points(const int gradcount, const double qvals[],
                              const double grads[], double qpoints[] );
 extern double _tenPldist(const double point[], const double line[] );
-
+  
 /* arishFuncs.c: Arish's implementation of Peled's 2-tensor fit */
 #define VEC_SIZE 3
 
@@ -144,7 +144,7 @@ extern int _tenQGLInterpNEvec(double evecOut[9],
                               tenInterpParm *tip);
 extern int tenQGLInterpN(double tenOut[7],
                          const double *tenIn,
-                         const double *wght,
+                         const double *wght, 
                          unsigned int NN, int ptype, tenInterpParm *tip);
 
 /* experSpec.c */
@@ -159,10 +159,9 @@ TEN_EXPORT double _tenExperSpec_nll(const double *dwiMeas,
                                     int knownB0);
 
 /* tenModel.c */
-TEN_EXPORT double _tenModelSqeFitSingle(const tenModel *model,
+TEN_EXPORT double _tenModelSqeFitSingle(const tenModel *model, 
                                         double *testParm, double *grad,
                                         double *parm, double *convFrac,
-                                        unsigned int *itersTaken,
                                         const tenExperSpec *espec,
                                         double *dwiBuff,
                                         const double *dwiMeas,
@@ -170,8 +169,7 @@ TEN_EXPORT double _tenModelSqeFitSingle(const tenModel *model,
                                         int knownB0,
                                         unsigned int minIter,
                                         unsigned int maxIter,
-                                        double convEps,
-                                        int verbose);
+                                        double convEps);
 
 /* model*.c */
 /*
@@ -186,7 +184,7 @@ TEN_EXPORT double _tenModelSqeFitSingle(const tenModel *model,
 static double *                                                 \
 parmAlloc(void) {                                               \
                                                                 \
-  return AIR_CAST(double *, calloc(PARM_NUM ? PARM_NUM : 1, sizeof(double))); \
+  return AIR_CAST(double *, calloc(PARM_NUM, sizeof(double)));  \
 }
 
 #define _TEN_PARM_RAND                                                  \
@@ -225,17 +223,7 @@ parmStep(double *parm1, const double scl,                               \
                                                                         \
   for (ii=0; ii<PARM_NUM; ii++) {                                       \
     parm1[ii] = scl*grad[ii] + parm0[ii];                               \
-    if (parmDesc[ii].cyclic) {                                          \
-      double delta = parmDesc[ii].max - parmDesc[ii].min;               \
-      while (parm1[ii] > parmDesc[ii].max) {                            \
-        parm1[ii] -= delta;                                             \
-      }                                                                 \
-      while (parm1[ii] < parmDesc[ii].min) {                            \
-        parm1[ii] += delta;                                             \
-      }                                                                 \
-    } else {                                                            \
-      parm1[ii] = AIR_CLAMP(parmDesc[ii].min, parm1[ii], parmDesc[ii].max); \
-    }                                                                   \
+    parm1[ii] = AIR_CLAMP(parmDesc[ii].min, parm1[ii], parmDesc[ii].max); \
     if (parmDesc[ii].vec3 && 2 == parmDesc[ii].vecIdx) {                \
       double len;                                                       \
       ELL_3V_NORM(parm1 + ii - 2, parm1 + ii - 2, len);                 \
@@ -247,26 +235,12 @@ parmStep(double *parm1, const double scl,                               \
 static double                                                           \
 parmDist(const double *parmA, const double *parmB) {                    \
   unsigned int ii;                                                      \
-  double dist;                                                          \
+  double dist, dd;                                                      \
                                                                         \
   dist = 0;                                                             \
   for (ii=0; ii<PARM_NUM; ii++) {                                       \
-  double dp1, delta;                                                    \
-    delta = parmDesc[ii].max - parmDesc[ii].min;                        \
-    dp1 = parmA[ii] - parmB[ii];                                        \
-    if (parmDesc[ii].cyclic) {                                          \
-      double dp2, dp3;                                                  \
-      dp2 = dp1 + delta;                                                \
-      dp3 = dp1 - delta;                                                \
-      dp1 *= dp1;                                                       \
-      dp2 *= dp2;                                                       \
-      dp3 *= dp3;                                                       \
-      dp1 = AIR_MIN(dp1, dp2);                                          \
-      dp1 = AIR_MIN(dp1, dp3);                                          \
-      dist += dp1/(delta*delta);                                        \
-    } else {                                                            \
-      dist += dp1*dp1/(delta*delta);                                    \
-    }                                                                   \
+    dd = (parmA[ii] - parmB[ii])/(parmDesc[ii].max - parmDesc[ii].min); \
+    dist += dd*dd;                                                      \
   }                                                                     \
   return sqrt(dist);                                                    \
 }
@@ -280,20 +254,6 @@ parmCopy(double *parmA, const double *parmB) {  \
     parmA[ii] = parmB[ii];                      \
   }                                             \
   return;                                       \
-}
-
-#define _TEN_PARM_CONVERT_NOOP                         \
-static int                                             \
-parmConvert(double *parmDst, const double *parmSrc,    \
-            const tenModel *modelSrc) {                \
-  unsigned int ii;                                     \
-                                                       \
-  AIR_UNUSED(modelSrc);                                \
-  parmDst[0] = parmSrc[0];                             \
-  for (ii=1; ii<PARM_NUM; ii++) {                      \
-    parmDst[ii] = AIR_NAN;                             \
-  }                                                    \
-  return 1;                                            \
 }
 
 #define _TEN_SQE                                                \
@@ -311,7 +271,7 @@ sqeGrad(double *grad, const double *parm0,                              \
         const tenExperSpec *espec,                                      \
         double *dwiBuff, const double *dwiMeas,                         \
         int knownB0) {                                                  \
-  double parm1[PARM_NUM ? PARM_NUM : 1], sqeForw, sqeBack, dp;          \
+  double parm1[PARM_NUM], sqeForw, sqeBack, dp;                         \
   unsigned int ii, i0;                                                  \
                                                                         \
   i0 = knownB0 ? 1 : 0;                                                 \
@@ -346,28 +306,23 @@ sqeGrad(double *grad, const double *parm0,                              \
 
 #define _TEN_SQE_FIT(model)                                             \
 static double                                                           \
-sqeFit(double *parm, double *convFrac, unsigned int *itersTaken,        \
-       const tenExperSpec *espec,                                       \
+sqeFit(double *parm, double *convFrac, const tenExperSpec *espec,       \
        double *dwiBuff, const double *dwiMeas,                          \
        const double *parmInit, int knownB0,                             \
-       unsigned int minIter, unsigned int maxIter,                      \
-       double convEps, int verbose) {                                   \
-  double testparm[PARM_NUM ? PARM_NUM : 1],                             \
-    grad[PARM_NUM ? PARM_NUM : 1];                                      \
+       unsigned int minIter, unsigned int maxIter, double convEps) {    \
+  double testparm[PARM_NUM], grad[PARM_NUM];                            \
                                                                         \
   return _tenModelSqeFitSingle((model),                                 \
                                testparm, grad,                          \
-                               parm, convFrac, itersTaken,              \
+                               parm, convFrac,                          \
                                espec, dwiBuff, dwiMeas,                 \
                                parmInit, knownB0,                       \
-                               minIter, maxIter,                        \
-                               convEps, verbose);                       \
+                               minIter, maxIter, convEps);              \
 }
 
 #define _TEN_SQE_FIT_STUB                                              \
 static double                                                          \
-sqeFit(double *parm, double *convFrac, unsigned int *itersTaken,       \
-       const tenExperSpec *espec,                                      \
+sqeFit(double *parm, double *convFrac, const tenExperSpec *espec,      \
        double *dwiBuff, const double *dwiMeas,                         \
        const double *parmInit, int knownB0,                            \
        unsigned int minIter, unsigned int maxIter, double convEps) {   \
@@ -434,7 +389,7 @@ nllFit(double *parm, const tenExperSpec *espec,         \
 }
 
 #define _TEN_MODEL_FIELDS                                           \
-  PARM_NUM, parmDesc,                                               \
+  DOF_NUM, PARM_NUM, parmDesc,                                      \
   simulate,                                                         \
   parmSprint, parmAlloc, parmRand,                                  \
   parmStep, parmDist, parmCopy, parmConvert,                        \

@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -102,7 +101,7 @@ typedef struct {
                                and max: the idea is that only one (min and
                                max, or spacing) should be taken to be
                                significant at any time. */
-  double spaceDirection[NRRD_SPACE_DIM_MAX];
+  double spaceDirection[NRRD_SPACE_DIM_MAX]; 
                             /* the vector, in "space" (as described by
                                nrrd->space and/or nrrd->spaceDim), from one
                                sample to the next sample along this axis.  It
@@ -122,17 +121,17 @@ typedef struct {
 ** The struct used to wrap around the raw data array
 */
 typedef struct {
-  /*
+  /* 
   ** NECESSARY information describing the main array.  This is
   ** generally set at the same time that either the nrrd is created,
-  ** or at the time that the nrrd is wrapped around an existing array
+  ** or at the time that the nrrd is wrapped around an existing array 
   */
 
   void *data;                       /* the data in memory */
   int type;                         /* a value from the nrrdType enum */
   unsigned int dim;                 /* the dimension (rank) of the array */
 
-  /*
+  /* 
   ** All per-axis specific information
   */
   NrrdAxisInfo axis[NRRD_DIM_MAX];  /* axis[0] is the fastest axis in the scan-
@@ -141,27 +140,27 @@ typedef struct {
                                        accessed in the order in which they
                                        appear in memory */
 
-  /*
+  /* 
   ** Optional information descriptive of whole array, some of which is
   ** meaningfuly for only some uses of a nrrd
   */
   char *content;                    /* brief account of what this data is */
-  char *sampleUnits;                /* units of measurement of the values
-                                       stored in the array itself (not the
+  char *sampleUnits;                /* units of measurement of the values 
+                                       stored in the array itself (not the 
                                        array axes and not space coordinates).
                                        The logical name might be "dataUnits",
                                        but that's perhaps ambiguous.  Note that
                                        these units may apply to non-scalar
                                        kinds (e.g. coefficients of a vector
                                        have the same units) */
-  int space;                        /* from nrrdSpace* enum, and often
+  int space;                        /* from nrrdSpace* enum, and often 
                                        implies the value of spaceDim */
   unsigned int spaceDim;            /* if non-zero, the dimension of the space
                                        in which the regular sampling grid
                                        conceptually lies.  This is a separate
                                        variable because this dimension can be
-                                       different than the array dimension.
-                                       The non-zero-ness of this value is in
+                                       different than the array dimension. 
+                                       The non-zero-ness of this value is in 
                                        fact the primary indicator that space
                                        and orientation information is set.
                                        This identifies the number of entries in
@@ -174,8 +173,8 @@ typedef struct {
                                        (lowest memory address) array sample,
                                        regardless of node-vs-cell centering */
   double measurementFrame[NRRD_SPACE_DIM_MAX][NRRD_SPACE_DIM_MAX];
-                                    /* if spaceDim is non-zero, this may store
-                                       a spaceDim-by-spaceDim matrix which
+                                    /* if spaceDim is non-zero, this may store 
+                                       a spaceDim-by-spaceDim matrix which 
                                        transforms vector/matrix coefficients
                                        in the "measurement frame" to those in
                                        the world space described by spaceDim
@@ -192,7 +191,7 @@ typedef struct {
   void *ptr;                        /* never read or set by nrrd; use/abuse
                                        as you see fit */
 
-  /*
+  /* 
   ** Comments.  Read from, and written to, header.
   ** The comment array "cmt" is NOT NULL-terminated.
   ** The number of comments is cmtArr->len.
@@ -232,10 +231,10 @@ typedef struct {
 
   /* (for writing) returns non-zero if a given nrrd/encoding pair will fit
      in this format */
-  int (*fitsInto)(const Nrrd *nrrd, const struct NrrdEncoding_t *encoding,
+  int (*fitsInto)(const Nrrd *nrrd, const struct NrrdEncoding_t *encoding, 
                    int useBiff);
 
-  /* (for reading) returns non-zero if what has been read in so far
+  /* (for reading) returns non-zero if what has been read in so far 
      is recognized as the beginning of this format */
   int (*contentStartsLike)(struct NrrdIoState_t *nio);
 
@@ -280,7 +279,7 @@ typedef struct NrrdEncoding_t {
 ******** NrrdIoState struct
 **
 ** Everything relating to how the nrrd is read and written.
-** Multiple parameters for writing are set here (like format, encoding,
+** Multiple parameters for writing are set here (like format, encoding, 
 ** zlib parameters).  Also, this is the place where those few parameters
 ** of reading are stored (like skipData and keepNrrdDataFileOpen).  Also,
 ** after the nrrd has been read, it is a potentially useful record of what
@@ -292,17 +291,17 @@ typedef struct NrrdIoState_t {
                                to whence this nrrd is "save"ed, MINUS the
                                trailing "/", so as to facilitate games with
                                header-relative data files */
-    *base,                  /* when "save"ing a nrrd into separate
+    *base,                  /* when "save"ing a nrrd into seperate
                                header and data, the name of the header
                                file (e.g. "output.nhdr") MINUS the ".nhdr".
                                This is massaged to produce a header-
                                relative data filename.  */
     *line,                  /* buffer for saving one line from file */
-    *dataFNFormat,          /* if non-NULL, the format string (containing
-                               something like "%d" as a substring) to be
+    *dataFNFormat,          /* if non-NULL, the format string (containing 
+                               something like "%d" as a substring) to be 
                                used to identify multiple detached datafiles.
                                NB: This is "format" in the sense of a printf-
-                               style format string, not in the sense of a
+                               style format string, not in the sense of a 
                                file format.  This may need header-relative
                                path processing. */
     **dataFN,               /* ON READ + WRITE: array of data filenames. These
@@ -325,8 +324,8 @@ typedef struct NrrdIoState_t {
 
   FILE *headerFile,         /* if non-NULL, the file from which the NRRD
                                header is being read */
-    *dataFile;              /* this used to be a central part of how the
-                               I/O code worked, but now it is simply the
+    *dataFile;              /* this used to be a central part of how the 
+                               I/O code worked, but now it is simply the 
                                place to store the dataFile in the case of
                                keepNrrdDataFileOpen */
   unsigned int dataFileDim, /* The dimension of the data in each data file.
@@ -358,29 +357,18 @@ typedef struct NrrdIoState_t {
   long int byteSkip;        /* exactly like lineSkip, but bytes
                                instead of lines.  First the lines are
                                skipped, then the bytes */
-  /* Note that the NRRD0004 and NRRD0005 file formats indicate that a numbered
-     sequence of data filenames should be indexed via a "%d" format
-     specification, and that the format doc says nothing about the "min" and
-     "max" fields of "data file" being only positive.  So the following three
-     dataFN* fields are appropriately (signed) ints, even if all normal usage
-     could also be represented with unsigned ints.  Nonetheless, the return
-     from _nrrdDataFNNumber(), which gives the total number of file names, is
-     still appropriately an unsigned int. This may be revisited if the file
-     format itself is adjusted. */
   int dataFNMin,            /* used with dataFNFormat to identify .. */
     dataFNMax,              /* .. all the multiple detached datafiles */
-    dataFNStep;             /* how to step from max to min */
-  /* On the other hand, dataFNIndex ranges from 0 to (#datafiles-1),
-     and not dataFNMin to dataFNMax, so it really should be unsigned */
-  unsigned int dataFNIndex; /* which of the data files are being read */
-  int pos,                  /* line[pos] is beginning of stuff which
+    dataFNStep,             /* how to step from max to min */
+    dataFNIndex,            /* which of the data files are being read */
+    pos,                    /* line[pos] is beginning of stuff which
                                still has yet to be parsed */
     endian,                 /* endian-ness of the data in file, for
                                those encoding/type combinations for
                                which it matters (from nrrdEndian) */
     seen[NRRD_FIELD_MAX+1], /* for error checking in header parsing */
     detachedHeader,         /* ON WRITE: request for file (NRRD format only)
-                               to be split into distinct header and data.
+                               to be split into distinct header and data. 
                                This only has an effect if detaching the header
                                is not already necessary, as it is with multiple
                                data files */
@@ -391,7 +379,7 @@ typedef struct NrrdIoState_t {
                                ON READ: don't allocate memory for, and don't
                                read in, the data portion of the file (but we
                                do verify that for nrrds, detached datafiles
-                               can be opened).  Note: Does NOT imply
+                               can be opened).  Note: Does NOT imply 
                                keepNrrdDataFileOpen.  Warning: resulting
                                nrrd struct will have "data" pointer NULL.
                                ON WRITE: don't write data portion of file
@@ -413,18 +401,18 @@ typedef struct NrrdIoState_t {
     zlibStrategy,           /* zlib compression strategy, can be one
                                of the nrrdZlibStrategy enums, default is
                                nrrdZlibStrategyDefault. */
-    bzip2BlockSize,         /* block size used for compression,
+    bzip2BlockSize,         /* block size used for compression, 
                                roughly equivalent to better but slower
                                (1-9, -1 for default[9]). */
     learningHeaderStrlen;   /* ON WRITE, for nrrds, learn and save the total
                                length of header into headerStrlen. This is
                                used to allocate a buffer for header */
-  void *oldData;            /* ON READ: if non-NULL, pointer to space that
+  void *oldData;            /* ON READ: if non-NULL, pointer to space that 
                                has already been allocated for oldDataSize */
   size_t oldDataSize;       /* ON READ: size of mem pointed to by oldData */
 
   /* The format and encoding.  These are initialized to nrrdFormatUnknown
-     and nrrdEncodingUnknown, respectively. USE THESE VALUES for
+     and nrrdEncodingUnknown, respectively. USE THESE VALUES for 
      any kind of initialization or flagging; DO NOT USE NULL */
   const NrrdFormat *format;
   const NrrdEncoding *encoding;
@@ -440,8 +428,8 @@ typedef struct NrrdIoState_t {
 ** (in which case the given min,max may not correspond to the actual
 ** min,max of the nrrd in question).
 **
-** This information has been removed from the Nrrd struct (as of Teem1.6)
-** and put into this separate entity because:
+** This information has been removed from the Nrrd struct (as of Teem1.6) 
+** and put into this seperate entity because:
 ** 1) when intended to be descriptive of a nrrd, it can't be guaranteed
 ** to be true across nrrd calls
 ** 2) when used as input parameters (e.g. to nrrdQuantize), its not
@@ -471,19 +459,19 @@ typedef struct {
   /* terse string representation of kernel function, irrespective of
      the parameter vector */
   char name[AIR_STRLEN_SMALL];
-
+  
   /* number of parameters needed (# elements in parm[] used) */
   unsigned int numParm;  /* HEY: should be "parmNum" in standard convention */
 
   /* smallest x (x > 0) such that k(y) = 0 for all y > x, y < -x */
-  double (*support)(const double *parm);
+  double (*support)(const double *parm); 
 
   /* integral of kernel from -support to +support */
   double (*integral)(const double *parm);
 
   /* evaluate once, single precision */
   float (*eval1_f)(float x, const double *parm);
-
+  
   /* evaluate N times, single precision */
   void (*evalN_f)(float *f, const float *x, size_t N, const double *parm);
 
@@ -496,7 +484,7 @@ typedef struct {
 
 /*
 ******** NrrdKernelSpec struct
-**
+** 
 ** for those times when it makes most sense to directly associate a
 ** NrrdKernel with its parameter vector (that is, a full kernel
 ** "spec"ification), basically: using hest.
@@ -512,7 +500,7 @@ typedef struct {
 ** a struct to contain the many parameters needed for nrrdSpatialResample()
 */
 typedef struct {
-  const NrrdKernel
+  const NrrdKernel 
     *kernel[NRRD_DIM_MAX]; /* which kernel to use on each axis; use NULL to
                               say no resampling whatsoever on this axis */
   size_t samples[NRRD_DIM_MAX]; /* number of samples per axis */
@@ -569,9 +557,9 @@ typedef struct {
     passIdx,                 /* exactly which pass are we on */
     axisPerm[NRRD_DIM_MAX];  /* permutation of axis indices for this pass */
   double ratio;              /* > 1: upsampling; < 1: downsampling */
-  Nrrd *nrsmp,               /* intermediate resampling result; input to
+  Nrrd *nrsmp,               /* intermediate resampling result; input to 
                                 this pass */
-    *nline,                  /* input scanline buffer (includes extra sample
+    *nline,                  /* input scanline buffer (includes extra sample 
                                 at end for storing pad value) */
     *nindex,                 /* row of input indices for each output sample */
     *nweight;                /* row of input weights for each output sample */
@@ -595,22 +583,20 @@ typedef struct {
                                integral, should we renormalize the weights to
                                match the kernel integral so as to remove
                                annoying ripple */
-    roundlast,              /* when copying from the last intermediate
+    round,                  /* when copying from the last intermediate
                                (floating point) result to the output nrrd,
                                for integer outputs, do we round to the nearest
                                integer first, before clamping and assigning.
                                Enabling this fixed the mystery of downsampling
                                large constant regions of 255 (uchar), and
-                               ending up with 254
-                               (renamed from "round" to avoid shadowing) */
+                               ending up with 254 */
     clamp,                   /* when copying from the last intermediate
                                 (floating point) result to the output nrrd,
                                should we clamp the values to the range of
                                 values for the output type, a concern only for
                                 integer outputs */
-    defaultCenter,           /* lacking known centering on input axis, what
+    defaultCenter;           /* lacking known centering on input axis, what
                                 centering to use when resampling */
-    nonExistent;             /* from nrrdResampleNonExistent enum */
   double padValue;           /* if padding, what value to pad with */
   /* ----------- input/internal ---------- */
   unsigned int dim,          /* dimension of nin (saved here to help
@@ -621,7 +607,7 @@ typedef struct {
     passAxis[NRRD_DIM_MAX];  /* mapping from pass index to axis index */
   NrrdResampleAxis
     axis[NRRD_DIM_MAX+1];    /* axis[j] stores information for input to
-                                pass which is resampling nin->axis[j];
+                                pass which is resampling nin->axis[j]; 
                                 axis[NRRD_DIM_MAX] stores info about the
                                 final output of all passes */
   int *flag;                 /* flags for managing state */
@@ -663,7 +649,6 @@ NRRD_EXPORT int nrrdDefaultResampleRound;
 NRRD_EXPORT int nrrdDefaultResampleClamp;
 NRRD_EXPORT int nrrdDefaultResampleCheap;
 NRRD_EXPORT double nrrdDefaultResamplePadValue;
-NRRD_EXPORT int nrrdDefaultResampleNonExistent;
 NRRD_EXPORT double nrrdDefaultKernelParm0;
 /* ---- END non-NrrdIO */
 NRRD_EXPORT int nrrdDefaultCenter;
@@ -679,7 +664,7 @@ NRRD_EXPORT int nrrdStateDisallowIntegerNonExist;
 /* ---- END non-NrrdIO */
 NRRD_EXPORT int nrrdStateAlwaysSetContent;
 NRRD_EXPORT int nrrdStateDisableContent;
-NRRD_EXPORT const char *nrrdStateUnknownContent;
+NRRD_EXPORT char *nrrdStateUnknownContent;
 NRRD_EXPORT int nrrdStateGrayscaleImage3D;
 NRRD_EXPORT int nrrdStateKeyValueReturnInternalPointers;
 NRRD_EXPORT int nrrdStateKindNoop;
@@ -718,7 +703,7 @@ NRRD_EXPORT void nrrdStateGetenv(void);
 /* ---- END non-NrrdIO */
 
 /******** all the airEnums used through-out nrrd */
-/*
+/* 
 ** the actual C enums are in nrrdEnums.h; experience has shown that it
 ** is not particularly useful to name those enums, since the shortest
 ** name is best used for the airEnums here
@@ -738,31 +723,27 @@ NRRD_EXPORT const airEnum *const nrrdMeasure;
 NRRD_EXPORT const airEnum *const nrrdUnaryOp;
 NRRD_EXPORT const airEnum *const nrrdBinaryOp;
 NRRD_EXPORT const airEnum *const nrrdTernaryOp;
-NRRD_EXPORT const airEnum *const nrrdFFTWPlanRigor;
-NRRD_EXPORT const airEnum *const nrrdResampleNonExistent;
 /* ---- END non-NrrdIO */
 
 /******** arrays of things (poor-man's functions/predicates) */
 /* arraysNrrd.c */
-NRRD_EXPORT const char nrrdTypePrintfStr[NRRD_TYPE_MAX+1][AIR_STRLEN_SMALL];
-NRRD_EXPORT const size_t nrrdTypeSize[NRRD_TYPE_MAX+1];
-NRRD_EXPORT const double nrrdTypeMin[NRRD_TYPE_MAX+1];
-NRRD_EXPORT const double nrrdTypeMax[NRRD_TYPE_MAX+1];
-NRRD_EXPORT const int nrrdTypeIsIntegral[NRRD_TYPE_MAX+1];
-NRRD_EXPORT const int nrrdTypeIsUnsigned[NRRD_TYPE_MAX+1];
+NRRD_EXPORT const char nrrdTypePrintfStr[][AIR_STRLEN_SMALL];
+NRRD_EXPORT const size_t nrrdTypeSize[];
+NRRD_EXPORT const double nrrdTypeMin[];
+NRRD_EXPORT const double nrrdTypeMax[];
+NRRD_EXPORT const int nrrdTypeIsIntegral[];
+NRRD_EXPORT const int nrrdTypeIsUnsigned[];
+NRRD_EXPORT const double nrrdTypeNumberOfValues[];
 
 /******** pseudo-constructors, pseudo-destructors, and such */
 /* methodsNrrd.c */
-/* ---- BEGIN non-NrrdIO */
-NRRD_EXPORT const int nrrdPresent;
-/* ---- END non-NrrdIO */
 NRRD_EXPORT NrrdIoState *nrrdIoStateNew(void);
 NRRD_EXPORT void nrrdIoStateInit(NrrdIoState *nio);
 NRRD_EXPORT NrrdIoState *nrrdIoStateNix(NrrdIoState *nio);
 /* ---- BEGIN non-NrrdIO */
 NRRD_EXPORT NrrdResampleInfo *nrrdResampleInfoNew(void);
 NRRD_EXPORT NrrdResampleInfo *nrrdResampleInfoNix(NrrdResampleInfo *info);
-NRRD_EXPORT NrrdKernelSpec *nrrdKernelSpecNew(void);
+NRRD_EXPORT NrrdKernelSpec *nrrdKernelSpecNew();
 NRRD_EXPORT NrrdKernelSpec *nrrdKernelSpecCopy(const NrrdKernelSpec *ksp);
 NRRD_EXPORT void nrrdKernelSpecSet(NrrdKernelSpec *ksp, const NrrdKernel *k,
                                    const double kparm[NRRD_KERNEL_PARMS_NUM]);
@@ -792,13 +773,8 @@ NRRD_EXPORT int nrrdMaybeAlloc_nva(Nrrd *nrrd, int type, unsigned int dim,
                                    const size_t *size);
 NRRD_EXPORT int nrrdMaybeAlloc_va(Nrrd *nrrd, int type, unsigned int dim,
                                   ... /* size_t sx, sy, .., ax(dim-1) size */);
-/* ---- BEGIN non-NrrdIO */
-NRRD_EXPORT int nrrdCompare(const Nrrd *ninA, const Nrrd *ninB,
-                            int onlyData, double epsilon,
-                            int *differ, char explain[AIR_STRLEN_LARGE]);
 NRRD_EXPORT int nrrdPPM(Nrrd *, size_t sx, size_t sy);
 NRRD_EXPORT int nrrdPGM(Nrrd *, size_t sx, size_t sy);
-/* ---- END non-NrrdIO */
 
 /******** axis info related */
 /* axis.c */
@@ -825,12 +801,6 @@ NRRD_EXPORT void nrrdAxisInfoIdxRange(double *loP, double *hiP,
 NRRD_EXPORT void nrrdAxisInfoSpacingSet(Nrrd *nrrd, unsigned int ax);
 NRRD_EXPORT void nrrdAxisInfoMinMaxSet(Nrrd *nrrd, unsigned int ax,
                                        int defCenter);
-/* ---- BEGIN non-NrrdIO */
-NRRD_EXPORT int nrrdAxisInfoCompare(const NrrdAxisInfo *axisA,
-                                    const NrrdAxisInfo *axisB,
-                                    int *differ,
-                                    char explain[AIR_STRLEN_LARGE]);
-/* ---- END non-NrrdIO */
 NRRD_EXPORT unsigned int nrrdDomainAxesGet(const Nrrd *nrrd,
                                            unsigned int axisIdx[NRRD_DIM_MAX]);
 NRRD_EXPORT unsigned int nrrdRangeAxesGet(const Nrrd *nrrd,
@@ -855,7 +825,8 @@ NRRD_EXPORT int nrrdSpaceSet(Nrrd *nrrd, int space);
 NRRD_EXPORT int nrrdSpaceDimensionSet(Nrrd *nrrd, unsigned int spaceDim);
 NRRD_EXPORT unsigned int nrrdSpaceOriginGet(const Nrrd *nrrd,
                                             double vector[NRRD_SPACE_DIM_MAX]);
-NRRD_EXPORT int nrrdSpaceOriginSet(Nrrd *nrrd, const double *vector);
+NRRD_EXPORT int nrrdSpaceOriginSet(Nrrd *nrrd,
+                                   double vector[NRRD_SPACE_DIM_MAX]);
 NRRD_EXPORT int nrrdOriginCalculate(const Nrrd *nrrd,
                                     unsigned int *axisIdx,
                                     unsigned int axisIdxNum,
@@ -870,26 +841,23 @@ NRRD_EXPORT size_t nrrdElementSize(const Nrrd *nrrd);
 NRRD_EXPORT size_t nrrdElementNumber(const Nrrd *nrrd);
 NRRD_EXPORT int nrrdSanity(void);
 NRRD_EXPORT int nrrdSameSize(const Nrrd *n1, const Nrrd *n2, int useBiff);
-NRRD_EXPORT void nrrdSpaceVecCopy(double dst[NRRD_SPACE_DIM_MAX],
+NRRD_EXPORT void nrrdSpaceVecCopy(double dst[NRRD_SPACE_DIM_MAX], 
                                   const double src[NRRD_SPACE_DIM_MAX]);
-NRRD_EXPORT void nrrdSpaceVecScaleAdd2(double sum[NRRD_SPACE_DIM_MAX],
-                                       double sclA,
+NRRD_EXPORT void nrrdSpaceVecScaleAdd2(double sum[NRRD_SPACE_DIM_MAX], 
+                                       double sclA, 
                                        const double vecA[NRRD_SPACE_DIM_MAX],
-                                       double sclB,
+                                       double sclB, 
                                        const double vecB[NRRD_SPACE_DIM_MAX]);
-NRRD_EXPORT void nrrdSpaceVecScale(double out[NRRD_SPACE_DIM_MAX],
-                                   double scl,
+NRRD_EXPORT void nrrdSpaceVecScale(double out[NRRD_SPACE_DIM_MAX], 
+                                   double scl, 
                                    const double vec[NRRD_SPACE_DIM_MAX]);
-NRRD_EXPORT double nrrdSpaceVecNorm(unsigned int sdim,
+NRRD_EXPORT double nrrdSpaceVecNorm(int sdim,
                                     const double vec[NRRD_SPACE_DIM_MAX]);
-NRRD_EXPORT int nrrdSpaceVecExists(unsigned int sdim,
+NRRD_EXPORT int nrrdSpaceVecExists(int sdim,
                                    double vec[NRRD_SPACE_DIM_MAX]);
 NRRD_EXPORT void nrrdSpaceVecSetNaN(double vec[NRRD_SPACE_DIM_MAX]);
-/* ---- BEGIN non-NrrdIO */
-NRRD_EXPORT void nrrdSanityOrDie(const char *me);
 NRRD_EXPORT void nrrdSpaceVecSetZero(double vec[NRRD_SPACE_DIM_MAX]);
 NRRD_EXPORT void nrrdZeroSet(Nrrd *nout);
-/* ---- END non-NrrdIO */
 
 /******** comments related */
 /* comment.c */
@@ -903,7 +871,7 @@ NRRD_EXPORT unsigned int nrrdKeyValueSize(const Nrrd *nrrd);
 NRRD_EXPORT int nrrdKeyValueAdd(Nrrd *nrrd,
                                 const char *key, const char *value);
 NRRD_EXPORT char *nrrdKeyValueGet(const Nrrd *nrrd, const char *key);
-NRRD_EXPORT void nrrdKeyValueIndex(const Nrrd *nrrd,
+NRRD_EXPORT void nrrdKeyValueIndex(const Nrrd *nrrd, 
                                    char **keyP, char **valueP,
                                    unsigned int ki);
 NRRD_EXPORT int nrrdKeyValueErase(Nrrd *nrrd, const char *key);
@@ -965,17 +933,17 @@ NRRD_EXPORT int nrrdStringRead(Nrrd *nrrd, const char *string,
 NRRD_EXPORT int nrrdIoStateSet(NrrdIoState *nio, int parm, int value);
 NRRD_EXPORT int nrrdIoStateEncodingSet(NrrdIoState *nio,
                                        const NrrdEncoding *encoding);
-NRRD_EXPORT int nrrdIoStateFormatSet(NrrdIoState *nio,
+NRRD_EXPORT int nrrdIoStateFormatSet(NrrdIoState *nio, 
                                      const NrrdFormat *format);
 NRRD_EXPORT int nrrdIoStateGet(NrrdIoState *nio, int parm);
 NRRD_EXPORT const NrrdEncoding *nrrdIoStateEncodingGet(NrrdIoState *nio);
 NRRD_EXPORT const NrrdFormat *nrrdIoStateFormatGet(NrrdIoState *nio);
-NRRD_EXPORT int nrrdSave(const char *filename, const Nrrd *nrrd,
+NRRD_EXPORT int nrrdSave(const char *filename, const Nrrd *nrrd, 
                          NrrdIoState *nio);
 NRRD_EXPORT int nrrdSaveMulti(const char *fnameFormat,
                               const Nrrd *const *nin, unsigned int ninLen,
                               unsigned int numStart, NrrdIoState *nio);
-NRRD_EXPORT int nrrdWrite(FILE *file, const Nrrd *nrrd,
+NRRD_EXPORT int nrrdWrite(FILE *file, const Nrrd *nrrd, 
                           NrrdIoState *nio);
 NRRD_EXPORT int nrrdStringWrite(char **stringP, const Nrrd *nrrd,
                                 NrrdIoState *nio);
@@ -1008,17 +976,12 @@ NRRD_EXPORT unsigned int (*nrrdUIInsert[NRRD_TYPE_MAX+1])(void *v, size_t I,
 NRRD_EXPORT int    (*nrrdSprint[NRRD_TYPE_MAX+1])(char *, const void *);
 /* ---- BEGIN non-NrrdIO */
 NRRD_EXPORT int    (*nrrdFprint[NRRD_TYPE_MAX+1])(FILE *, const void *);
-NRRD_EXPORT void (*nrrdMinMaxExactFind[NRRD_TYPE_MAX+1])(void *minP,
+NRRD_EXPORT void (*nrrdMinMaxExactFind[NRRD_TYPE_MAX+1])(void *minP, 
                                                          void *maxP,
                                                          int *hasNonExistP,
                                                          const Nrrd *nrrd);
-NRRD_EXPORT int (*nrrdValCompare[NRRD_TYPE_MAX+1])(const void *,
-                                                   const void *);
-NRRD_EXPORT int (*nrrdValCompareInv[NRRD_TYPE_MAX+1])(const void *,
-                                                      const void *);
-NRRD_EXPORT int nrrdArrayCompare(int type, const void *valA, const void *valB,
-                                 size_t valNum, double epsilon, int *differ,
-                                 char explain[AIR_STRLEN_LARGE]);
+NRRD_EXPORT int (*nrrdValCompare[NRRD_TYPE_MAX+1])(const void *, const void *);
+NRRD_EXPORT int (*nrrdValCompareInv[NRRD_TYPE_MAX+1])(const void *, const void *);
 /* ---- END non-NrrdIO */
 
 
@@ -1036,7 +999,7 @@ NRRD_EXPORT int nrrdAxesSwap(Nrrd *nout, const Nrrd *nin,
                              unsigned int ax1, unsigned int ax2);
 NRRD_EXPORT int nrrdFlip(Nrrd *nout, const Nrrd *nin, unsigned int axis);
 NRRD_EXPORT int nrrdJoin(Nrrd *nout, const Nrrd *const *nin,
-                         unsigned int numNin,
+                         unsigned int numNin, 
                          unsigned int axis, int incrDim);
 NRRD_EXPORT int nrrdReshape_va(Nrrd *nout, const Nrrd *nin, unsigned int dim,
                                ... /* sx, sy, .., axis(dim-1) size */ );
@@ -1052,7 +1015,7 @@ NRRD_EXPORT int nrrdTile2D(Nrrd *nout, const Nrrd *nin,
                            unsigned int ax0, unsigned int ax1,
                            unsigned int axSplit,
                            size_t sizeFast, size_t sizeSlow);
-NRRD_EXPORT int nrrdUntile2D(Nrrd *nout, const Nrrd *nin,
+NRRD_EXPORT int nrrdUntile2D(Nrrd *nout, const Nrrd *nin, 
                              unsigned int ax0, unsigned int ax1,
                              unsigned int axMerge, size_t sizeFast,
                              size_t sizeSlow);
@@ -1081,16 +1044,6 @@ NRRD_EXPORT NrrdRange *nrrdRangeNix(NrrdRange *range);
 NRRD_EXPORT void nrrdRangeReset(NrrdRange *range);
 NRRD_EXPORT void nrrdRangeSet(NrrdRange *range,
                               const Nrrd *nrrd, int blind8BitRange);
-NRRD_EXPORT int nrrdRangePercentileSet(NrrdRange *range, const Nrrd *nrrd,
-                                       double minPerc, double maxPerc,
-                                       unsigned int hbins,
-                                       int blind8BitRange);
-NRRD_EXPORT int nrrdRangePercentileFromStringSet(NrrdRange *range,
-                                                 const Nrrd *nrrd,
-                                                 const char *minStr,
-                                                 const char *maxStr,
-                                                 unsigned int hbins,
-                                                 int blind8BitRange);
 NRRD_EXPORT void nrrdRangeSafeSet(NrrdRange *range,
                                   const Nrrd *nrrd, int blind8BitRange);
 NRRD_EXPORT NrrdRange *nrrdRangeNewSet(const Nrrd *nrrd, int blind8BitRange);
@@ -1104,6 +1057,7 @@ NRRD_EXPORT int nrrdConvert(Nrrd *nout, const Nrrd *nin, int type);
 NRRD_EXPORT int nrrdClampConvert(Nrrd *nout, const Nrrd *nin, int type);
 NRRD_EXPORT int nrrdQuantize(Nrrd *nout, const Nrrd *nin,
                              const NrrdRange *range, unsigned int bits);
+
 NRRD_EXPORT int nrrdUnquantize(Nrrd *nout, const Nrrd *nin, int type);
 NRRD_EXPORT int nrrdHistoEq(Nrrd *nout, const Nrrd *nin, Nrrd **nhistP,
                             unsigned int bins,
@@ -1129,7 +1083,7 @@ NRRD_EXPORT int nrrd1DIrregAclGenerate(Nrrd *nacl, const Nrrd *nmap,
                                        size_t aclLen);
 NRRD_EXPORT int nrrd1DIrregAclCheck(const Nrrd *nacl);
 NRRD_EXPORT int nrrdApply1DIrregMap(Nrrd *nout,
-                                    const Nrrd *nin, const NrrdRange *range,
+                                    const Nrrd *nin, const NrrdRange *range, 
                                     const Nrrd *nmap, const Nrrd *nacl,
                                     int typeOut, int rescale);
 NRRD_EXPORT int nrrdApply1DSubstitution(Nrrd *nout,
@@ -1160,11 +1114,6 @@ NRRD_EXPORT int nrrdSample_nva(void *val, const Nrrd *nin,
 NRRD_EXPORT int nrrdSample_va(void *val, const Nrrd *nin,
                               ... /* size_t idx0, idx1, .., idx(dim-1) */ );
 NRRD_EXPORT int nrrdSimpleCrop(Nrrd *nout, const Nrrd *nin, unsigned int crop);
-NRRD_EXPORT int nrrdCropAuto(Nrrd *nout, const Nrrd *nin,
-                             size_t _min[NRRD_DIM_MAX],
-                             size_t _max[NRRD_DIM_MAX],
-                             const unsigned int *keep, unsigned int keepNum,
-                             int measr, double frac, int offset);
 
 /******** padding */
 /* superset.c */
@@ -1209,7 +1158,7 @@ NRRD_EXPORT int nrrdHistoAxis(Nrrd *nout, const Nrrd *nin,
                               unsigned int axis, size_t bins, int type);
 NRRD_EXPORT int nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
                                const NrrdRange *const *range,
-                               unsigned int ninNum,
+                               unsigned int numNin,
                                const Nrrd *nwght, const size_t *bins,
                                int type, const int *clamp);
 NRRD_EXPORT int nrrdHistoThresholdOtsu(double *threshP, const Nrrd *nhist,
@@ -1231,21 +1180,13 @@ NRRD_EXPORT int nrrdArithAffine(Nrrd *nout, double minIn,
                                 int clamp);
 NRRD_EXPORT int nrrdArithIterBinaryOp(Nrrd *nout, int op,
                                       NrrdIter *inA, NrrdIter *inB);
-NRRD_EXPORT int nrrdArithIterBinaryOpSelect(Nrrd *nout, int op,
-                                            NrrdIter *inA, NrrdIter *inB,
-                                            unsigned int which);
 NRRD_EXPORT int nrrdArithIterTernaryOp(Nrrd *nout, int op,
                                        NrrdIter *inA, NrrdIter *inB,
                                        NrrdIter *inC);
-NRRD_EXPORT int nrrdArithIterTernaryOpSelect(Nrrd *nout, int op,
-                                             NrrdIter *inA, NrrdIter *inB,
-                                             NrrdIter *inC,
-                                             unsigned int which);
 NRRD_EXPORT int nrrdArithIterAffine(Nrrd *nout, NrrdIter *minIn,
                                     NrrdIter *in, NrrdIter *maxIn,
                                     NrrdIter *minOut, NrrdIter *maxOut,
                                     int clamp);
-NRRD_EXPORT unsigned int nrrdCRC32(const Nrrd *nin, int endian);
 
 /******** filtering and re-sampling */
 /* filt.c */
@@ -1263,64 +1204,6 @@ NRRD_EXPORT int nrrdDistanceL2Biased(Nrrd *nout, const Nrrd *nin,
 NRRD_EXPORT int nrrdDistanceL2Signed(Nrrd *nout, const Nrrd *nin,
                                      int typeOut, const int *axisDo,
                                      double thresh, int insideHigher);
-
-/******** deringNrrd.c: deringing CT */
-typedef struct {
-  /* -------- INPUT */
-  int verbose,                 /* blah blah blah */
-    linearInterp,              /* instead of nearest neighbor in polar txf */
-    verticalSeam;              /* dering left and right sides of image
-                                  separately, asserting that there are no
-                                  rings along vertical line through center */
-  const Nrrd *nin;             /* array to dering */
-  double center[2],            /* location of recon center in index space
-                                  of fastest two axes */
-    clampPerc[2],              /* percentiles above 0.0 and below 1.0 at which
-                                  to clamp values (for ring estimation) from
-                                  below and above, respectively. Setting both
-                                  to zero means no such clamping */
-    radiusScale;               /* radius scaling to polar txf */
-  unsigned int thetaNum,       /* number of samples in theta in polar txf */
-    clampHistoBins;            /* number of bins in histogram for computing
-                                  clamping in terms of percentiles */
-  const NrrdKernel *rkernel;   /* kernel for radial high-pass filtering */
-  double rkparm[NRRD_KERNEL_PARMS_NUM];
-  const NrrdKernel *tkernel;   /* kernel for blurring along theta */
-  double tkparm[NRRD_KERNEL_PARMS_NUM];
-  /* -------- INTERNAL */
-  const char *cdataIn;         /* nin->data as char* */
-  char *cdataOut;              /* nout->data as char* */
-  size_t sliceSize;            /* sizeof slice */
-  int clampDo;                 /* is there really is clamping to be done */
-  double clamp[2];             /* clamping values implied by clampPerc */
-  /* -------- OUTPUT */
-  double ringMagnitude;        /* L2 norm of ring map; may be useful for
-                                  optimizing an (unknown) center location */
-} NrrdDeringContext;
-NRRD_EXPORT NrrdDeringContext *nrrdDeringContextNew(void);
-NRRD_EXPORT NrrdDeringContext *nrrdDeringContextNix(NrrdDeringContext *drc);
-NRRD_EXPORT int nrrdDeringVerboseSet(NrrdDeringContext *drc, int verbose);
-NRRD_EXPORT int nrrdDeringLinearInterpSet(NrrdDeringContext *drc,
-                                          int linterp);
-NRRD_EXPORT int nrrdDeringVerticalSeamSet(NrrdDeringContext *drc,
-                                          int vertSeam);
-NRRD_EXPORT int nrrdDeringInputSet(NrrdDeringContext *drc, const Nrrd *nin);
-NRRD_EXPORT int nrrdDeringCenterSet(NrrdDeringContext *drc,
-                                    double cx, double cy);
-NRRD_EXPORT int nrrdDeringClampPercSet(NrrdDeringContext *drc,
-                                       double lo, double hi);
-NRRD_EXPORT int nrrdDeringClampHistoBinsSet(NrrdDeringContext *drc,
-                                            unsigned int bins);
-NRRD_EXPORT int nrrdDeringRadiusScaleSet(NrrdDeringContext *drc, double rsc);
-NRRD_EXPORT int nrrdDeringThetaNumSet(NrrdDeringContext *drc,
-                                      unsigned int thetaNum);
-NRRD_EXPORT int nrrdDeringRadialKernelSet(NrrdDeringContext *drc,
-                                   const NrrdKernel *rkernel,
-                                   const double rkparm[NRRD_KERNEL_PARMS_NUM]);
-NRRD_EXPORT int nrrdDeringThetaKernelSet(NrrdDeringContext *drc,
-                                   const NrrdKernel *tkernel,
-                                   const double tkparm[NRRD_KERNEL_PARMS_NUM]);
-NRRD_EXPORT int nrrdDeringExecute(NrrdDeringContext *drc, Nrrd *nout);
 
 /*
 ******** nrrdResample_t typedef
@@ -1346,18 +1229,14 @@ typedef double nrrdResample_t;
 #endif
 
 /* resampleContext.c */
-NRRD_EXPORT NrrdResampleContext *nrrdResampleContextNew(void);
+NRRD_EXPORT NrrdResampleContext *nrrdResampleContextNew();
 NRRD_EXPORT NrrdResampleContext *nrrdResampleContextNix(NrrdResampleContext *);
 NRRD_EXPORT int nrrdResampleDefaultCenterSet(NrrdResampleContext *rsmc,
                                              int center);
-NRRD_EXPORT int nrrdResampleNonExistentSet(NrrdResampleContext *rsmc,
-                                           int nonExistent);
 NRRD_EXPORT int nrrdResampleNrrdSet(NrrdResampleContext *rsmc,
                                     const Nrrd *nin);
-NRRD_EXPORT int nrrdResampleInputSet(NrrdResampleContext *rsmc,
-                                     const Nrrd *nin);
 NRRD_EXPORT int nrrdResampleKernelSet(NrrdResampleContext *rsmc,
-                                      unsigned int axIdx,
+                                      unsigned int axIdx, 
                                       const NrrdKernel *kernel,
                                       double kparm[NRRD_KERNEL_PARMS_NUM]);
 NRRD_EXPORT int nrrdResampleSamplesSet(NrrdResampleContext *rsmc,
@@ -1388,7 +1267,7 @@ NRRD_EXPORT int nrrdResampleExecute(NrrdResampleContext *rsmc, Nrrd *nout);
 /* resampleNrrd.c */
 NRRD_EXPORT int nrrdSpatialResample(Nrrd *nout, const Nrrd *nin,
                                     const NrrdResampleInfo *info);
-NRRD_EXPORT int nrrdSimpleResample(Nrrd *nout, const Nrrd *nin,
+NRRD_EXPORT int nrrdSimpleResample(Nrrd *nout, Nrrd *nin,
                                    const NrrdKernel *kernel,
                                    const double *parm,
                                    const size_t *samples,
@@ -1411,19 +1290,8 @@ NRRD_EXPORT int nrrdCCMerge(Nrrd *nout, const Nrrd *nin, Nrrd *nval,
                             unsigned int maxNeighbor, unsigned int conny);
 NRRD_EXPORT int nrrdCCRevalue (Nrrd *nout, const Nrrd *nin, const Nrrd *nval);
 NRRD_EXPORT int nrrdCCSettle(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin);
-
-/******** FFT */
-/* fftNrrd.c */
-NRRD_EXPORT const int nrrdFFTWEnabled;
-NRRD_EXPORT int nrrdFFTWWisdomRead(FILE *file);
-NRRD_EXPORT int nrrdFFT(Nrrd *nout, const Nrrd *nin,
-                        unsigned int *axes, unsigned int axesLen,
-                        int sign, int rescale, int preCompLevel);
-NRRD_EXPORT int nrrdFFTWWisdomWrite(FILE *file);
-
+  
 /******** kernels (interpolation, 1st and 2nd derivatives) */
-/* new kernels should also be registered with
-   meet/meetNrrd.c/meetNrrdKernelAll() */
 /* tmfKernel.c
    nrrdKernelTMF[D+1][C+1][A] is d<D>_c<C>_<A>ef:
    Dth-derivative, C-order continuous ("smooth"), A-order accurate
@@ -1440,75 +1308,26 @@ NRRD_EXPORT NrrdKernel
   *const nrrdKernelBlackman,     /* Blackman windowed sinc */
   *const nrrdKernelBlackmanD,    /* 1st derivative of Blackman windowed sinc */
   *const nrrdKernelBlackmanDD;   /* 2nd derivative */
-/* bsplKernel.c: b-splines of various orders; these do not interpolate,
-   but the ApproxInverse kernels are ok for pre-filtering so that they do */
+/* bsplKernel.c : b-splines of various orders; these do not interpolate */
 NRRD_EXPORT NrrdKernel
-  *const nrrdKernelBSpline1,     /* 1st order B-spline */
-  *const nrrdKernelBSpline1D,
-  *const nrrdKernelBSpline2,     /* 2nd order (quadratic) B-spline */
-  *const nrrdKernelBSpline2D,
-  *const nrrdKernelBSpline2DD,
   *const nrrdKernelBSpline3,     /* 3rd order (cubic) B-spline */
   *const nrrdKernelBSpline3D,
   *const nrrdKernelBSpline3DD,
-  *const nrrdKernelBSpline3DDD,
-  *const nrrdKernelBSpline3ApproxInverse,
-  *const nrrdKernelBSpline4,     /* 4rd order B-spline */
-  *const nrrdKernelBSpline4D,
-  *const nrrdKernelBSpline4DD,
-  *const nrrdKernelBSpline4DDD,
   *const nrrdKernelBSpline5,     /* 5th order B-spline */
   *const nrrdKernelBSpline5D,
-  *const nrrdKernelBSpline5DD,
-  *const nrrdKernelBSpline5DDD,
-  *const nrrdKernelBSpline5ApproxInverse,
-  *const nrrdKernelBSpline6,     /* 6th order B-spline */
-  *const nrrdKernelBSpline6D,
-  *const nrrdKernelBSpline6DD,
-  *const nrrdKernelBSpline6DDD,
-  *const nrrdKernelBSpline7,     /* 7th order B-spline */
-  *const nrrdKernelBSpline7D,
-  *const nrrdKernelBSpline7DD,
-  *const nrrdKernelBSpline7DDD,
-  *const nrrdKernelBSpline7ApproxInverse;
-/* kernel.c: the rest of the kernels and kernel utility functions */
+  *const nrrdKernelBSpline5DD;
+/* kernel.c */
 NRRD_EXPORT NrrdKernel
-  *const nrrdKernelZero,         /* zero everywhere (though still takes
-                                    a single "support" parm[0]) */
+  *const nrrdKernelZero,         /* zero everywhere */
   *const nrrdKernelBox,          /* box filter (nearest neighbor) */
-  *const nrrdKernelBoxSupportDebug, /* box kernel but with an adjustable
-                                       support, not for changing the shape of
-                                       the kernel (as with nrrdKernelBox), but
-                                       for exercising functions (like nrrd's
-                                       resampling or gage's probing) that
-                                       depend on kernel support */
-  *const nrrdKernelCos4SupportDebug, /* like BoxSupportDebug but instead of
-                                        box function, using cos(pi*x)^4
-                                        within [-0.5,0.5] and 0.0 outside */
-  *const nrrdKernelCos4SupportDebugD,
-  *const nrrdKernelCos4SupportDebugDD,
-  *const nrrdKernelCos4SupportDebugDDD,
-  *const nrrdKernelCatmullRomSupportDebug,
-  *const nrrdKernelCatmullRomSupportDebugD,
-  *const nrrdKernelCatmullRomSupportDebugDD,
-  *const nrrdKernelCheap,        /* an unusual and specially-handled kernel
-                                    that evaluates to abs(x), for the
-                                    singular purpose of enabling nearest
-                                    neighbor downsampling */
-  *const nrrdKernelHermiteScaleSpaceFlag,  /* a kernel that looks like tent,
-                                              but which exists as a flag for
-                                              particular gage behavior in the
-                                              context of doing interpolation
-                                              along scale in scale-space */
+  *const nrrdKernelCheap,        /* like box, but every Nth on downsampling */
+  *const nrrdKernelHermiteFlag,  /* NOT a kernel, a flag for gage behavior */
   *const nrrdKernelTent,         /* tent filter (linear interpolation) */
   *const nrrdKernelForwDiff,     /* forward-difference-ish 1st deriv. */
   *const nrrdKernelCentDiff,     /* central-difference-ish 1st deriv. */
   *const nrrdKernelBCCubic,      /* BC family of cubic polynomial splines */
   *const nrrdKernelBCCubicD,     /* 1st deriv. of BC cubic family */
   *const nrrdKernelBCCubicDD,    /* 2nd deriv. of BC cubic family */
-  *const nrrdKernelCatmullRom,   /* aka cubic:0,0.5 */
-  *const nrrdKernelCatmullRomD,  /* aka cubicd:0,0.5 */
-  *const nrrdKernelCatmullRomDD, /* aka cubicdd:0,0.5 */
   *const nrrdKernelAQuartic,     /* A family of quartic C2 interp. splines */
   *const nrrdKernelAQuarticD,    /* 1st deriv. of A quartic family */
   *const nrrdKernelAQuarticDD,   /* 2nd deriv. of A quartic family */
@@ -1518,44 +1337,22 @@ NRRD_EXPORT NrrdKernel
   *const nrrdKernelC4Hexic,      /* 0-parm C4 hex, support [-3,3] */
   *const nrrdKernelC4HexicD,     /* 1st deriv of C4Hexic */
   *const nrrdKernelC4HexicDD,    /* 2nd deriv of C4Hexic */
-  *const nrrdKernelC4HexicDDD,   /* 3rd deriv of C4Hexic */
-  *const nrrdKernelC4HexicApproxInverse,
-  *const nrrdKernelC5Septic,     /* 0-parm C5 sept, support [-4,4] */
-  *const nrrdKernelC5SepticD,    /* 1st deriv of C5Septic */
-  *const nrrdKernelC5SepticDD,   /* 2nd deriv of C5Septic */
-  *const nrrdKernelC5SepticDDD,  /* 3rd deriv of C5Septic */
-  *const nrrdKernelC5SepticApproxInverse,
   *const nrrdKernelGaussian,     /* Gaussian */
   *const nrrdKernelGaussianD,    /* 1st derivative of Gaussian */
   *const nrrdKernelGaussianDD,   /* 2nd derivative of Gaussian */
-  *const nrrdKernelDiscreteGaussian; /* Discrete Gaussian-like kernel for
+  *const nrrdKernelDiscreteGaussian; /* Discrete Gaussian-like kernel for 
                                         scale-space analysis */
 NRRD_EXPORT int nrrdKernelParse(const NrrdKernel **kernelP,
                                 double *parm,
                                 const char *str);
 NRRD_EXPORT int nrrdKernelSpecParse(NrrdKernelSpec *ksp, const char *str);
 NRRD_EXPORT int nrrdKernelSpecSprint(char str[AIR_STRLEN_LARGE],
-                                     const NrrdKernelSpec *ksp);
-NRRD_EXPORT int nrrdKernelSprint(char str[AIR_STRLEN_LARGE],
-                                 const NrrdKernel *kernel,
-                                 const double *kparm);
-NRRD_EXPORT int nrrdKernelCompare(const NrrdKernel *kernA,
-                                  const double parmA[NRRD_KERNEL_PARMS_NUM],
-                                  const NrrdKernel *kernB,
-                                  const double parmB[NRRD_KERNEL_PARMS_NUM],
-                                  int *differ,
-                                  char explain[AIR_STRLEN_LARGE]);
-NRRD_EXPORT int nrrdKernelCheck(const NrrdKernel *kern,
-                                const double parm[NRRD_KERNEL_PARMS_NUM],
-                                size_t evalNum, double epsilon,
-                                unsigned int diffOkEvalMax,
-                                unsigned int diffOkIntglMax,
-                                const NrrdKernel *dkern,
-                                const double dparm[NRRD_KERNEL_PARMS_NUM]);
+                                     NrrdKernelSpec *ksp);
 
 /* ---- END non-NrrdIO */
 
 #ifdef __cplusplus
 }
 #endif
+
 #endif /* NRRD_HAS_BEEN_INCLUDED */

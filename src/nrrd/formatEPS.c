@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -24,20 +23,20 @@
 #include "nrrd.h"
 #include "privateNrrd.h"
 
-static int
+int
 _nrrdFormatEPS_available(void) {
 
   /* but only for writing ... */
   return AIR_TRUE;
 }
 
-static int
+int
 _nrrdFormatEPS_nameLooksLike(const char *filename) {
-
+  
   return airEndsWith(filename, NRRD_EXT_EPS);
 }
 
-static int
+int
 _nrrdFormatEPS_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
                         int useBiff) {
   static const char me[]="_nrrdFormatEPS_fitsInto";
@@ -47,13 +46,13 @@ _nrrdFormatEPS_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
   /* encoding information is ignored- its always going to be hex */
   if (!nrrd) {
     biffMaybeAddf(useBiff, NRRD, "%s: got NULL nrrd (%p)",
-                  me, AIR_CVOIDP(nrrd));
+                  me, AIR_CAST(void*, nrrd)); 
     return AIR_FALSE;
   }
   if (nrrdTypeUChar != nrrd->type) {
     biffMaybeAddf(useBiff, NRRD, "%s: type must be %s (not %s)", me,
                   airEnumStr(nrrdType, nrrdTypeUChar),
-                  airEnumStr(nrrdType, nrrd->type));
+                  airEnumStr(nrrdType, nrrd->type)); 
     return AIR_FALSE;
   }
   if (2 == nrrd->dim) {
@@ -71,21 +70,20 @@ _nrrdFormatEPS_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
       ret = 3;
     } else {
       /* else its no good */
-      char stmp[AIR_STRLEN_SMALL];
       biffMaybeAddf(useBiff, NRRD,
-                    "%s: dim is 3, but 1st axis size is %s, not 1, 3, or 4",
-                    me, airSprintSize_t(stmp, nrrd->axis[0].size));
+                    "%s: dim is 3, but 1st axis size is " _AIR_SIZE_T_CNV
+                    ", not 1, 3, or 4", me, nrrd->axis[0].size); 
       return AIR_FALSE;
     }
   } else {
     biffMaybeAddf(useBiff, NRRD, "%s: dimension is %d, not 2 or 3",
-                  me, nrrd->dim);
+                  me, nrrd->dim); 
     return AIR_FALSE;
   }
   return ret;
 }
 
-static int
+int
 _nrrdFormatEPS_contentStartsLike(NrrdIoState *nio) {
 
   AIR_UNUSED(nio);
@@ -93,7 +91,7 @@ _nrrdFormatEPS_contentStartsLike(NrrdIoState *nio) {
   return AIR_FALSE;
 }
 
-static int
+int
 _nrrdFormatEPS_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   static const char me[]="_nrrdFormatEPS_read";
 
@@ -104,14 +102,14 @@ _nrrdFormatEPS_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   return 1;
 }
 
-static int
+int
 _nrrdFormatEPS_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   static const char me[]="_nrrdFormatEPS_write";
   int color, cmyk, sx, sy;
   Nrrd *nrrd;
   double aspect, minX, minY, maxX, maxY, scale;
   airArray *mop;
-
+  
   mop = airMopNew();
   airMopAdd(mop, nrrd = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   if (nrrdCopy(nrrd, _nrrd)) {
@@ -124,7 +122,7 @@ _nrrdFormatEPS_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
       airMopError(mop); return 1;
     }
   }
-  color = (3 == nrrd->dim) && (3 == nrrd->axis[0].size
+  color = (3 == nrrd->dim) && (3 == nrrd->axis[0].size 
                                || 4 == nrrd->axis[0].size);
   cmyk = color && 4 == nrrd->axis[0].size;
   if (color) {
@@ -157,20 +155,20 @@ _nrrdFormatEPS_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   fprintf(file, "%%!PS-Adobe-3.0 EPSF-3.0\n");
   fprintf(file, "%%%%Creator: Nrrd Utilities From the "
           "Great Nation of Deseret\n");
-  fprintf(file, "%%%%Title: %s\n",
+  fprintf(file, "%%%%Title: %s\n", 
           nrrd->content ? nrrd->content : "A lovely little image");
   fprintf(file, "%%%%Pages: 1\n");
   fprintf(file, "%%%%BoundingBox: %d %d %d %d\n",
           (int)floor(minX), (int)floor(minY),
           (int)ceil(maxX), (int)ceil(maxY));
-  fprintf(file, "%%%%HiResBoundingBox: %g %g %g %g\n",
+  fprintf(file, "%%%%HiResBoundingBox: %g %g %g %g\n", 
           minX, minY, maxX, maxY);
   fprintf(file, "%%%%EndComments\n");
   fprintf(file, "%%%%BeginProlog\n");
   fprintf(file, "%% linestr creates an empty string to hold "
           "one scanline\n");
-  fprintf(file, "/linestr %d string def\n", sx*(color
-                                                ? (cmyk
+  fprintf(file, "/linestr %d string def\n", sx*(color 
+                                                ? (cmyk 
                                                    ? 4
                                                    : 3)
                                                 : 1));
@@ -199,8 +197,8 @@ _nrrdFormatEPS_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   fprintf(file, "\n");
   fprintf(file, "grestore\n");
   fprintf(file, "grestore\n");
-
-  airMopError(mop);
+  
+  airMopError(mop); 
   return 0;
 }
 

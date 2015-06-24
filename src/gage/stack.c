@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -24,48 +23,18 @@
 #include "gage.h"
 #include "privateGage.h"
 
-/*
-** based on: T. Lindeberg. "Effective Scale: A Natural Unit For
-** Measuring Scale-Space Lifetime" IEEE PAMI, 15:1068-1074 (1993)
-**
-** which includes tau(tee) as equation (29),
-** here taking A'' == 0 and B'' == 1, with
-** a0 and a1 as defined by eqs (22) and (23)
-**
-** Used MiniMaxApproximation[] from Mathematica to get functions, but
-** the specific functions and their domains could certainly be
-** improved upon.  Also, the absence of conversions directly between
-** tau and sigma is quite unfortunate: going through tee loses
-** precision and takes more time.
-*/
+/* these functions don't necessarily belong in gage, but we're putting
+   them here for the time being.  Being in gage means that vprobe and
+   pprobe don't need extra libraries to find them. */
+
+#define BT 2.526917043979558
+#define AA 0.629078014852877
+
 double
 gageTauOfTee(double tee) {
   double tau;
 
-  if (tee < 0) {
-    tau = 0;
-  } else if (tee < 1.49807) {
-    /* mmtau0tweaked */
-    tau = (tee*(0.2756644487429131 + tee*(0.10594329088466668 + tee*(0.05514331911165778 + (0.021449249669475232 + 0.004417835440932558*tee)*tee))))/
-      (1.0 + tee*(-0.08684532328108877 + tee*(0.1792830876099199 + tee*(0.07468999631784223 + (0.012123550696192354 + 0.0021535864222409365*tee)*tee))));
-  } else if (tee < 4.96757) {
-    /* mmtau1 */
-    tau = (0.0076145275813930356 + tee*(0.24811886965997867 + tee*(0.048329025380584194 +
-                                                                   tee*(0.04227260554167517 + (0.0084221516844712 + 0.0092075782656669*tee)*tee))))/
-      (1.0 + tee*(-0.43596678272093764 + tee*(0.38077975530585234 + tee*(-0.049133766853683175 + (0.030319379462443567 + 0.0034126333151669654*tee)*tee))));
-  } else if (tee < 15.4583) {
-    /* mmtau2 */
-    tau = (-0.2897145176074084 + tee*(1.3527948686285203 + tee*(-0.47099157589904095 +
-           tee*(-0.16031981786376195 + (-0.004820970155881798 - 4.149777202275125e-6*tee)*tee))))/
-      (1.0 + tee*(0.3662508612514773 + tee*(-0.5357849572367938 + (-0.0805122462310566 - 0.0015558889784971902*tee)*tee)));
-  } else if (tee < 420.787) {
-    /* mmtau3 */
-    tau = (-4.2037874383990445e9 + tee*(2.838805157541766e9 + tee*(4.032410315406513e8 + tee*(5.392017876788518e6 + tee*(9135.49750298428 + tee)))))/
-      (tee*(2.326563899563907e9 + tee*(1.6920560224321905e8 + tee*(1.613645012626063e6 + (2049.748257887103 + 0.1617034516398788*tee)*tee))));
-  } else {
-    /* lindtau = eq (33) in paper */
-    tau = 0.53653222368715360118 + log(tee)/2.0 + log(1.0 - 1.0/(8.0*tee));
-  }
+  tau = (tee < BT ? AA*sqrt(tee) : 0.5365 + log(tee)/2);
   return tau;
 }
 
@@ -73,45 +42,17 @@ double
 gageTeeOfTau(double tau) {
   double tee;
 
-  /* the number of branches here is not good; needs re-working */
-  if (tau < 0) {
-    tee = 0;
-  } else if (tau < 0.611262) {
-    /* mmtee0tweaked */
-    tee = (tau*(3.6275987317285265 + tau*(11.774700160760132 + tau*(4.52406587856803 + tau*(-14.125688866786549 + tau*(-0.725387283317479 + 3.5113122862478865*tau))))))/
-      (1.0 + tau*(4.955066250765395 + tau*(4.6850073321973404 + tau*(-6.407987550661679 + tau*(-6.398430668865182 + 5.213709282093169*tau)))));
-  } else if (tau < 1.31281) {
-    /* mmtee1 */
-    tee = (1.9887378739371435e49 + tau*(-2.681749984485673e50 + tau*(-4.23360463718195e50 + tau*(2.09694591123974e51 + tau*(-2.7561518523389087e51 + (1.661629137055526e51 - 4.471073383223687e50*tau)*tau)))))/
-      (1.0 + tau*(-5.920734745050949e50 + tau*(1.580953446553531e51 + tau*(-1.799463907469813e51 + tau*(1.0766702953985062e51 + tau*(-3.57278667155516e50 + 5.008335824520649e49*tau))))));
-  } else if (tau < 1.64767) {
-    /* mmtee2 */
-    tee = (7.929177830383403 + tau*(-26.12773195115971 + tau*(40.13296225515305 + tau*(-25.041659428733585 + 11.357596970027744*tau))))/
-      (1.0 + tau*(-2.3694595653302377 + tau*(7.324354882915464 + (-3.5335141717471314 + 0.4916661013041915*tau)*tau)));
-  } else if (tau < 1.88714) {
-    /* mmtee3 */
-    tee = (0.8334252264680793 + tau*(-0.2388940380698891 + (0.6057616935583752 - 0.01610044688317929*tau)*tau))/(1.0 + tau*(-0.7723301124908083 + (0.21283962841683607 - 0.020834957466407206*tau)*tau));
-  } else if (tau < 2.23845) {
-    /* mmtee4 */
-    tee = (0.6376900379835665 + tau*(0.3177131886056259 + (0.1844114646774132 + 0.2001613331260136*tau)*tau))/(1.0 + tau*(-0.6685635461372561 + (0.15860524381878136 - 0.013304300252332686*tau)*tau));
-  } else if (tau < 2.6065) {
-    /* mmtee5 */
-    tee = (1.3420027677612982 + (-0.939215712453483 + 0.9586140009249253*tau)*tau)/(1.0 + tau*(-0.6923014141351673 + (0.16834190074776287 - 0.014312833444962668*tau)*tau));
-  } else if (tau < 3.14419) {
-    /* mmtee6 */
-    tee = (tau*(190.2181493338235 + tau*(-120.16652155353106 + 60.*tau)))/(76.13355144582292 + tau*(-42.019121363472614 + (8.023304636521623 - 0.5281725039404653*tau)*tau));
-  } else {
-    /* lindtee = lindtau^{-1} */
-    double ee;
-    ee = exp(2.0*tau);
-    tee = 0.0063325739776461107152*(27.0*ee + 2*AIR_PI*AIR_PI + 3.0*sqrt(81.0*ee*ee + 12*ee*AIR_PI*AIR_PI));
-  }
+  /* is it surprising that the transition is at tau = 1 ? */
+  tee = (tau < 1 ? tau*tau/(AA*AA) : exp(2*(tau - 0.5365)));
   return tee;
 }
 
+#undef BT
+#undef AA
+
 double
 gageSigOfTau(double tau) {
-
+  
   return sqrt(gageTeeOfTau(tau));
 }
 
@@ -179,7 +120,7 @@ gageStackItoW(gageContext *ctx, double si, int *outside) {
     swrl = AIR_AFFINE(0, sfrac, 1, ctx->stackPos[sidx], ctx->stackPos[sidx+1]);
     /*
     fprintf(stderr, "!%s: si %g (%u) --> %u + %g --> [%g,%g] -> %g\n", me,
-            si, ctx->pvlNum, sidx, sfrac,
+            si, ctx->pvlNum, sidx, sfrac, 
             ctx->stackPos[sidx], ctx->stackPos[sidx+1], swrl);
     */
   } else {
@@ -231,10 +172,9 @@ gageStackPerVolumeAttach(gageContext *ctx, gagePerVolume *pvlBase,
   static const char me[]="gageStackPerVolumeAttach";
   unsigned int blIdx;
 
-  if (!(ctx && pvlBase && pvlStack && stackPos)) {
+  if (!(ctx && pvlBase && pvlStack && stackPos)) { 
     biffAddf(GAGE, "%s: got NULL pointer %p %p %p %p", me,
-             AIR_VOIDP(ctx), AIR_VOIDP(pvlBase),
-             AIR_VOIDP(pvlStack), AIR_CVOIDP(stackPos));
+             ctx, pvlBase, pvlStack, stackPos);
     return 1;
   }
   if (!( blNum >= 2 )) {
@@ -251,7 +191,7 @@ gageStackPerVolumeAttach(gageContext *ctx, gagePerVolume *pvlBase,
   }
   for (blIdx=0; blIdx<blNum; blIdx++) {
     if (!AIR_EXISTS(stackPos[blIdx])) {
-      biffAddf(GAGE, "%s: stackPos[%u] = %g doesn't exist", me, blIdx,
+      biffAddf(GAGE, "%s: stackPos[%u] = %g doesn't exist", me, blIdx, 
                stackPos[blIdx]);
       return 1;
     }
@@ -275,7 +215,7 @@ gageStackPerVolumeAttach(gageContext *ctx, gagePerVolume *pvlBase,
     biffAddf(GAGE, "%s: on base pvl", me);
     return 1;
   }
-
+  
   airFree(ctx->stackPos);
   airFree(ctx->stackFsl);
   airFree(ctx->stackFw);
@@ -301,7 +241,7 @@ gageStackPerVolumeAttach(gageContext *ctx, gagePerVolume *pvlBase,
 **
 ** after the individual iv3's in the stack have been filled, this does
 ** the across-stack filtering to fill the iv3 of pvl[pvlNum-1] (the
-** "base" pvl)
+** "base" pvl) 
 */
 int
 _gageStackBaseIv3Fill(gageContext *ctx) {
@@ -310,21 +250,21 @@ _gageStackBaseIv3Fill(gageContext *ctx) {
 
   fd = 2*ctx->radius;
   /* the "base" pvl is the LAST pvl */
-  baseIdx = ctx->pvlNum - 1;
+  baseIdx = ctx->pvlNum - 1; 
   cacheLen = fd*fd*fd*ctx->pvl[0]->kind->valLen;
   if (ctx->verbose > 2) {
     fprintf(stderr, "%s: cacheLen = %u\n", me, cacheLen);
   }
-  if (nrrdKernelHermiteScaleSpaceFlag  == ctx->ksp[gageKernelStack]->kernel) {
+  if (nrrdKernelHermiteFlag == ctx->ksp[gageKernelStack]->kernel) {
     unsigned int xi, yi, zi, blurIdx, valIdx, fdd;
     double xx, *iv30, *iv31, sigma0, sigma1;
-
+    
     fdd = fd*fd;
     /* initialize the output iv3 to all zeros, since we won't be
        usefully setting the values on the boundary (the boundary which
        is required in the rest of the stack's iv3s in order to do the
        laplacian-based spline recon), and we can't have any
-       non-existent values creeping in.  We shouldn't need to do any
+       non-existant values creeping in.  We shouldn't need to do any
        kind of nrrdBoundaryBleed thing here, because the kernel
        weights really should be zero on the boundary. */
     for (cacheIdx=0; cacheIdx<cacheLen; cacheIdx++) {
@@ -343,7 +283,7 @@ _gageStackBaseIv3Fill(gageContext *ctx) {
     /* so no way that pvlIdx == pvlNum-1 */
     if (pvlIdx == ctx->pvlNum-2) {
       /* pvlNum-2 is pvl index of last pre-blurred volume */
-      /* gageStackPerVolumeAttach() enforces getting at least two
+      /* gageStackPerVolumeAttach() enforces getting at least two 
          pre-blurred volumes --> pvlNum >= 3 --> blurIdx >= 0 */
       blurIdx = pvlIdx-1;
       xx = 1;
@@ -420,12 +360,8 @@ gageStackProbe(gageContext *ctx,
     return 1;
   }
   if (!ctx->parm.stackUse) {
-    if (ctx->parm.generateErrStr) {
-      sprintf(ctx->errStr, "%s: can't probe stack without parm.stackUse", me);
-    } else {
-      strcpy(ctx->errStr, _GAGE_NON_ERR_STR);
-    }
-    ctx->errNum = gageErrStackUnused;
+    sprintf(ctx->errStr, "%s: can't probe stack without parm.stackUse", me);
+    ctx->errNum = 1;
     return 1;
   }
   return _gageProbe(ctx, xi, yi, zi, stackIdx);
@@ -441,12 +377,8 @@ gageStackProbeSpace(gageContext *ctx,
     return 1;
   }
   if (!ctx->parm.stackUse) {
-    if (ctx->parm.generateErrStr) {
-      sprintf(ctx->errStr, "%s: can't probe stack without parm.stackUse", me);
-    } else {
-      strcpy(ctx->errStr, _GAGE_NON_ERR_STR);
-    }
-    ctx->errNum = gageErrStackUnused;
+    sprintf(ctx->errStr, "%s: can't probe stack without parm.stackUse", me);
+    ctx->errNum = 1;
     return 1;
   }
   return _gageProbeSpace(ctx, xx, yy, zz, ss, indexSpace, clamp);

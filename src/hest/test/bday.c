@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -43,14 +43,14 @@ char *info = ("simulates M people in a room finding out if two or more "
               "of days in the year.");
 
 int
-main(int argc, const char *argv[]) {
+main(int argc, char *argv[]) {
   airArray *mop;
   hestOpt *hopt=NULL;
   int i, N, M, P, yes, *year;
   unsigned int E;
-  const char *me;
+  char *me;
   double crct;
-
+  
   me = argv[0];
   mop = airMopNew();
   hestOptAdd(&hopt, "N", "days", airTypeInt, 1, 1, &N, "365",
@@ -65,17 +65,17 @@ main(int argc, const char *argv[]) {
                  me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
-
+  
   if (!( N > 1 && M > 0 && P > 1)) {
     fprintf(stderr, "%s: need both M, P all > 1, M > 0\n", me);
     airMopError(mop); exit(1);
   }
   if (!(year = (int*)calloc(N, sizeof(int)))) {
-    fprintf(stderr, "%s: couldn't calloc(%d,sizeof(int))\n", me, N);
+    fprintf(stderr, "%s: couldn't calloc(%d,sizeof(int))\n", me, N); 
     airMopError(mop); exit(1);
   }
   airMopMem(mop, year, airMopAlways);
-
+  
   crct = 1;
   for (i=0; i<M; i++) {
     crct *= (double)(N-i)/N;
@@ -92,7 +92,7 @@ main(int argc, const char *argv[]) {
     }
     E++;
   }
-
+  
   airMopOkay(mop);
   exit(0);
 }

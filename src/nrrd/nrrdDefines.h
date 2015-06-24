@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -32,7 +31,7 @@ extern "C" {
 
 /* feel free to set these to higher values and recompile */
 #define NRRD_DIM_MAX 16            /* Max array dimension (nrrd->dim) */
-#define NRRD_SPACE_DIM_MAX 8       /* Max dimension of "space" around array
+#define NRRD_SPACE_DIM_MAX 8       /* Max dimension of "space" around array 
                                       (nrrd->spaceDim) */
 
 #define NRRD_EXT_NRRD   ".nrrd"
@@ -44,8 +43,6 @@ extern "C" {
 #define NRRD_EXT_TEXT   ".txt"
 #define NRRD_EXT_EPS    ".eps"
 
-/* HEY: should this be renamed -> MAXNUM ? Would be more consistent
-   with other Teem pound-define names */
 #define NRRD_KERNEL_PARMS_NUM 8    /* max # arguments to a kernel-
                                       this is weird: it isn't the max
                                       of any of the NrrdKernels
@@ -57,28 +54,54 @@ extern "C" {
                                       Enforcing one global max
                                       simplifies implementation. */
 
-/*
-** For the 64-bit integer types (not standard except in C99), we used
-** to try to use the names for the _MIN and _MAX values which are used
-** in C99 (as well as gcc) such as LLONG_MAX, or those used on SGI
-** such as LONGLONG_MAX.  However, since the tests (in nrrdSanity)
-** were re-written to detect overflow based on manipulation of
-** specific values, we might as well also define the _MIN and _MAX in
-** terms of explicit values (which agree with those defined by C99).
+/* 
+** For the 64-bit integer types (not standard except in C99), we try
+** to use the names for the _MIN and _MAX values which are used in C99
+** (as well as gcc) such as LLONG_MAX.
+** 
+** If these aren't defined, we try the ones used on SGI such as
+** LONGLONG_MAX.
+**
+** If these aren't defined either, we go wild and define something
+** ourselves (which just happen to be the values defined in C99), with
+** total disregard to what the architecture and compiler actually
+** support.  These values are tested, however, by nrrdSanity().
 */
 
-#define NRRD_LLONG_MAX AIR_LLONG(9223372036854775807)
-#define NRRD_LLONG_MIN (-NRRD_LLONG_MAX-AIR_LLONG(1))
-#define NRRD_ULLONG_MAX AIR_ULLONG(18446744073709551615)
+#ifdef LLONG_MAX
+#  define NRRD_LLONG_MAX LLONG_MAX
+#else
+#  ifdef LONGLONG_MAX
+#    define NRRD_LLONG_MAX LONGLONG_MAX
+#  else
+#    define NRRD_LLONG_MAX AIR_LLONG(9223372036854775807)
+#  endif
+#endif
+
+#ifdef LLONG_MIN
+#  define NRRD_LLONG_MIN LLONG_MIN
+#else
+#  ifdef LONGLONG_MIN
+#    define NRRD_LLONG_MIN LONGLONG_MIN
+#  else
+#    define NRRD_LLONG_MIN (-NRRD_LLONG_MAX-AIR_LLONG(1))
+#  endif
+#endif
+
+#ifdef ULLONG_MAX
+#  define NRRD_ULLONG_MAX ULLONG_MAX
+#else
+#  ifdef ULONGLONG_MAX
+#    define NRRD_ULLONG_MAX ULONGLONG_MAX
+#  else
+#    define NRRD_ULLONG_MAX AIR_ULLONG(18446744073709551615)
+#  endif
+#endif
 
 /*
 ** Chances are, you shouldn't mess with these
 */
 
-/* ---- BEGIN non-NrrdIO */
-/* suffix string that indicates percentile-based min/max */
-#define NRRD_MINMAX_PERC_SUFF "%"
-/* ---- END non-NrrdIO */
 #define NRRD_COMMENT_CHAR '#'
 #define NRRD_FILENAME_INCR 32
 #define NRRD_COMMENT_INCR 16

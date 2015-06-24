@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -43,11 +42,11 @@
 */
 void
 limnHestCameraOptAdd(hestOpt **hoptP, limnCamera *cam,
-                     const char *frDef, const char *atDef, const char *upDef,
-                     const char *dnDef, const char *diDef, const char *dfDef,
-                     const char *urDef, const char *vrDef, const char *fvDef) {
+                     char *frDef, char *atDef, char *upDef,
+                     char *dnDef, char *diDef, char *dfDef,
+                     char *urDef, char *vrDef, char *fvDef) {
   hestOpt *hopt;
-
+  
   hopt = *hoptP;
   hestOptAdd(&hopt, "fr", "eye pos", airTypeDouble, 3, 3, cam->from,
              frDef, "camera eye point");

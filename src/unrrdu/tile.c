@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,7 +24,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Tile slices of one axis into two other axes"
-static const char *_unrrdu_tileInfoL =
+char *_unrrdu_tileInfoL =
 (INFO
  ". Tiling an array means splitting one axis into fast and slow parts, "
  "and then interleaving those parts into other (existing) axes by doing "
@@ -33,12 +32,10 @@ static const char *_unrrdu_tileInfoL =
  "axis.  This reduces the dimension by one.  The three axis arguments all "
  "identify axes in the input array as is.  This provides, for example, "
  "a simple way of viewing the 128 slices along the slow axis of a 3-D volume "
- "as a 16x8 tiled array of 2-D slices, as with \"-a 2 0 1 -s 16 8\".\n "
- "* Uses nrrdTile2D");
+ "as a 16x8 tiled array of 2-D slices, as with \"-a 2 0 1 -s 16 8\".");
 
 int
-unrrdu_tileMain(int argc, const char **argv, const char *me,
-                hestParm *hparm) {
+unrrdu_tileMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -64,7 +61,7 @@ unrrdu_tileMain(int argc, const char **argv, const char *me,
 
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-
+  
   if (nrrdTile2D(nout, nin, axes[1], axes[2], axes[0], size[0], size[1])) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error tiling nrrd:\n%s", me, err);

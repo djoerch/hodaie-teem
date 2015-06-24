@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -29,31 +28,29 @@
 #include <teem/hoover.h>
 #include <teem/mite.h>
 
-static const char *miteInfo =
-  ("A simple but effective little volume renderer.");
+char *miteInfo = ("A simple but effective little volume renderer.");
 
 int
-main(int argc, const char *argv[]) {
+main(int argc, char *argv[]) {
   airArray *mop;
   hestOpt *hopt=NULL;
   hestParm *hparm=NULL;
   miteUser *muu;
-  const char *me;
-  char *errS, *outS, *shadeStr, *normalStr, debugStr[AIR_STRLEN_MED];
+  char *me, *errS, *outS, *shadeStr, *normalStr, debugStr[AIR_STRLEN_MED];
   int renorm, baseDim, verbPix[2], offfr;
   int E, Ecode, Ethread;
   float ads[3], isScale;
   double turn, eye[3], eyedist, gmc;
   double v[NRRD_SPACE_DIM_MAX];
   Nrrd *nin;
-
+  
   me = argv[0];
   mop = airMopNew();
   hparm = hestParmNew();
   airMopAdd(mop, hparm, (airMopper)hestParmFree, airMopAlways);
   muu = miteUserNew();
   airMopAdd(mop, muu, (airMopper)miteUserNix, airMopAlways);
-
+  
   hparm->respFileEnable = AIR_TRUE;
   hparm->elideMultipleNonExistFloatDefault = AIR_TRUE;
   hestOptAdd(&hopt, "i", "nsin", airTypeOther, 1, 1, &(muu->nsin), "",
@@ -91,7 +88,7 @@ main(int argc, const char *argv[]) {
              "scaling of image size (from \"is\")");
   hestOptAdd(&hopt, "ads", "ka kd ks", airTypeFloat, 3, 3, ads,
              "0.1 0.6 0.3", "phong components");
-  hestOptAdd(&hopt, "sp", "spec pow", mite_at, 1, 1,
+  hestOptAdd(&hopt, "sp", "spec pow", mite_at, 1, 1, 
              &(muu->rangeInit[miteRangeSP]), "30", "phong specular power");
   hestOptAdd(&hopt, "k00", "kernel", airTypeOther, 1, 1,
              &(muu->ksp[gageKernel00]),
@@ -134,7 +131,7 @@ main(int argc, const char *argv[]) {
   hestOptAdd(&hopt, "n1", "near1", airTypeDouble, 1, 1, &(muu->opacNear1),
              "0.99", "opacity close enough to 1.0 to terminate ray");
   hestOptAdd(&hopt, "nt", "# threads", airTypeInt, 1, 1,
-             &(muu->hctx->numThreads), "1",
+             &(muu->hctx->numThreads), "1", 
              (airThreadCapable
               ? "number of threads hoover should use"
               : "if pthreads where enabled in this Teem build, this is how "
@@ -145,7 +142,7 @@ main(int argc, const char *argv[]) {
                  me, miteInfo, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
-
+  
   if (muu->nsin) {
     nin = muu->nsin;
     baseDim = 0;
@@ -160,7 +157,7 @@ main(int argc, const char *argv[]) {
     airMopError(mop);
     return 1;
   }
-
+  
   /* finish processing command-line args */
   muu->rangeInit[miteRangeKa] = ads[0];
   muu->rangeInit[miteRangeKd] = ads[1];
@@ -175,7 +172,7 @@ main(int argc, const char *argv[]) {
   }
   muu->hctx->imgSize[0] = AIR_CAST(int, isScale*muu->hctx->imgSize[0]);
   muu->hctx->imgSize[1] = AIR_CAST(int, isScale*muu->hctx->imgSize[1]);
-
+  
   muu->nout = nrrdNew();
   airMopAdd(mop, muu->nout, (airMopper)nrrdNuke, airMopAlways);
   ELL_3V_SET(muu->lit->col[0], 1, 1, 1);
@@ -191,7 +188,7 @@ main(int argc, const char *argv[]) {
        from the (unavoidable) default */
     muu->hctx->cam->fov = AIR_NAN;
   }
-  if (limnCameraAspectSet(muu->hctx->cam,
+  if (limnCameraAspectSet(muu->hctx->cam, 
                           muu->hctx->imgSize[0], muu->hctx->imgSize[1],
                           nrrdCenterCell)
       || limnCameraUpdate(muu->hctx->cam)
@@ -225,8 +222,9 @@ main(int argc, const char *argv[]) {
     fprintf(stderr, "    N = {%g,%g,%g}\n",
     muu->hctx->cam->N[0], muu->hctx->cam->N[1], muu->hctx->cam->N[2]);
   */
-  airStrcpy(muu->shadeStr, AIR_STRLEN_MED, shadeStr);
-  airStrcpy(muu->normalStr, AIR_STRLEN_MED, normalStr);
+  strncpy(muu->shadeStr, shadeStr, AIR_STRLEN_MED-1);
+  strncpy(muu->normalStr, normalStr, AIR_STRLEN_MED-1);
+  muu->shadeStr[AIR_STRLEN_MED-1] = 0;
   if (0) {
     muu->hctx->volSize[0] = nin->axis[baseDim+0].size;
     muu->hctx->volSize[1] = nin->axis[baseDim+1].size;
@@ -252,7 +250,7 @@ main(int argc, const char *argv[]) {
   muu->hctx->rayEnd = (hooverRayEnd_t *)miteRayEnd;
   muu->hctx->threadEnd = (hooverThreadEnd_t *)miteThreadEnd;
   muu->hctx->renderEnd = (hooverRenderEnd_t *)miteRenderEnd;
-
+  
   if (!airThreadCapable && 1 != muu->hctx->numThreads) {
     fprintf(stderr, "%s: This Teem not compiled with "
             "multi-threading support.\n", me);
@@ -260,9 +258,9 @@ main(int argc, const char *argv[]) {
             me, muu->hctx->numThreads);
     muu->hctx->numThreads = 1;
   }
-
+  
   fprintf(stderr, "%s: rendering ... ", me); fflush(stderr);
-
+  
   E = hooverRender(muu->hctx, &Ecode, &Ethread);
   if (E) {
     if (hooverErrInit == E) {
@@ -295,7 +293,7 @@ main(int argc, const char *argv[]) {
     airMopError(mop);
     return 1;
   }
-
+  
   airMopOkay(mop);
   return 0;
 }

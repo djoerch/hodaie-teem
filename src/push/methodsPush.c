@@ -1,6 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -32,7 +31,6 @@
 pushPoint *
 pushPointNew(pushContext *pctx) {
   pushPoint *pnt;
-  pushPtrPtrUnion pppu;
 
   if (pctx) {
     pnt = AIR_CAST(pushPoint *, calloc(1, sizeof(pushPoint)));
@@ -50,8 +48,7 @@ pushPointNew(pushContext *pctx) {
       pnt->seedThresh = AIR_NAN;
       pnt->enr = DBL_MAX;  /* any finite quantity will be less than this */
 
-      pnt->neighArr = airArrayNew((pppu.point = &(pnt->neigh), pppu.v),
-                                  &(pnt->neighNum),
+      pnt->neighArr = airArrayNew((void**)&(pnt->neigh), &(pnt->neighNum),
                                   sizeof(pushPoint *), 10);
     }
   } else {
@@ -163,7 +160,7 @@ pushContextNew(void) {
 */
 pushContext *
 pushContextNix(pushContext *pctx) {
-
+  
   if (pctx) {
     pctx->ensp = pushEnergySpecNix(pctx->ensp);
     pctx->ksp00 = nrrdKernelSpecNix(pctx->ksp00);

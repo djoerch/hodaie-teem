@@ -1,6 +1,5 @@
 #
 # Teem: Tools to process and visualize scientific data and images
-# Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
 # Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
 # Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 #
@@ -52,10 +51,10 @@ $(L).PRIVATE_HEADERS = privateGage.h
 $(L).OBJS = defaultsGage.o miscGage.o scl.o kind.o \
         shape.o pvl.o update.o deconvolve.o \
 	print.o sclanswer.o sclprint.o sclfilter.o \
-	vecGage.o vecprint.o st.o filter.o ctx.o \
+	vecGage.o vecprint.o st.o multiGage.o filter.o ctx.o \
 	stack.o stackBlur.o optimsig.o
 $(L).TESTS = test/ctfix test/demo test/vh test/aalias test/indx \
-        test/genoptsig test/ssc
+        test/genoptsig
 ####
 ####
 ####
