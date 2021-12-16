@@ -5,3 +5,17 @@ cmake_install.cmake
 install_manifest.txt
 .svn
 *~
+CMake/TeemConfig.cmake
+CMakeError.log
+CTestTestfile.cmake
+DartConfiguration.tcl
+TeemBuildSettings.cmake
+TeemConfig.cmake
+TeemLibraryDepends.cmake
+Testing/CTestTestfile.cmake
+Testing/biff/CTestTestfile.cmake
+Testing/nrrd/CTestTestfile.cmake
+bin/
+include/teem/
+src/bin/CTestTestfile.cmake
+
