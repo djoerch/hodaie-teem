@@ -1272,7 +1272,7 @@ tenFiberMultiTrace(tenFiberContext *tfx, tenFiberMulti *tfml,
 
 // private variables can only be used by individual threads (makes copies of them)
 // shared variables are accessible by all threads at the same location in memory
-#pragma omp parallel default(none) private(iam, np, dirIdx, seedIdx, fibrIdx, seed, tfxIndividual, tfmlIndividual, n, mopIndividual) shared(stderr, tenBiffKey, seedNumS, dirS, tfml, tfx, seedNum, fibrNum, dirNum, seedData, tfxNew, abort) 
+#pragma omp parallel default(none) private(iam, np, dirIdx, seedIdx, fibrIdx, seed, tfxIndividual, tfmlIndividual, n, mopIndividual) shared(stderr, tenBiffKey, seedNumS, dirS, tfml, tfx, seedNum, fibrNum, dirNum, seedData, tfxNew, abort, me, tenFiberStop) 
   {
     // need to initialize new tfmlIndividual
     // will set seedPos, dirIdx, and dirNum BUT NOT fiberArr 
